@@ -104,6 +104,38 @@ namespace data {
         }
     }
 
+    TEST(Matrix, ScalarMultiplication) {
+        Matrix<int> m1({45, 45});
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(-1, 1);
+
+        auto g = [&]() {
+            return dis(gen);
+        };
+        for(int i = 0; i < 4; ++i) {
+            m1.random(g);
+            ASSERT_EQ(3 * m1, Matrix<int>((3 * m1.toEigenMatrix()).eval()));
+        }
+    }
+
+    TEST(Matrix, Equal) {
+        Matrix<double> m1({45, 59});
+        Matrix<double> m2({45, 59});
+
+        for(int i = 0; i < 4; ++i) {
+            m1.identity();
+            m2.identity();
+            ASSERT_EQ(m1, m2);
+            ASSERT_EQ(m2, m1);
+
+            m2 = 3. * m2;
+
+            ASSERT_NE(m1, m2);
+            ASSERT_NE(m2, m1);
+        }
+    }
+
     TEST(Matrix, Transpose) {
         Matrix<double> m1({47, 39});
         std::random_device rd;

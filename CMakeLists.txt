@@ -8,7 +8,7 @@ include(allscale)
 
 find_package(Boost REQUIRED)
 find_package(GTest REQUIRED)
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 set(THEADS_PREFER_PTHEAD_FLAG on)
 find_package(Threads REQUIRED)
@@ -27,14 +27,19 @@ include_directories(${GTEST_INCLUDE_DIRS})
 # -- Compilation
 
 add_executable(mm_allscale src/benchmark/mm_allscale.cc)
+add_executable(mm_allscale_strassen src/benchmark/mm_allscale_strassen.cc)
 add_executable(mm_eigen src/benchmark/mm_eigen.cc)
 
 add_executable(matrix_test src/test/user/data/matrix.cc)
 
 target_compile_definitions(mm_allscale PRIVATE EIGEN_DONT_PARALLELIZE=1)
+target_compile_definitions(mm_allscale_strassen PRIVATE EIGEN_DONT_PARALLELIZE=1)
 
 target_include_directories(mm_allscale PUBLIC include)
 target_include_directories(mm_allscale PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
+
+target_include_directories(mm_allscale_strassen PUBLIC include)
+target_include_directories(mm_allscale_strassen PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
 target_include_directories(mm_eigen PUBLIC include)
 
@@ -43,6 +48,9 @@ target_include_directories(matrix_test PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
 target_link_libraries (mm_allscale Eigen3::Eigen)
 target_link_libraries (mm_allscale ${CMAKE_THREAD_LIBS_INIT})
+
+target_link_libraries (mm_allscale_strassen Eigen3::Eigen)
+target_link_libraries (mm_allscale_strassen ${CMAKE_THREAD_LIBS_INIT})
 
 target_link_libraries (mm_eigen Eigen3::Eigen)
 

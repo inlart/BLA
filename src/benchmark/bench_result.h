@@ -4,6 +4,7 @@
 #include <cmath>
 #include <sstream>
 #include <iomanip>
+#include <iostream>
 
 static constexpr int NUMBER_BENCHMARK_RUNS = 4;
 
