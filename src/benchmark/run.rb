@@ -28,8 +28,14 @@ puts "NREP: #{num_executions}"
 inputs = [128, 256, 512, 1024, 2048, 4096]
 extensions = ["mm_eigen", "mm_allscale", "mm_allscale_strassen"]
 
-if File.exists? "results.csv"
-    File.delete("results.csv")
+if ARGV[0]
+    filename = ARGV[0]
+else
+    filename = "results.csv"
+end
+
+if File.exists? filename
+    File.delete(filename)
 end
 
 csv_content = Array.new
@@ -77,7 +83,7 @@ inputs.each do |input|
             csv_content.push(result_content)
         end
 
-            CSV.open('results.csv', 'a+') do |csv_object|
+            CSV.open(filename, 'a+') do |csv_object|
                 csv_content.each do |row_array|
                     csv_object << row_array
                 end

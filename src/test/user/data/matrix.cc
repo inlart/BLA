@@ -104,6 +104,23 @@ namespace data {
         }
     }
 
+    TEST(Matrix, MultiplicationStrassen) {
+        Matrix<double> m1({1024, 1024});
+        Matrix<double> m2({m1.columns(), 1024});
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<double> dis(-1, 1);
+
+        auto g = [&]() {
+            return dis(gen);
+        };
+        for(int i = 0; i < 4; ++i) {
+            m1.random(g);
+            m2.random(g);
+            ASSERT_TRUE(isAlmostEqual(strassen(m1, m2), Matrix<double>((m1.toEigenMatrix()*m2.toEigenMatrix()).eval())));
+        }
+    }
+
     TEST(Matrix, ScalarMultiplication) {
         Matrix<int> m1({45, 45});
         std::random_device rd;
@@ -136,6 +153,36 @@ namespace data {
         }
     }
 
+    TEST(Matrix, PforEach) {
+        Matrix<double> m1({50, 40});
+
+        m1.zero();
+
+        m1.pforEach([](auto& element) { element += 1; });
+
+        for(int i = 0; i < m1.size()[0]; ++i) {
+            for(int j = 0; j < m1.size()[1]; ++j) {
+                ASSERT_EQ((m1[{i, j}]), 1);
+            }
+        }
+    }
+
+    TEST(Matrix, ForEach) {
+        Matrix<double> m1({50, 40});
+
+        m1.zero();
+
+        int count = 0;
+
+        m1.forEach([&](auto& element) { element += count; ++count; });
+
+        for(int i = 0; i < m1.size()[0]; ++i) {
+            for(int j = 0; j < m1.size()[1]; ++j) {
+                ASSERT_EQ((m1[{i, j}]), (i * m1.size()[1] + j));
+            }
+        }
+    }
+
     TEST(Matrix, Transpose) {
         Matrix<double> m1({47, 39});
         std::random_device rd;
@@ -151,9 +198,32 @@ namespace data {
 		ASSERT_EQ(m1.rows(), m2.columns());
 		ASSERT_EQ(m2.rows(), m1.columns());
 
-		algorithm::pfor(point_type{m1.size()},[&](const point_type& p) {
+		algorithm::pfor(m1.size(),[&](const point_type& p) {
 			ASSERT_EQ(m1[p], (m2[{p.y, p.x}]));
 		});
+    }
+
+    TEST(Matrix, SubMatrix) {
+        const int n = 8;
+        const int nh = n / 2;
+        Matrix<int> m1({n, n});
+
+        algorithm::pfor(m1.size(), [&](const auto& p){
+            m1[p] = p.y % nh + nh * (p.x % nh);
+        });
+
+        Matrix<int> s1 = m1.sub({0, 0}, {nh, nh});
+        Matrix<int> s2 = m1.sub({0, nh}, {nh, nh});
+        Matrix<int> s3 = m1.sub({nh, 0}, {nh, nh});
+        Matrix<int> s4 = m1.sub({nh, nh}, {nh, nh});
+
+        ASSERT_EQ(s1, s2);
+        ASSERT_EQ(s2, s3);
+        ASSERT_EQ(s3, s4);
+
+        s4[{0, 0}] = 1;
+
+        ASSERT_NE(s4, s1);
     }
 
     TEST(Matrix, MultipleOperations) {
