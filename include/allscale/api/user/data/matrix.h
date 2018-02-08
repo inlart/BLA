@@ -47,14 +47,6 @@ namespace data {
 	template<typename E, typename T>
 	class NegMat;
 
-	/*
-	 * Represents a part of a Matrix
-	 * Elements are modifiable
-	 * Doesn't guarantee contiguous memory
-	 */
-	template<typename T>
-    class SubMatrix;
-
     /*
      * Represents the Matrix
      * Elements are modifiable
@@ -64,12 +56,10 @@ namespace data {
 	class Matrix;
 
 	namespace detail {
-        template<typename T>
+        template<int Depth = 2048, typename T>
         void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordinate_type size) {
-            if (size <= 128) { //TODO: move this fixed "128"
-                matrix_multiplication(&C[{0, 0}], A, B);
-                // only valid if size = 1
-                // C[{0,0}] = A[{0,0}] * B[{0,0}];
+            if (size <= Depth) {
+                matrix_multiplication(C, A, B);
                 return;
             }
 
@@ -117,48 +107,41 @@ namespace data {
             Matrix<T> p6(size_m);
             Matrix<T> p7(size_m);
 
+            auto a11_eigen = a11.getEigenMap();
+            auto a12_eigen = a12.getEigenMap();
+            auto a21_eigen = a21.getEigenMap();
+            auto a22_eigen = a22.getEigenMap();
 
-            Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> a11_eigen(&a11[{0, 0}], a11.rows(), a11.columns());
-            Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> a12_eigen(&a12[{0, 0}], a12.rows(), a12.columns());
-            Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> a21_eigen(&a21[{0, 0}], a21.rows(), a21.columns());
-            Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> a22_eigen(&a22[{0, 0}], a22.rows(), a22.columns());
+            auto b11_eigen = b11.getEigenMap();
+            auto b12_eigen = b12.getEigenMap();
+            auto b21_eigen = b21.getEigenMap();
+            auto b22_eigen = b22.getEigenMap();
 
-            Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> b11_eigen(&b11[{0, 0}], b11.rows(), b11.columns());
-            Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> b12_eigen(&b12[{0, 0}], b12.rows(), b12.columns());
-            Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> b21_eigen(&b21[{0, 0}], b21.rows(), b21.columns());
-            Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> b22_eigen(&b22[{0, 0}], b22.rows(), b22.columns());
+            auto s1_eigen = s1.getEigenMap();
+            auto s2_eigen = s2.getEigenMap();
+            auto s3_eigen = s3.getEigenMap();
+            auto s4_eigen = s4.getEigenMap();
 
-    //        Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> c11_eigen(&c11[{0, 0}], c11.rows(), c11.columns());
-    //        Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> c12_eigen(&c12[{0, 0}], c12.rows(), c12.columns());
-    //        Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> c21_eigen(&c21[{0, 0}], c21.rows(), c21.columns());
-    //        Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> c22_eigen(&c22[{0, 0}], c22.rows(), c22.columns());
+            auto t1_eigen = t1.getEigenMap();
+            auto t2_eigen = t2.getEigenMap();
+            auto t3_eigen = t3.getEigenMap();
+            auto t4_eigen = t4.getEigenMap();
 
+            auto p1_eigen = p1.getEigenMap();
+            auto p2_eigen = p2.getEigenMap();
+            auto p3_eigen = p3.getEigenMap();
+            auto p4_eigen = p4.getEigenMap();
+            auto p5_eigen = p5.getEigenMap();
+            auto p6_eigen = p6.getEigenMap();
+            auto p7_eigen = p7.getEigenMap();
 
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> s1_eigen(&s1[{0, 0}], s1.rows(), s1.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> s2_eigen(&s2[{0, 0}], s2.rows(), s2.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> s3_eigen(&s3[{0, 0}], s3.rows(), s3.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> s4_eigen(&s4[{0, 0}], s4.rows(), s4.columns());
-
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> t1_eigen(&t1[{0, 0}], t1.rows(), t1.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> t2_eigen(&t2[{0, 0}], t2.rows(), t2.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> t3_eigen(&t3[{0, 0}], t3.rows(), t3.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> t4_eigen(&t4[{0, 0}], t4.rows(), t4.columns());
-
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> p1_eigen(&p1[{0, 0}], p1.rows(), p1.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> p2_eigen(&p2[{0, 0}], p2.rows(), p2.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> p3_eigen(&p3[{0, 0}], p3.rows(), p3.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> p4_eigen(&p4[{0, 0}], p4.rows(), p4.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> p5_eigen(&p5[{0, 0}], p5.rows(), p5.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> p6_eigen(&p6[{0, 0}], p6.rows(), p6.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> p7_eigen(&p7[{0, 0}], p7.rows(), p7.columns());
-
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> u1_eigen(&u1[{0, 0}], u1.rows(), u1.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> u2_eigen(&u2[{0, 0}], u2.rows(), u2.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> u3_eigen(&u3[{0, 0}], u3.rows(), u3.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> u4_eigen(&u4[{0, 0}], u4.rows(), u4.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> u5_eigen(&u5[{0, 0}], u5.rows(), u5.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> u6_eigen(&u6[{0, 0}], u6.rows(), u6.columns());
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> u7_eigen(&u7[{0, 0}], u7.rows(), u7.columns());
+            auto u1_eigen = u1.getEigenMap();
+            auto u2_eigen = u2.getEigenMap();
+            auto u3_eigen = u3.getEigenMap();
+            auto u4_eigen = u4.getEigenMap();
+            auto u5_eigen = u5.getEigenMap();
+            auto u6_eigen = u6.getEigenMap();
+            auto u7_eigen = u7.getEigenMap();
 
             s1_eigen = a21_eigen + a22_eigen;
             s2_eigen = s1_eigen - a11_eigen;
@@ -358,55 +341,6 @@ namespace data {
         const E& matrix;
     };
 
-    template<typename T>
-    class SubMatrix : public MatrixExpression<SubMatrix<T>, T> {
-    public:
-        SubMatrix(const Matrix<T>& e, point_type start, point_type sub_size) : matrix(e), start(start), sub_size(sub_size) {
-            assert_lt(start, e.size());
-            assert_le(start + sub_size, e.size());
-        }
-
-        SubMatrix<T>& operator=(SubMatrix<T> other) {
-            assert_eq(size(), other.size());
-            algorithm::pfor(size(),[&](const auto& p){
-                (*this)[p] = other[p];
-            });
-
-            return *this;
-        }
-
-        T& operator[](const point_type& pos) {
-            assert_lt(pos, sub_size);
-            return matrix[pos + start];
-        }
-
-        const T& operator[](const point_type& pos) const {
-            assert_lt(pos, sub_size);
-            return matrix[pos + start];
-        }
-
-        point_type size() const {
-            return sub_size;
-        }
-
-        std::int64_t rows() const {
-            return sub_size[0];
-        }
-
-        std::int64_t columns() const {
-            return sub_size[1];
-        }
-
-        SubMatrix<T> sub(point_type start, point_type size) const {
-            return SubMatrix<T>(matrix, this->start + start, size);
-        }
-
-    private:
-        const Matrix<T>& matrix;
-        const point_type start;
-        const point_type sub_size;
-    };
-
     template <typename E1, typename E2, typename T>
     MatSum<E1,E2, T> const operator+(const MatrixExpression<E1, T>& u, const MatrixExpression<E2, T>& v) {
         return MatSum<E1, E2, T>(u, v);
@@ -424,6 +358,8 @@ namespace data {
 
     template<typename T>
     class Matrix : public MatrixExpression<Matrix<T>, T> {
+        using map_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<Eigen::Dynamic>>;
+        using cmap_type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<Eigen::Dynamic>>;
     public:
         Matrix(const point_type& size) : m_data(size) {}
 
@@ -468,12 +404,12 @@ namespace data {
         	return m_data.size()[1];
         }
 
-        SubMatrix<T> sub(point_type start, point_type size) const {
-            return SubMatrix<T>(*this, start, size);
+        map_type sub(point_type start, point_type size) {
+            return map_type(&m_data[start], size.x, size.y, Eigen::OuterStride<Eigen::Dynamic>(columns()));
         }
 
-        SubMatrix<T> sub() const {
-            return sub({0, 0}, size());
+        cmap_type sub(point_type start, point_type size) const {
+            return cmap_type(&m_data[start], size.x, size.y, Eigen::OuterStride<Eigen::Dynamic>(columns()));
         }
 
         template<typename Op>
@@ -521,9 +457,17 @@ namespace data {
         Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> toEigenMatrix() {
             Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> result(rows(), columns());
             algorithm::pfor(size(),[&](const point_type& p) {
-                    result(p.x, p.y) = m_data[p];
+                result(p.x, p.y) = m_data[p];
             });
             return result;
+        }
+
+        Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> getEigenMap() {
+            return Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(&m_data[{0, 0}], rows(), columns());
+        }
+
+        Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> getEigenMap() const {
+            return Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(&m_data[{0, 0}], rows(), columns());
         }
 
     private:
@@ -603,9 +547,8 @@ namespace data {
         return me;
     }
 
-
     template<typename T>
-    void matrix_multiplication(T* result_data, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+    void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
         assert(lhs.columns() == rhs.rows());
 
         struct Range {
@@ -613,23 +556,16 @@ namespace data {
             coordinate_type end;
         };
 
-        const T* lhs_data  = &lhs[{0,0}];
-        const T* rhs_data  = &rhs[{0,0}];
-
         // create an Eigen map for the rhs of the multiplication
-        Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > eigen_rhs(rhs_data, rhs.rows(), rhs.columns());
+        auto eigen_rhs = rhs.getEigenMap();
 
         auto eigen_multiplication = [&](const Range& r) {
             assert_le(r.start, r.end);
 
-            T* result_row_ptr = result_data + lhs.columns() * r.start;
-            const T* lhs_row_ptr = lhs_data + lhs.columns() * r.start;
+            auto eigen_res_row = result.sub({r.start, 0}, {r.end - r.start, result.columns()});
+            auto eigen_lhs_row = lhs.sub({r.start, 0}, {r.end - r.start, lhs.columns()});
 
-
-            Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > eigen_res_row(result_row_ptr, r.end - r.start, rhs.columns()); //take r.end-r.start rows of "res"
-            Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> > eigen_lhs_row(lhs_row_ptr, r.end - r.start, lhs.columns()); //take r.end-r.start rows of "a"
-
-            //Eigen matrix multiplication
+            // Eigen matrix multiplication
             eigen_res_row = eigen_lhs_row * eigen_rhs;
         };
 
@@ -683,14 +619,14 @@ namespace data {
     template<typename E1, typename E2, typename T>
     Matrix<T> operator*(const MatrixExpression<E1, T>& u, const MatrixExpression<E2, T>& v) {
         Matrix<T> tmp({u.rows(), v.columns()});
-        matrix_multiplication(&tmp[{0,0}], eval(u), eval(v));
+        matrix_multiplication(tmp, eval(u), eval(v));
         return tmp;
     }
 
     /*
      * Strassen-Winograd's matrix multiplication algorithm
      */
-    template<typename T>
+    template<int Depth = 2048, typename T>
     Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
         assert_eq(A.columns(), B.rows());
 
@@ -702,7 +638,7 @@ namespace data {
         if(A.size() == size && B.size() == size) {
             Matrix<T> result(size);
 
-            detail::strassen_rec(A, B, result, m);
+            detail::strassen_rec<Depth>(A, B, result, m);
 
             return result;
         }
@@ -717,7 +653,7 @@ namespace data {
 
             Matrix<T> result_padded(size);
 
-            detail::strassen_rec(A_padded, B_padded, result_padded, m);
+            detail::strassen_rec<Depth>(A_padded, B_padded, result_padded, m);
 
             Matrix<T> result({A.rows(), B.columns()});
 

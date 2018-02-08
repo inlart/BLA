@@ -105,8 +105,8 @@ namespace data {
     }
 
     TEST(Matrix, MultiplicationStrassen) {
-        Matrix<double> m1({1024, 1024});
-        Matrix<double> m2({m1.columns(), 1024});
+        Matrix<double> m1({256, 256});
+        Matrix<double> m2({m1.columns(), 256});
         std::random_device rd;
         std::mt19937 gen(rd());
         std::uniform_real_distribution<double> dis(-1, 1);
@@ -117,7 +117,7 @@ namespace data {
         for(int i = 0; i < 4; ++i) {
             m1.random(g);
             m2.random(g);
-            ASSERT_TRUE(isAlmostEqual(strassen(m1, m2), Matrix<double>((m1.toEigenMatrix()*m2.toEigenMatrix()).eval())));
+            ASSERT_TRUE(isAlmostEqual(strassen<1>(m1, m2), Matrix<double>((m1.toEigenMatrix()*m2.toEigenMatrix()).eval())));
         }
     }
 
@@ -133,6 +133,25 @@ namespace data {
         for(int i = 0; i < 4; ++i) {
             m1.random(g);
             ASSERT_EQ(3 * m1, Matrix<int>((3 * m1.toEigenMatrix()).eval()));
+        }
+    }
+
+    TEST(Matrix, EigenMap) {
+        Matrix<double> m1({23, 45});
+        Matrix<double> m2({m1.columns(), 53});
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<double> dis(-1, 1);
+
+        auto g = [&]() {
+            return dis(gen);
+        };
+        for(int i = 0; i < 4; ++i) {
+            m1.random(g);
+            m2.random(g);
+            auto map1 = m1.getEigenMap();
+            auto map2 = m2.getEigenMap();
+            ASSERT_TRUE(isAlmostEqual( Matrix<double>(map1 * map2), Matrix<double>((m1.toEigenMatrix()*m2.toEigenMatrix()).eval())));
         }
     }
 
