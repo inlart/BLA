@@ -4,7 +4,7 @@ require 'csv'
 
 class Latex
     @@colors_count = 0
-    @@colors = ["red", "blue", "yellow", "cyan", "gray", "Yellow"]
+    @@colors = ["red", "blue", "yellow", "cyan", "gray", "green", "black", "purple", "peach"]
     @@api_colors = Hash.new
     @@plot_count = 1
 
@@ -246,6 +246,8 @@ class ResultSet
             compiler = row[2]
             time = row[3]
 
+            program = (compiler.split("_")[1]) + '\_' + program
+
             if not @results.has_key?(program)
                 @results.store(program, ProgramResult.new(program))
             end
@@ -256,7 +258,6 @@ class ResultSet
 
     def print_latex()
         @results.each do |name, value|
-            puts name
             name = name.split('.')[0]
             Latex.start_plot
             Latex.print_pgfplot(name, "Runtime (ms)", value.get_time)
@@ -282,35 +283,6 @@ puts "\\documentclass{article}
 \\begin{document}
 
 \\title{Allscale Benchmarks}"
-=begin
-\\author{Martin Hartl}
-
-%\\maketitle
-
-%\\newpage
-
-\\section{Analysis}
-PC (Table \\ref{tab:pc}): Figure \\ref{fig:1}-\\ref{fig:6}. \\newline
-O6 (Table \\ref{tab:o6}): Figure \\ref{fig:7}-\\ref{fig:12}.
-
-\\begin{table}
-\\begin{tabular}{ l | l }
-RAM & 16GB \\\\ \\hline
-CPU & Intel(R) Core(TM) i7-4771 CPU @ 3.50GHz \\\\
-\\end{tabular}
-\\caption{PC Specs}
-\\label{tab:pc}
-\\end{table}
-
-\\begin{table}
-\\begin{tabular}{ l | l }
-RAM & 256GB \\\\ \\hline
-CPU & 4x Intel(R) Xeon(R) CPU E5-4650 0 @ 2.70GHz \\\\
-\\end{tabular}
-\\caption{O6 Specs}
-\\label{tab:o6}
-\\end{table}"
-=end
 
 files.each do |file|
     result = ResultSet.new(file)

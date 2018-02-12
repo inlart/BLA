@@ -26,9 +26,10 @@ puts "NPROC: #{max_threads}"
 puts "NREP: #{num_executions}"
 
 inputs = [128, 256, 512, 1024, 2048, 4096]
-# extensions = ["mm_eigen", "mm_allscale", "mm_allscale_strassen"]
-# extensions = ["add_eigen", "add_allscale"]
-extensions = ["x_eigen", "x_allscale"]
+
+extensions = Dir["#{bin_folder}/bench_*"]
+extensions.map! { |item| File.basename item}
+extensions.sort!
 
 if ARGV[0]
     filename = ARGV[0]
