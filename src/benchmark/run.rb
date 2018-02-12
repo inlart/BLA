@@ -26,7 +26,9 @@ puts "NPROC: #{max_threads}"
 puts "NREP: #{num_executions}"
 
 inputs = [128, 256, 512, 1024, 2048, 4096]
-extensions = ["mm_eigen", "mm_allscale", "mm_allscale_strassen"]
+# extensions = ["mm_eigen", "mm_allscale", "mm_allscale_strassen"]
+# extensions = ["add_eigen", "add_allscale"]
+extensions = ["x_eigen", "x_allscale"]
 
 if ARGV[0]
     filename = ARGV[0]

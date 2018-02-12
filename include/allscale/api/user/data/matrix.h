@@ -52,12 +52,13 @@ namespace data {
      * Elements are modifiable
      * Guarantees contiguous memory
      */
-	template<typename T>
+	template<typename T = double>
 	class Matrix;
 
 	namespace detail {
         template<int Depth = 2048, typename T>
         void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordinate_type size) {
+            static_assert(Depth > 0, "strassen depth has to be > 0");
             if (size <= Depth) {
                 matrix_multiplication(C, A, B);
                 return;
@@ -206,11 +207,22 @@ namespace data {
         }
     }
 
+	struct RowRange {
+        coordinate_type start;
+        coordinate_type end;
+    };
+
     template<typename E, typename T>
     class MatrixExpression {
     public:
 
         T operator[](const point_type& pos) const {
+            return static_cast<const E&>(*this)[pos];
+        }
+
+        T at(const point_type& pos) const {
+            assert_lt(pos, size());
+            assert_ge(pos, (point_type{0, 0}));
             return static_cast<const E&>(*this)[pos];
         }
 
@@ -231,7 +243,6 @@ namespace data {
 			return MatrixTranspose<E, T>(static_cast<const E&>(*this));
 		}
 
-        //these are used to unwrap the MatrixExpression into the actual subclass (e.g. MatSum)
         operator E& () { return static_cast<E&>(*this); }
         operator const E& () const { return static_cast<const E&>(*this); }
     };
@@ -251,11 +262,11 @@ namespace data {
         	return lhs.size();
         }
 
-        std::int64_t rows() const {
+        coordinate_type rows() const {
         	return lhs.rows();
         }
 
-        std::int64_t columns() const {
+        coordinate_type columns() const {
         	return lhs.columns();
         }
 
@@ -279,11 +290,11 @@ namespace data {
         	return rhs.size();
         }
 
-        std::int64_t rows() const {
+        coordinate_type rows() const {
         	return lhs.rows();
         }
 
-        std::int64_t columns() const {
+        coordinate_type columns() const {
         	return lhs.columns();
         }
 
@@ -305,11 +316,11 @@ namespace data {
 			return {rows(), columns()};
 		}
 
-		std::int64_t rows() const {
+		coordinate_type rows() const {
 			return expression.columns();
 		}
 
-		std::int64_t columns() const {
+		coordinate_type columns() const {
 			return expression.rows();
 		}
 
@@ -330,10 +341,10 @@ namespace data {
         	return matrix.size();
         }
 
-        std::int64_t rows() const {
+        coordinate_type rows() const {
         	return matrix.rows();
         }
-        std::int64_t columns() const {
+        coordinate_type columns() const {
         	return matrix.columns();
         }
 
@@ -358,8 +369,10 @@ namespace data {
 
     template<typename T>
     class Matrix : public MatrixExpression<Matrix<T>, T> {
-        using map_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<Eigen::Dynamic>>;
-        using cmap_type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<Eigen::Dynamic>>;
+        using map_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
+        using cmap_type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
+        using map_stride_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<Eigen::Dynamic>>;
+        using cmap_stride_type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<Eigen::Dynamic>>;
     public:
         Matrix(const point_type& size) : m_data(size) {}
 
@@ -368,6 +381,10 @@ namespace data {
             algorithm::pfor(point_type{m_data.size()},[&](const point_type& p) {
                     m_data[p] = mat[p];
             });
+        }
+
+        Matrix(const T& value) {
+            fill(value);
         }
 
         template<typename Derived>
@@ -384,6 +401,11 @@ namespace data {
         Matrix& operator=(const Matrix&) = delete;
         Matrix& operator=(Matrix&&) = default;
 
+        Matrix& operator=(const T& value) {
+            fill(value);
+            return (*this);
+        }
+
         T& operator[](const point_type& pos) {
         	return m_data[pos];
         }
@@ -396,22 +418,33 @@ namespace data {
         	return m_data.size();
         }
 
-        std::int64_t rows() const {
+        coordinate_type rows() const {
         	return m_data.size()[0];
         }
 
-        std::int64_t columns() const {
+        coordinate_type columns() const {
         	return m_data.size()[1];
         }
 
-        map_type sub(point_type start, point_type size) {
-            return map_type(&m_data[start], size.x, size.y, Eigen::OuterStride<Eigen::Dynamic>(columns()));
+        map_stride_type sub(point_type start, point_type size) {
+            return map_stride_type(&m_data[start], size.x, size.y, Eigen::OuterStride<Eigen::Dynamic>(columns()));
         }
 
-        cmap_type sub(point_type start, point_type size) const {
-            return cmap_type(&m_data[start], size.x, size.y, Eigen::OuterStride<Eigen::Dynamic>(columns()));
+        cmap_stride_type sub(point_type start, point_type size) const {
+            return cmap_stride_type(&m_data[start], size.x, size.y, Eigen::OuterStride<Eigen::Dynamic>(columns()));
         }
 
+        map_type sub(const RowRange& r) {
+            assert_le(r.start, r.end);
+             return map_type(&m_data[{r.start, 0}], r.end - r.start, columns());
+         }
+
+         cmap_type sub(const RowRange& r) const {
+             assert_le(r.start, r.end);
+             return cmap_type(&m_data[{r.start, 0}], r.end - r.start, columns());
+         }
+
+         // TODO: remove
         template<typename Op>
         void pforEach(const Op& op) {
             m_data.pforEach(op);
@@ -432,14 +465,19 @@ namespace data {
             m_data.forEach(op);
         }
 
-        void zero() {
-            algorithm::pfor(point_type{m_data.size()},[&](const point_type& p) {
-                    m_data[p] = 0.0;
+        void fill(const T& value) {
+            algorithm::pfor(m_data.size(),[&](const point_type& p) {
+                m_data[p] = value;
             });
         }
 
+        void zero() {
+            fill(0);
+        }
+
         void identity() {
-            algorithm::pfor(point_type{m_data.size()},[&](const point_type& p) {
+            assert_eq(rows(), columns());
+            algorithm::pfor(m_data.size(),[&](const point_type& p) {
                 m_data[p] = p[0] == p[1] ? 1. : 0.;
             });
         }
@@ -447,8 +485,8 @@ namespace data {
         template<typename Generator>
         void random(Generator gen) {
             //we do not use pfor here, rand() is not made for it
-            for(std::int64_t i = 0; i < rows(); ++i) {
-                for(std::int64_t j = 0; j < columns(); ++j) {
+            for(coordinate_type i = 0; i < rows(); ++i) {
+                for(coordinate_type j = 0; j < columns(); ++j) {
                     m_data[{i, j}] = gen();
                 }
             }
@@ -462,12 +500,12 @@ namespace data {
             return result;
         }
 
-        Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> getEigenMap() {
-            return Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(&m_data[{0, 0}], rows(), columns());
+        map_type getEigenMap() {
+            return sub({0, rows()});
         }
 
-        Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> getEigenMap() const {
-            return Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(&m_data[{0, 0}], rows(), columns());
+        cmap_type getEigenMap() const {
+            return sub({0, rows()});
         }
 
     private:
@@ -524,14 +562,6 @@ namespace data {
         return os;
     }
 
-    /**
-     * The eval() function allows you to instruct an explicit evaluation of
-     * any chained matrix operations, which is necessary to prevent aliasing
-     * in some cases. It is used automatically in matrix multiplication.
-     * If you eval() a Matrix<T>, a const reference to the matrix is returned,
-     * if you eval any other MatrixExpression, a temporary Matrix will be created
-     * and filled with the values of the evaluated MatrixExpression.
-     */
     template<typename E, typename T>
     Matrix<T> eval(const MatrixExpression<E, T>& me) {
         assert(typeid(me) != typeid(MatrixExpression<Matrix<T>, T>)); //this is handled in the next function, a special case
@@ -548,22 +578,17 @@ namespace data {
     }
 
     template<typename T>
-    void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+    void matrix_multiplication_split(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
         assert(lhs.columns() == rhs.rows());
-
-        struct Range {
-            coordinate_type start;
-            coordinate_type end;
-        };
 
         // create an Eigen map for the rhs of the multiplication
         auto eigen_rhs = rhs.getEigenMap();
 
-        auto eigen_multiplication = [&](const Range& r) {
+        auto eigen_multiplication = [&](const RowRange& r) {
             assert_le(r.start, r.end);
 
-            auto eigen_res_row = result.sub({r.start, 0}, {r.end - r.start, result.columns()});
-            auto eigen_lhs_row = lhs.sub({r.start, 0}, {r.end - r.start, lhs.columns()});
+            auto eigen_res_row = result.sub(r);
+            auto eigen_lhs_row = lhs.sub(r);
 
             // Eigen matrix multiplication
             eigen_res_row = eigen_lhs_row * eigen_rhs;
@@ -571,19 +596,19 @@ namespace data {
 
         auto multiplication_rec = prec(
             // base case test
-            [&](const Range& r) {
+            [&](const RowRange& r) {
                 return r.start + 64 >= r.end;
             },
             // base case
             eigen_multiplication,
             pick(
                 // parallel recursive split
-                [&](const Range& r, const auto& rec) {
+                [&](const RowRange& r, const auto& rec) {
                     int mid = r.start + (r.end - r.start) / 2;
                     return parallel(rec({r.start, mid}), rec({mid, r.end}));
                 },
                 // Eigen multiplication if no further parallelism can be exploited
-                [&](const Range& r, const auto&) {
+                [&](const RowRange& r, const auto&) {
                     eigen_multiplication(r);
                     return done();
                 }
@@ -594,11 +619,30 @@ namespace data {
         multiplication_rec({0, lhs.rows()}).wait();
     }
 
+    // pfor implementation
+    template<typename T>
+    void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+        assert(lhs.columns() == rhs.rows());
+
+        const int split_size = 64;
+
+        auto eigen_rhs = rhs.getEigenMap();
+
+        algorithm::pfor(utils::Vector<coordinate_type,1>{lhs.rows() / split_size}, [&](auto cor) {
+            auto p = cor[0] * 64;
+//            std::cout << p << " / " << std::min(p + 64, lhs.rows()) << std::endl;
+            auto eigen_res_row = result.sub({p, std::min(p + 64, lhs.rows())});
+            auto eigen_lhs_row = lhs.sub({p, std::min(p + 64, lhs.rows())});
+
+            eigen_res_row = eigen_lhs_row * eigen_rhs;
+        });
+    }
+
     /*
      * scalar * matrix multiplication
      */
-    template<typename T>
-    Matrix<T> operator*(const T u, const Matrix<T>& v) {
+    template<typename E, typename T>
+    Matrix<T> operator*(const T& u, const MatrixExpression<E, T>& v) {
         Matrix<T> m(v.size());
 
         algorithm::pfor(m.size(), [&](point_type p) {
