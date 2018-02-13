@@ -1,6 +1,18 @@
 # Matrices for AllScale
 
-Provides the "Matrix" data type for the allscale_api. It consists of:
+Provides the "Matrix" data type for the AllScale api. It consists of:
+
+## CMake Options
+
+| Option                  | Values          |
+| ----------------------- | --------------- |
+| -DCMAKE_BUILD_TYPE      | Release / Debug |
+| -DOVERRIDE_ALLSCALE_API | \<path>         |
+
+If supported, the flag `-march=native` is set.
+CMake creates executables for all files in `src/benchmark` with a `.cc` file extension.
+Filenames that contain `allscale` may use the AllScale API.
+To parallelize Eigen algorithms the compiler has to support OpenMP.
 
 ## The Matrix Type
 
