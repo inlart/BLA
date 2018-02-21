@@ -20,32 +20,32 @@ using point_type = GridPoint<2>;
  * The base class for all matrix expressions
  * Elements are not modifiable
  */
-template <typename E, typename T>
+template <typename E>
 class MatrixExpression;
 
 /*
  * Represents the sum of two MatrixExpressions E1 and E2
  */
-template <typename E1, typename E2, typename T>
+template <typename E1, typename E2>
 class MatSum;
-
-/*
- * Represents the transposed MatrixExpression E
- */
-template <typename E, typename T>
-class MatrixTranspose;
 
 /*
  * Represents the subtraction of MatrixExpressions E1 and E2
  */
-template <typename E1, typename E2, typename T>
+template <typename E1, typename E2>
 class MatDiff;
 
 /*
  * Represents the negation of the MatrixExpression E
  */
-template <typename E, typename T>
+template <typename E>
 class NegMat;
+
+/*
+ * Represents the transposed MatrixExpression E
+ */
+template <typename E>
+class MatrixTranspose;
 
 /*
  * Represents the Matrix
@@ -54,6 +54,46 @@ class NegMat;
  */
 template <typename T = double>
 class Matrix;
+
+// Traits
+
+template <typename Expr>
+struct scalar_type;
+
+template <typename Expr>
+struct scalar_type<MatrixExpression<Expr>> {
+	using type = typename scalar_type<Expr>::type;
+};
+
+template <typename E1, typename E2>
+struct scalar_type<MatSum<E1, E2>> {
+	static_assert(std::is_same<typename scalar_type<E1>::type, typename scalar_type<E2>::type>::value, "Can't add matrices with different member type");
+	using type = typename scalar_type<E1>::type;
+};
+
+template <typename E1, typename E2>
+struct scalar_type<MatDiff<E1, E2>> {
+	static_assert(std::is_same<typename scalar_type<E1>::type, typename scalar_type<E2>::type>::value, "Can't sub matrices with different member type");
+	using type = typename scalar_type<E1>::type;
+};
+
+template <typename E>
+struct scalar_type<NegMat<E>> {
+	using type = typename scalar_type<E>::type;
+};
+
+template <typename E>
+struct scalar_type<MatrixTranspose<E>> {
+	using type = typename scalar_type<E>::type;
+};
+
+template <typename T>
+struct scalar_type<Matrix<T>> {
+	using type = T;
+};
+
+template <typename Expr>
+using scalar_type_t = typename scalar_type<Expr>::type;
 
 namespace detail {
 template <int Depth = 2048, typename T>
@@ -162,40 +202,10 @@ struct RowRange {
 	coordinate_type end;
 };
 
-template <typename E, typename T>
-class MatrixExpression {
-	// static constexpr bool is_packetable = E::is_packetable;
-
-  public:
-	using PacketScalar = typename Eigen::internal::find_best_packet<T, Eigen::Dynamic>::type;
-
-	T operator[](const point_type& pos) const { return static_cast<const E&>(*this)[pos]; }
-
-	T at(const point_type& pos) const {
-		assert_lt(pos, size());
-		assert_ge(pos, (point_type{0, 0}));
-		return static_cast<const E&>(*this)[pos];
-	}
-
-	point_type size() const { return static_cast<const E&>(*this).size(); }
-
-	coordinate_type rows() const { return static_cast<const E&>(*this).rows(); }
-
-	coordinate_type columns() const { return static_cast<const E&>(*this).columns(); }
-
-	bool isSquare() { return rows() == columns(); }
-
-	MatrixTranspose<E, T> transpose() const { return MatrixTranspose<E, T>(static_cast<const E&>(*this)); }
-
-	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
-
-	operator E&() { return static_cast<E&>(*this); }
-	operator const E&() const { return static_cast<const E&>(*this); }
-};
-
-template <typename E1, typename E2, typename T>
-class MatSum : public MatrixExpression<MatSum<E1, E2, T>, T> {
-	using typename MatrixExpression<MatSum<E1, E2, T>, T>::PacketScalar;
+template <typename E1, typename E2>
+class MatSum : public MatrixExpression<MatSum<E1, E2>> {
+	using typename MatrixExpression<MatSum<E1, E2>>::T;
+	using typename MatrixExpression<MatSum<E1, E2>>::PacketScalar;
 
   public:
 	static constexpr bool is_packetable = E1::is_packetable && E2::is_packetable;
@@ -217,9 +227,10 @@ class MatSum : public MatrixExpression<MatSum<E1, E2, T>, T> {
 	const E2& rhs;
 };
 
-template <typename E1, typename E2, typename T>
-class MatDiff : public MatrixExpression<MatDiff<E1, E2, T>, T> {
-	using typename MatrixExpression<MatDiff<E1, E2, T>, T>::PacketScalar;
+template <typename E1, typename E2>
+class MatDiff : public MatrixExpression<MatDiff<E1, E2>> {
+	using typename MatrixExpression<MatDiff<E1, E2>>::T;
+	using typename MatrixExpression<MatDiff<E1, E2>>::PacketScalar;
 
   public:
 	static constexpr bool is_packetable = E1::is_packetable && E2::is_packetable;
@@ -241,9 +252,10 @@ class MatDiff : public MatrixExpression<MatDiff<E1, E2, T>, T> {
 	const E2& rhs;
 };
 
-template <typename E, typename T>
-class MatrixTranspose : public MatrixExpression<MatrixTranspose<E, T>, T> {
-	using typename MatrixExpression<MatrixTranspose<E, T>, T>::PacketScalar;
+template <typename E>
+class MatrixTranspose : public MatrixExpression<MatrixTranspose<E>> {
+	using typename MatrixExpression<MatrixTranspose<E>>::T;
+	using typename MatrixExpression<MatrixTranspose<E>>::PacketScalar;
 
   public:
 	static constexpr bool is_packetable = false;
@@ -264,9 +276,10 @@ class MatrixTranspose : public MatrixExpression<MatrixTranspose<E, T>, T> {
 	const E& expression;
 };
 
-template <typename E, typename T>
-class NegMat : public MatrixExpression<NegMat<E, T>, T> {
-	using typename MatrixExpression<NegMat<E, T>, T>::PacketScalar;
+template <typename E>
+class NegMat : public MatrixExpression<NegMat<E>> {
+	using typename MatrixExpression<NegMat<E>>::T;
+	using typename MatrixExpression<NegMat<E>>::PacketScalar;
 
   public:
 	static constexpr bool is_packetable = E::is_packetable;
@@ -286,37 +299,22 @@ class NegMat : public MatrixExpression<NegMat<E, T>, T> {
 	const E& matrix;
 };
 
-template <typename E1, typename E2, typename T>
-MatSum<E1, E2, T> const operator+(const MatrixExpression<E1, T>& u, const MatrixExpression<E2, T>& v) {
-	return MatSum<E1, E2, T>(u, v);
-}
-
-template <typename E1, typename E2, typename T>
-MatDiff<E1, E2, T> const operator-(const MatrixExpression<E1, T>& u, const MatrixExpression<E2, T>& v) {
-	return MatDiff<E1, E2, T>(u, v);
-}
-
-template <typename E, typename T>
-NegMat<E, T> const operator-(const MatrixExpression<E, T>& e) {
-	return NegMat<E, T>(e);
-}
-
 template <typename T>
-class Matrix : public MatrixExpression<Matrix<T>, T> {
+class Matrix : public MatrixExpression<Matrix<T>> {
 	using map_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
 	using cmap_type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
 	using map_stride_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<Eigen::Dynamic>>;
 	using cmap_stride_type =
 	    Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<Eigen::Dynamic>>;
 
-	using typename MatrixExpression<Matrix<T>, T>::PacketScalar;
+	using typename MatrixExpression<Matrix<T>>::PacketScalar;
 
   public:
 	static constexpr bool is_packetable = true;
 	Matrix(const point_type& size) : m_data(size) {}
 
 	template <typename E>
-	Matrix(MatrixExpression<E, T> const& mat, typename std::enable_if<E::is_packetable>::type* = 0) : m_data(mat.size()) {
+	Matrix(MatrixExpression<E> const& mat, typename std::enable_if<E::is_packetable>::type* = 0) : m_data(mat.size()) {
 		assert_eq(size(), mat.size());
 
 		const int total_size = mat.rows() * mat.columns();
@@ -337,7 +335,7 @@ class Matrix : public MatrixExpression<Matrix<T>, T> {
 	}
 
 	template <typename E>
-	Matrix(MatrixExpression<E, T> const& mat, typename std::enable_if<!E::is_packetable>::type* = 0) : m_data(mat.size()) {
+	Matrix(MatrixExpression<E> const& mat, typename std::enable_if<!E::is_packetable>::type* = 0) : m_data(mat.size()) {
 		assert_eq(size(), mat.size());
 
 		algorithm::pfor(size(), [&](const auto& pos) { m_data[pos] = mat[pos]; });
@@ -363,7 +361,7 @@ class Matrix : public MatrixExpression<Matrix<T>, T> {
 	}
 
 	template <typename E>
-	typename std::enable_if<E::is_packetable, Matrix&>::type operator=(MatrixExpression<E, T> const& mat) {
+	typename std::enable_if<E::is_packetable, Matrix&>::type operator=(MatrixExpression<E> const& mat) {
 		assert_eq(size(), mat.size());
 
 		const int total_size = mat.rows() * mat.columns();
@@ -386,7 +384,7 @@ class Matrix : public MatrixExpression<Matrix<T>, T> {
 	}
 
 	template <typename E>
-	typename std::enable_if<!E::is_packetable, Matrix&>::type operator=(MatrixExpression<E, T> const& mat) {
+	typename std::enable_if<!E::is_packetable, Matrix&>::type operator=(MatrixExpression<E> const& mat) {
 		assert_eq(size(), mat.size());
 
 		algorithm::pfor(size(), [&](const auto& pos) { m_data[pos] = mat[pos]; });
@@ -459,20 +457,65 @@ class Matrix : public MatrixExpression<Matrix<T>, T> {
 	data::Grid<T, 2> m_data;
 };
 
-template <typename E1, typename E2, typename T>
-bool isAlmostEqual(const MatrixExpression<E1, T>& a, const MatrixExpression<E2, T>& b, T epsilon = 0.001) {
+template <typename E>
+class MatrixExpression {
+  public:
+	using T = scalar_type_t<E>;
+	using PacketScalar = typename Eigen::internal::find_best_packet<T, Eigen::Dynamic>::type;
+
+	T operator[](const point_type& pos) const { return static_cast<const E&>(*this)[pos]; }
+
+	T at(const point_type& pos) const {
+		assert_lt(pos, size());
+		assert_ge(pos, (point_type{0, 0}));
+		return static_cast<const E&>(*this)[pos];
+	}
+
+	point_type size() const { return static_cast<const E&>(*this).size(); }
+
+	coordinate_type rows() const { return static_cast<const E&>(*this).rows(); }
+
+	coordinate_type columns() const { return static_cast<const E&>(*this).columns(); }
+
+	bool isSquare() { return rows() == columns(); }
+
+	MatrixTranspose<E> transpose() const { return MatrixTranspose<E>(static_cast<const E&>(*this)); }
+
+	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
+
+	operator E&() { return static_cast<E&>(*this); }
+	operator const E&() const { return static_cast<const E&>(*this); }
+};
+
+template <typename E1, typename E2>
+MatSum<E1, E2> const operator+(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
+	return MatSum<E1, E2>(u, v);
+}
+
+template <typename E1, typename E2>
+MatDiff<E1, E2> const operator-(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
+	return MatDiff<E1, E2>(u, v);
+}
+
+template <typename E>
+NegMat<E> const operator-(const MatrixExpression<E>& e) {
+	return NegMat<E>(e);
+}
+
+template <typename E1, typename E2>
+bool isAlmostEqual(const MatrixExpression<E1>& a, const MatrixExpression<E2>& b, scalar_type_t<E1> epsilon = 0.001) {
 	if(a.size()[0] != b.size()[0] || a.size()[1] != b.size()[1]) { return false; }
 	for(coordinate_type i = 0; i < a.rows(); ++i) {
 		for(coordinate_type j = 0; j < a.columns(); ++j) {
-			T diff = (a[{i, j}] - b[{i, j}]);
+			scalar_type_t<E1> diff = (a[{i, j}] - b[{i, j}]);
 			if(diff * diff > epsilon) { return false; }
 		}
 	}
 	return true;
 }
 
-template <typename E1, typename E2, typename T>
-bool operator==(const MatrixExpression<E1, T>& a, const MatrixExpression<E2, T>& b) {
+template <typename E1, typename E2>
+bool operator==(const MatrixExpression<E1>& a, const MatrixExpression<E2>& b) {
 	if(a.size() != b.size()) return false;
 
 	for(coordinate_type i = 0; i < a.rows(); ++i) {
@@ -484,13 +527,13 @@ bool operator==(const MatrixExpression<E1, T>& a, const MatrixExpression<E2, T>&
 	return true;
 }
 
-template <typename E1, typename E2, typename T>
-bool operator!=(const MatrixExpression<E1, T>& a, const MatrixExpression<E2, T>& b) {
+template <typename E1, typename E2>
+bool operator!=(const MatrixExpression<E1>& a, const MatrixExpression<E2>& b) {
 	return !(a == b);
 }
 
-template <typename E, typename T>
-std::ostream& operator<<(std::ostream& os, MatrixExpression<E, T> const& m) {
+template <typename E>
+std::ostream& operator<<(std::ostream& os, MatrixExpression<E> const& m) {
 	for(std::int64_t i = 0; i < m.rows(); ++i) {
 		for(std::int64_t j = 0; j < m.columns(); ++j) {
 			os << m[{i, j}];
@@ -501,9 +544,9 @@ std::ostream& operator<<(std::ostream& os, MatrixExpression<E, T> const& m) {
 	return os;
 }
 
-template <typename E, typename T>
-Matrix<T> eval(const MatrixExpression<E, T>& me) {
-	Matrix<T> tmp(me.size());
+template <typename E>
+Matrix<scalar_type_t<E>> eval(const MatrixExpression<E>& me) {
+	Matrix<scalar_type_t<E>> tmp(me.size());
 
 	algorithm::pfor(me.size(), [&](const point_type& p) { tmp[p] = me[p]; });
 
@@ -511,7 +554,7 @@ Matrix<T> eval(const MatrixExpression<E, T>& me) {
 }
 
 template <typename T>
-const Matrix<T>& eval(const MatrixExpression<Matrix<T>, T>& me) {
+const Matrix<T>& eval(const MatrixExpression<Matrix<T>>& me) {
 	return me;
 }
 
@@ -554,9 +597,9 @@ void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix
 /*
  * scalar * matrix multiplication
  */
-template <typename E, typename T>
-Matrix<T> operator*(const T& u, const MatrixExpression<E, T>& v) {
-	Matrix<T> m(v.size());
+template <typename E>
+Matrix<scalar_type_t<E>> operator*(const scalar_type_t<E>& u, const MatrixExpression<E>& v) {
+	Matrix<scalar_type_t<E>> m(v.size());
 
 	algorithm::pfor(m.size(), [&](point_type p) { m[p] = u * v[p]; });
 
@@ -571,9 +614,9 @@ Matrix<T> operator*(const Matrix<T>& v, const T u) {
 /*
  * matrix * matrix multiplication
  */
-template <typename E1, typename E2, typename T>
-Matrix<T> operator*(const MatrixExpression<E1, T>& u, const MatrixExpression<E2, T>& v) {
-	Matrix<T> tmp({u.rows(), v.columns()});
+template <typename E1, typename E2>
+Matrix<scalar_type_t<E1>> operator*(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
+	Matrix<scalar_type_t<E1>> tmp({u.rows(), v.columns()});
 	matrix_multiplication(tmp, eval(u), eval(v));
 	return tmp;
 }
