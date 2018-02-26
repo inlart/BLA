@@ -95,6 +95,49 @@ struct scalar_type<Matrix<T>> {
 template <typename Expr>
 using scalar_type_t = typename scalar_type<Expr>::type;
 
+
+/*
+ * value is true if Expr is packetable
+ */
+// TODO: handle cv
+template <typename Expr>
+struct contiguous_memory {
+	static constexpr bool value = false;
+};
+
+template <typename E>
+struct contiguous_memory<MatrixExpression<E>> {
+	static constexpr bool value = contiguous_memory<E>::value;
+};
+
+template <typename E1, typename E2>
+struct contiguous_memory<MatSum<E1, E2>> {
+	static constexpr bool value = contiguous_memory<E1>::value && contiguous_memory<E2>::value;
+};
+
+template <typename E1, typename E2>
+struct contiguous_memory<MatDiff<E1, E2>> {
+	static constexpr bool value = contiguous_memory<E1>::value && contiguous_memory<E2>::value;
+};
+
+template <typename E>
+struct contiguous_memory<NegMat<E>> {
+	static constexpr bool value = contiguous_memory<E>::value;
+};
+
+template <typename E>
+struct contiguous_memory<MatrixTranspose<E>> {
+	static constexpr bool value = false;
+};
+
+template <typename T>
+struct contiguous_memory<Matrix<T>> {
+	static constexpr bool value = true;
+};
+
+template <typename Expr>
+constexpr bool contiguous_memory_v = contiguous_memory<Expr>::value;
+
 namespace detail {
 template <int Depth = 2048, typename T>
 void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordinate_type size) {
@@ -208,8 +251,6 @@ class MatSum : public MatrixExpression<MatSum<E1, E2>> {
 	using typename MatrixExpression<MatSum<E1, E2>>::PacketScalar;
 
   public:
-	static constexpr bool is_packetable = E1::is_packetable && E2::is_packetable;
-
 	MatSum(const E1& u, const E2& v) : lhs(u), rhs(v) { assert(u.size() == v.size()); }
 
 	T operator[](const point_type& pos) const { return lhs[pos] + rhs[pos]; }
@@ -233,8 +274,6 @@ class MatDiff : public MatrixExpression<MatDiff<E1, E2>> {
 	using typename MatrixExpression<MatDiff<E1, E2>>::PacketScalar;
 
   public:
-	static constexpr bool is_packetable = E1::is_packetable && E2::is_packetable;
-
 	MatDiff(const E1& u, const E2& v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
 
 	T operator[](const point_type& pos) const { return lhs[pos] - rhs[pos]; }
@@ -258,8 +297,6 @@ class MatrixTranspose : public MatrixExpression<MatrixTranspose<E>> {
 	using typename MatrixExpression<MatrixTranspose<E>>::PacketScalar;
 
   public:
-	static constexpr bool is_packetable = false;
-
 	MatrixTranspose(const E& u) : expression(u) {}
 
 	T operator[](const point_type& pos) const { return expression[{pos.y, pos.x}]; }
@@ -282,8 +319,6 @@ class NegMat : public MatrixExpression<NegMat<E>> {
 	using typename MatrixExpression<NegMat<E>>::PacketScalar;
 
   public:
-	static constexpr bool is_packetable = E::is_packetable;
-
 	NegMat(const E& e) : matrix(e) {}
 
 	T operator[](const point_type& pos) const { return -matrix[pos]; }
@@ -310,35 +345,11 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 	using typename MatrixExpression<Matrix<T>>::PacketScalar;
 
   public:
-	static constexpr bool is_packetable = true;
 	Matrix(const point_type& size) : m_data(size) {}
 
 	template <typename E>
-	Matrix(MatrixExpression<E> const& mat, typename std::enable_if<E::is_packetable>::type* = 0) : m_data(mat.size()) {
-		assert_eq(size(), mat.size());
-
-		const int total_size = mat.rows() * mat.columns();
-		const int packet_size = Eigen::internal::packet_traits<T>::size;
-		const int aligned_end = total_size / packet_size * packet_size;
-
-		algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
-			int i = coord[0] * packet_size;
-			point_type p{i / mat.columns(), i - i / mat.columns() * mat.columns()};
-			Eigen::internal::pstoret<T, PacketScalar, Eigen::Unaligned>(&operator[](p), mat.packet(p));
-
-		});
-
-		for(int i = aligned_end; i < total_size; i++) {
-			point_type p{i / mat.columns(), i - i / mat.columns() * mat.columns()};
-			m_data[p] = mat[p];
-		}
-	}
-
-	template <typename E>
-	Matrix(MatrixExpression<E> const& mat, typename std::enable_if<!E::is_packetable>::type* = 0) : m_data(mat.size()) {
-		assert_eq(size(), mat.size());
-
-		algorithm::pfor(size(), [&](const auto& pos) { m_data[pos] = mat[pos]; });
+	Matrix(MatrixExpression<E> const& mat) : m_data(mat.size()) {
+		evaluate(mat, *this);
 	}
 
 	Matrix(const T& value) { fill(value); }
@@ -361,33 +372,8 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 	}
 
 	template <typename E>
-	typename std::enable_if<E::is_packetable, Matrix&>::type operator=(MatrixExpression<E> const& mat) {
-		assert_eq(size(), mat.size());
-
-		const int total_size = mat.rows() * mat.columns();
-		const int packet_size = Eigen::internal::packet_traits<T>::size;
-		const int aligned_end = total_size / packet_size * packet_size;
-
-		algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
-			int i = coord[0] * packet_size;
-			point_type p{i / mat.columns(), i - i / mat.columns() * mat.columns()};
-			Eigen::internal::pstoret<T, PacketScalar, Eigen::Unaligned>(&operator[](p), mat.packet(p));
-
-		});
-
-		for(int i = aligned_end; i < total_size; i++) {
-			point_type p{i / mat.columns(), i - i / mat.columns() * mat.columns()};
-			m_data[p] = mat[p];
-		}
-
-		return *this;
-	}
-
-	template <typename E>
-	typename std::enable_if<!E::is_packetable, Matrix&>::type operator=(MatrixExpression<E> const& mat) {
-		assert_eq(size(), mat.size());
-
-		algorithm::pfor(size(), [&](const auto& pos) { m_data[pos] = mat[pos]; });
+	Matrix& operator=(MatrixExpression<E> const& mat) {
+		evaluate(mat, *this);
 
 		return *this;
 	}
@@ -534,8 +520,8 @@ bool operator!=(const MatrixExpression<E1>& a, const MatrixExpression<E2>& b) {
 
 template <typename E>
 std::ostream& operator<<(std::ostream& os, MatrixExpression<E> const& m) {
-	for(std::int64_t i = 0; i < m.rows(); ++i) {
-		for(std::int64_t j = 0; j < m.columns(); ++j) {
+	for(coordinate_type i = 0; i < m.rows(); ++i) {
+		for(coordinate_type j = 0; j < m.columns(); ++j) {
 			os << m[{i, j}];
 			if(j != m.columns() - 1) os << ", ";
 		}
@@ -548,7 +534,7 @@ template <typename E>
 Matrix<scalar_type_t<E>> eval(const MatrixExpression<E>& me) {
 	Matrix<scalar_type_t<E>> tmp(me.size());
 
-	algorithm::pfor(me.size(), [&](const point_type& p) { tmp[p] = me[p]; });
+	evaluate(me, tmp);
 
 	return tmp;
 }
@@ -556,6 +542,36 @@ Matrix<scalar_type_t<E>> eval(const MatrixExpression<E>& me) {
 template <typename T>
 const Matrix<T>& eval(const MatrixExpression<Matrix<T>>& me) {
 	return me;
+}
+
+template <typename E>
+std::enable_if_t<contiguous_memory_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
+	assert_eq(expr.size(), dst.size());
+
+	using T = scalar_type_t<E>;
+	using PacketScalar = typename Eigen::internal::find_best_packet<T, Eigen::Dynamic>::type;
+
+	const int total_size = expr.rows() * expr.columns();
+	const int packet_size = Eigen::internal::packet_traits<T>::size;
+	const int aligned_end = total_size / packet_size * packet_size;
+
+	algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
+		int i = coord[0] * packet_size;
+		point_type p{i / expr.columns(), i - i / expr.columns() * expr.columns()};
+		Eigen::internal::pstoret<T, PacketScalar, Eigen::Unaligned>(&dst[p], expr.packet(p));
+
+	});
+
+	for(int i = aligned_end; i < total_size; i++) {
+		point_type p{i / expr.columns(), i - i / expr.columns() * expr.columns()};
+		dst[p] = expr[p];
+	}
+}
+
+template <typename E>
+std::enable_if_t<!contiguous_memory_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
+	assert_eq(expr.size(), dst.size());
+	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 
 template <typename T>
