@@ -336,7 +336,6 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 
   public:
 	MatrixNegation(const E& e) : matrix(e) {}
-
 	T operator[](const point_type& pos) const { return -matrix[pos]; }
 
 	point_type size() const { return matrix.size(); }
@@ -344,6 +343,7 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	coordinate_type rows() const { return matrix.rows(); }
 
 	coordinate_type columns() const { return matrix.columns(); }
+
 
 	PacketScalar packet(point_type p) const { return Eigen::internal::pnegate(matrix.packet(p)); }
 
@@ -362,7 +362,6 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 	T operator[](const point_type& pos) const { return scalar * matrix[pos]; }
 
 	point_type size() const { return matrix.size(); }
-
 	coordinate_type rows() const { return matrix.rows(); }
 
 	coordinate_type columns() const { return matrix.columns(); }
@@ -394,9 +393,27 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
 	Matrix(const T& value) { fill(value); }
 
+	// TODO: add support for column major storage
 	template <typename Derived>
-	Matrix(const Eigen::MatrixBase<Derived>& x) : m_data({x.rows(), x.cols()}) {
-		algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = x(p.x, p.y); });
+	Matrix(const Eigen::MatrixBase<Derived>& matrix) : m_data({matrix.rows(), matrix.cols()}) {
+		if(matrix.IsRowMajor) {
+			const int total_size = rows() * columns();
+			const int packet_size = Eigen::internal::packet_traits<T>::size;
+			const int aligned_end = total_size / packet_size * packet_size;
+
+			algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
+				int i = coord[0] * packet_size;
+				point_type p{i / columns(), i - i / columns() * columns()};
+				Eigen::internal::pstoret<T, PacketScalar, Eigen::Unaligned>(&m_data[p], matrix.template packet<Eigen::Unaligned>(p.x, p.y));
+			});
+
+			for(int i = aligned_end; i < total_size; i++) {
+				point_type p{i / columns(), i - i / columns() * columns()};
+				m_data[p] = matrix(p.x, p.y);
+			}
+		} else {
+			algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = matrix(p.x, p.y); });
+		}
 	}
 
 	// enable move / disable copy
@@ -467,8 +484,9 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 		}
 	}
 
-	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> toEigenMatrix() {
-		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> result(rows(), columns());
+	// Eigen matrices are stored column major by default
+	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> toEigenMatrix() {
+		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> result(rows(), columns());
 		algorithm::pfor(size(), [&](const point_type& p) { result(p.x, p.y) = m_data[p]; });
 		return result;
 	}
@@ -503,7 +521,7 @@ class MatrixExpression {
 
 	coordinate_type columns() const { return static_cast<const E&>(*this).columns(); }
 
-	bool isSquare() { return rows() == columns(); }
+	bool isSquare() const { return rows() == columns(); }
 
 	MatrixTranspose<E> transpose() const { return MatrixTranspose<E>(static_cast<const E&>(*this)); }
 
@@ -658,8 +676,8 @@ MatrixScalarMultiplication<E> operator*(const scalar_type_t<E>& u, const MatrixE
 	return MatrixScalarMultiplication<E>(u, v);
 }
 
-template <typename T>
-Matrix<T> operator*(const Matrix<T>& v, const T u) {
+template <typename E>
+MatrixScalarMultiplication<E> operator*(const MatrixExpression<E>& v, const scalar_type_t<E>& u) {
 	return u * v;
 }
 
