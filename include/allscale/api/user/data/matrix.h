@@ -374,7 +374,7 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 		for(int i = 0; i < packet_size; i++) {
 			tmp[i] = scalar;
 		}
-		return Eigen::internal::padd(matrix.packet(p), Eigen::internal::ploadt<PacketScalar, Eigen::Unaligned>(tmp));
+		return Eigen::internal::pmul(matrix.packet(p), Eigen::internal::ploadt<PacketScalar, Eigen::Unaligned>(tmp));
 	}
 
   private:
