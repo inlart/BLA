@@ -27,25 +27,31 @@ class MatrixExpression;
  * Represents the sum of two MatrixExpressions E1 and E2
  */
 template <typename E1, typename E2>
-class MatSum;
+class MatrixAddition;
 
 /*
  * Represents the subtraction of MatrixExpressions E1 and E2
  */
 template <typename E1, typename E2>
-class MatDiff;
+class MatrixSubtraction;
 
 /*
  * Represents the negation of the MatrixExpression E
  */
 template <typename E>
-class NegMat;
+class MatrixNegation;
 
 /*
  * Represents the transposed MatrixExpression E
  */
 template <typename E>
 class MatrixTranspose;
+
+/*
+ * Represents the multiplication of a scalar with a matrix
+ */
+template <typename E>
+class MatrixScalarMultiplication;
 
 /*
  * Represents the Matrix
@@ -66,24 +72,29 @@ struct scalar_type<MatrixExpression<Expr>> {
 };
 
 template <typename E1, typename E2>
-struct scalar_type<MatSum<E1, E2>> {
+struct scalar_type<MatrixAddition<E1, E2>> {
 	static_assert(std::is_same<typename scalar_type<E1>::type, typename scalar_type<E2>::type>::value, "Can't add matrices with different member type");
 	using type = typename scalar_type<E1>::type;
 };
 
 template <typename E1, typename E2>
-struct scalar_type<MatDiff<E1, E2>> {
+struct scalar_type<MatrixSubtraction<E1, E2>> {
 	static_assert(std::is_same<typename scalar_type<E1>::type, typename scalar_type<E2>::type>::value, "Can't sub matrices with different member type");
 	using type = typename scalar_type<E1>::type;
 };
 
 template <typename E>
-struct scalar_type<NegMat<E>> {
+struct scalar_type<MatrixNegation<E>> {
 	using type = typename scalar_type<E>::type;
 };
 
 template <typename E>
 struct scalar_type<MatrixTranspose<E>> {
+	using type = typename scalar_type<E>::type;
+};
+
+template <typename E>
+struct scalar_type<MatrixScalarMultiplication<E>> {
 	using type = typename scalar_type<E>::type;
 };
 
@@ -111,23 +122,28 @@ struct contiguous_memory<MatrixExpression<E>> {
 };
 
 template <typename E1, typename E2>
-struct contiguous_memory<MatSum<E1, E2>> {
+struct contiguous_memory<MatrixAddition<E1, E2>> {
 	static constexpr bool value = contiguous_memory<E1>::value && contiguous_memory<E2>::value;
 };
 
 template <typename E1, typename E2>
-struct contiguous_memory<MatDiff<E1, E2>> {
+struct contiguous_memory<MatrixSubtraction<E1, E2>> {
 	static constexpr bool value = contiguous_memory<E1>::value && contiguous_memory<E2>::value;
 };
 
 template <typename E>
-struct contiguous_memory<NegMat<E>> {
+struct contiguous_memory<MatrixNegation<E>> {
 	static constexpr bool value = contiguous_memory<E>::value;
 };
 
 template <typename E>
 struct contiguous_memory<MatrixTranspose<E>> {
 	static constexpr bool value = false;
+};
+
+template <typename E>
+struct contiguous_memory<MatrixScalarMultiplication<E>> {
+	static constexpr bool value = true;
 };
 
 template <typename T>
@@ -246,12 +262,12 @@ struct RowRange {
 };
 
 template <typename E1, typename E2>
-class MatSum : public MatrixExpression<MatSum<E1, E2>> {
-	using typename MatrixExpression<MatSum<E1, E2>>::T;
-	using typename MatrixExpression<MatSum<E1, E2>>::PacketScalar;
+class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
+	using typename MatrixExpression<MatrixAddition<E1, E2>>::T;
+	using typename MatrixExpression<MatrixAddition<E1, E2>>::PacketScalar;
 
   public:
-	MatSum(const E1& u, const E2& v) : lhs(u), rhs(v) { assert(u.size() == v.size()); }
+	MatrixAddition(const E1& u, const E2& v) : lhs(u), rhs(v) { assert(u.size() == v.size()); }
 
 	T operator[](const point_type& pos) const { return lhs[pos] + rhs[pos]; }
 
@@ -269,12 +285,12 @@ class MatSum : public MatrixExpression<MatSum<E1, E2>> {
 };
 
 template <typename E1, typename E2>
-class MatDiff : public MatrixExpression<MatDiff<E1, E2>> {
-	using typename MatrixExpression<MatDiff<E1, E2>>::T;
-	using typename MatrixExpression<MatDiff<E1, E2>>::PacketScalar;
+class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
+	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::T;
+	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::PacketScalar;
 
   public:
-	MatDiff(const E1& u, const E2& v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
+	MatrixSubtraction(const E1& u, const E2& v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
 
 	T operator[](const point_type& pos) const { return lhs[pos] - rhs[pos]; }
 
@@ -314,12 +330,12 @@ class MatrixTranspose : public MatrixExpression<MatrixTranspose<E>> {
 };
 
 template <typename E>
-class NegMat : public MatrixExpression<NegMat<E>> {
-	using typename MatrixExpression<NegMat<E>>::T;
-	using typename MatrixExpression<NegMat<E>>::PacketScalar;
+class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
+	using typename MatrixExpression<MatrixNegation<E>>::T;
+	using typename MatrixExpression<MatrixNegation<E>>::PacketScalar;
 
   public:
-	NegMat(const E& e) : matrix(e) {}
+	MatrixNegation(const E& e) : matrix(e) {}
 
 	T operator[](const point_type& pos) const { return -matrix[pos]; }
 
@@ -332,6 +348,38 @@ class NegMat : public MatrixExpression<NegMat<E>> {
 
   private:
 	const E& matrix;
+};
+
+template <typename Exp>
+class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplication<Exp>> {
+	using typename MatrixExpression<MatrixScalarMultiplication<Exp>>::T;
+	using typename MatrixExpression<MatrixScalarMultiplication<Exp>>::PacketScalar;
+
+  public:
+	MatrixScalarMultiplication(const T& u, const Exp& v) : scalar(u), matrix(v) {}
+
+	T operator[](const point_type& pos) const { return scalar * matrix[pos]; }
+
+	point_type size() const { return matrix.size(); }
+
+	coordinate_type rows() const { return matrix.rows(); }
+
+	coordinate_type columns() const { return matrix.columns(); }
+
+	PacketScalar packet(point_type p) const {
+		const int packet_size = Eigen::internal::packet_traits<T>::size;
+
+		// TODO: is there a better way?
+		T tmp[packet_size];
+		for(int i = 0; i < packet_size; i++) {
+			tmp[i] = scalar;
+		}
+		return Eigen::internal::padd(matrix.packet(p), Eigen::internal::ploadt<PacketScalar, Eigen::Unaligned>(tmp));
+	}
+
+  private:
+	const T& scalar;
+	const Exp& matrix;
 };
 
 template <typename T>
@@ -474,18 +522,18 @@ class MatrixExpression {
 };
 
 template <typename E1, typename E2>
-MatSum<E1, E2> const operator+(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
-	return MatSum<E1, E2>(u, v);
+MatrixAddition<E1, E2> const operator+(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
+	return MatrixAddition<E1, E2>(u, v);
 }
 
 template <typename E1, typename E2>
-MatDiff<E1, E2> const operator-(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
-	return MatDiff<E1, E2>(u, v);
+MatrixSubtraction<E1, E2> const operator-(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
+	return MatrixSubtraction<E1, E2>(u, v);
 }
 
 template <typename E>
-NegMat<E> const operator-(const MatrixExpression<E>& e) {
-	return NegMat<E>(e);
+MatrixNegation<E> const operator-(const MatrixExpression<E>& e) {
+	return MatrixNegation<E>(e);
 }
 
 template <typename E1, typename E2>
@@ -614,12 +662,8 @@ void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix
  * scalar * matrix multiplication
  */
 template <typename E>
-Matrix<scalar_type_t<E>> operator*(const scalar_type_t<E>& u, const MatrixExpression<E>& v) {
-	Matrix<scalar_type_t<E>> m(v.size());
-
-	algorithm::pfor(m.size(), [&](point_type p) { m[p] = u * v[p]; });
-
-	return m;
+MatrixScalarMultiplication<E> operator*(const scalar_type_t<E>& u, const MatrixExpression<E>& v) {
+	return MatrixScalarMultiplication<E>(u, v);
 }
 
 template <typename T>
