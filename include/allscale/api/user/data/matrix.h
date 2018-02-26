@@ -342,6 +342,7 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	point_type size() const { return matrix.size(); }
 
 	coordinate_type rows() const { return matrix.rows(); }
+
 	coordinate_type columns() const { return matrix.columns(); }
 
 	PacketScalar packet(point_type p) const { return Eigen::internal::pnegate(matrix.packet(p)); }
@@ -366,16 +367,7 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 
 	coordinate_type columns() const { return matrix.columns(); }
 
-	PacketScalar packet(point_type p) const {
-		const int packet_size = Eigen::internal::packet_traits<T>::size;
-
-		// TODO: is there a better way?
-		T tmp[packet_size];
-		for(int i = 0; i < packet_size; i++) {
-			tmp[i] = scalar;
-		}
-		return Eigen::internal::pmul(matrix.packet(p), Eigen::internal::ploadt<PacketScalar, Eigen::Unaligned>(tmp));
-	}
+	PacketScalar packet(point_type p) const { return Eigen::internal::pmul(matrix.packet(p), Eigen::internal::pset1<PacketScalar>(scalar)); }
 
   private:
 	const T& scalar;
