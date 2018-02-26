@@ -16,6 +16,18 @@ TEST(Matrix, Access) {
 	}
 }
 
+TEST(Matrix, EigenConversion) {
+	Matrix<int> m({4, 4});
+	for(coordinate_type i = 0; i < m.rows(); ++i) {
+		for(coordinate_type j = 0; j < m.columns(); ++j) {
+			m[{i, j}] = i * m.columns() + j;
+		}
+	}
+	Matrix<int> n(m.toEigenMatrix());
+
+	ASSERT_EQ(m, n);
+}
+
 TEST(Matrix, Random) {
 	Matrix<double> m({2, 2});
 	std::random_device rd;
@@ -210,7 +222,7 @@ TEST(Matrix, MultipleOperations) {
 }
 
 TEST(Matrix, Contiguous) {
-	Matrix<double> m1({55, 55});
+	Matrix<double> m1({55, 56});
 	Matrix<double> m2({55, 56});
 
 	auto sum = m1 + m2;
