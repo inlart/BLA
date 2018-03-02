@@ -416,11 +416,16 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 		}
 	}
 
-	// enable move / disable copy
-	Matrix(const Matrix&) = delete;
+	Matrix(const Matrix& mat) { evaluate(mat, *this); }
+
 	Matrix(Matrix&&) = default;
 
-	Matrix& operator=(const Matrix&) = delete;
+	Matrix& operator=(const Matrix& mat) {
+		evaluate(mat, *this);
+
+		return *this;
+	}
+
 	Matrix& operator=(Matrix&&) = default;
 
 	Matrix& operator=(const T& value) {
@@ -531,6 +536,30 @@ class MatrixExpression {
 	operator const E&() const { return static_cast<const E&>(*this); }
 };
 
+template <typename T, typename E>
+Matrix<T>& operator+=(Matrix<T>& u, const MatrixExpression<E>& v) {
+	// TODO: handle aliasing
+	evaluate(MatrixAddition<Matrix<T>, E>(u, v), u);
+	return u;
+}
+
+template <typename T, typename E>
+Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
+	// TODO: handle aliasing
+	evaluate(MatrixSubtraction<Matrix<T>, E>(u, v), u);
+	return u;
+}
+
+template <typename T, typename E>
+Matrix<T>& operator*=(Matrix<T>& u, const MatrixExpression<E>& v) {
+	assert(v.columns() == v.rows());
+	// no aliasing because the result is written in a temporary matrix
+	Matrix<T> tmp(u * v);
+	u = tmp;
+	return u;
+}
+
+
 template <typename E1, typename E2>
 MatrixAddition<E1, E2> const operator+(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
 	return MatrixAddition<E1, E2>(u, v);
@@ -580,8 +609,7 @@ template <typename E>
 std::ostream& operator<<(std::ostream& os, MatrixExpression<E> const& m) {
 	for(coordinate_type i = 0; i < m.rows(); ++i) {
 		for(coordinate_type j = 0; j < m.columns(); ++j) {
-			os << m[{i, j}];
-			if(j != m.columns() - 1) os << ", ";
+			os << m[{i, j}] << " ";
 		}
 		if(i + 1 < m.rows()) { os << std::endl; }
 	}
@@ -630,6 +658,15 @@ template <typename E>
 std::enable_if_t<!contiguous_memory_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
 	assert_eq(expr.size(), dst.size());
 	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
+}
+
+
+// rhs transposed
+template <typename T>
+void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+	assert(lhs.columns() == rhs.rows());
+	// TODO: optimized parallel matrix multiplication with blocks
+	result = lhs * rhs;
 }
 
 template <typename T>
