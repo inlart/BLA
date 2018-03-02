@@ -59,6 +59,28 @@ TEST(Matrix, Addition) {
 	}
 }
 
+TEST(Matrix, AssignAddition) {
+	Matrix<double> m1({123, 76});
+	Matrix<double> m2(m1.size());
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 20; ++i) {
+		m1.random(g);
+		m2.random(g);
+
+		Eigen::MatrixXd m1e = m1.toEigenMatrix();
+		Eigen::MatrixXd m2e = m2.toEigenMatrix();
+
+		m1 += m2;
+		m1e += m2e;
+
+		ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+	}
+}
+
 TEST(Matrix, Subtraction) {
 	Matrix<double> m1({31, 47});
 	Matrix<double> m2(m1.size());
@@ -72,6 +94,28 @@ TEST(Matrix, Subtraction) {
 		m2.random(g);
 		ASSERT_TRUE(isAlmostEqual(m1 - m2, Matrix<double>(m1.toEigenMatrix() - m2.toEigenMatrix())));
 		ASSERT_TRUE(isAlmostEqual(m1 - m1, m2 - m2));
+	}
+}
+
+TEST(Matrix, AssignSubtraction) {
+	Matrix<double> m1({123, 76});
+	Matrix<double> m2(m1.size());
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 20; ++i) {
+		m1.random(g);
+		m2.random(g);
+
+		Eigen::MatrixXd m1e = m1.toEigenMatrix();
+		Eigen::MatrixXd m2e = m2.toEigenMatrix();
+
+		m1 -= m2;
+		m1e -= m2e;
+
+		ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
 	}
 }
 
@@ -92,7 +136,7 @@ TEST(Matrix, Negation) {
 
 TEST(Matrix, Multiplication) {
 	Matrix<double> m1({45, 45});
-	Matrix<double> m2({(int)m1.columns(), 45});
+	Matrix<double> m2({m1.columns(), 45});
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
@@ -105,7 +149,44 @@ TEST(Matrix, Multiplication) {
 	}
 }
 
+TEST(Matrix, AssignMultiplication) {
+	Matrix<double> m1({123, 76});
+	Matrix<double> m2({m1.columns(), m1.columns()});
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 20; ++i) {
+		m1.random(g);
+		m2.random(g);
+
+		Eigen::MatrixXd m1e = m1.toEigenMatrix();
+		Eigen::MatrixXd m2e = m2.toEigenMatrix();
+
+		m1 *= m2;
+		m1e *= m2e;
+
+		ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+	}
+}
+
 TEST(Matrix, MultiplicationStrassen) {
+	Matrix<double> m1({2, 2});
+	Matrix<double> m2({m1.columns(), 2});
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 4; ++i) {
+		m1.random(g);
+		m2.random(g);
+		ASSERT_TRUE(isAlmostEqual(strassen(m1, m2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
+	}
+}
+
+TEST(Matrix, MultiplicationAllscale) {
 	Matrix<double> m1({256, 256});
 	Matrix<double> m2({m1.columns(), 256});
 	std::random_device rd;
@@ -116,7 +197,11 @@ TEST(Matrix, MultiplicationStrassen) {
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		m2.random(g);
-		ASSERT_TRUE(isAlmostEqual(strassen<1>(m1, m2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
+		Matrix<double> m3({m1.rows(), m2.columns()});
+		matrix_multiplication_allscale(m3, m1, m2);
+
+
+		ASSERT_TRUE(isAlmostEqual(m3, Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
 	}
 }
 
