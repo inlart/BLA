@@ -669,7 +669,7 @@ constexpr coordinate_type kc = 128;
 
 // calculate a size * size block starting at position 'p'
 template <int size = 8, typename T>
-void block(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+void block(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lhs, const T* rhs) {
 	using ct = coordinate_type;
 	using vt = Vc::Vector<T>;
 
@@ -679,33 +679,23 @@ void block(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lh
 
 	const auto m = lhs.rows();
 	const auto k = end.x; // lhs.columns();
-	const auto n = rhs.columns();
 
 	vt res[size][vector_size];
-
-	for(ct i = 0; i < size; ++i) {
-		for(ct j = 0; j < vector_size; ++j) {
-			res[i][j].setZero();
-		}
-	}
 
 	for(ct i = p.z; i < p.z + k; ++i) {
 		vt a[size];
 		for(ct j = 0; j < size; ++j) {
 			a[j] = lhs[{p.x + j, i}];
-			//			std::cout << "a_" << j << ": " << a[j] << std::endl;
 		}
 
 		vt b[vector_size];
 
 		for(ct j = 0; j < vector_size; ++j) {
-			b[j].load(&rhs[{i, p.y + j * (ct)vt::Size}]);
+			b[j].load(&rhs[j * vt::Size + (i - p.z) * size]);
 
-			//			std::cout << "b_" << j << ": " << b[j] << std::endl;
 
 			for(ct jj = 0; jj < size; ++jj) {
 				res[jj][j] += a[jj] * b[j];
-				//				std::cout << "res " << jj << "," << j << ": " << res[jj][j] << std::endl;
 			}
 		}
 	}
@@ -722,10 +712,21 @@ void block(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lh
 template <int size = 8, typename T>
 void kernel(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
 	using ct = coordinate_type;
+	T packed_b[end.y * end.x]; // todo: maybe make it a Matrix?
 
 	for(ct i = p.x; i + size - 1 < lhs.rows(); i += size) {
-		for(ct j = 0; j + size - 1 < end.y; j += size) { // rhs.columns(); j += size) {
-			block({p.x + i, p.y + j, p.z}, end, result, lhs, rhs);
+		for(ct j = 0; j + size - 1 < end.y; j += size) {
+			// pack b
+			if(i == 0) {
+				T* b_pos = &packed_b[j * end.x];
+				for(int k = 0; k < end.x; ++k) {
+					for(int jj = 0; jj < size; ++jj) {
+						*b_pos++ = rhs[{k + p.z, p.y + jj + j}];
+					}
+				}
+			}
+
+			block({p.x + i, p.y + j, p.z}, end, result, lhs, packed_b + (j * end.x));
 		}
 		for(int ii = i; ii < i + size; ++ii) {
 			for(ct j = end.y - (end.y % size); j < end.y; ++j) {
