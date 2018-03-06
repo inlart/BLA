@@ -714,20 +714,24 @@ void kernel(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& l
 	using ct = coordinate_type;
 	T packed_b[end.y * end.x]; // todo: maybe make it a Matrix?
 
-	for(ct i = p.x; i + size - 1 < lhs.rows(); i += size) {
-		for(ct j = 0; j + size - 1 < end.y; j += size) {
-			// pack b
-			if(i == 0) {
-				T* b_pos = &packed_b[j * end.x];
-				for(int k = 0; k < end.x; ++k) {
-					for(int jj = 0; jj < size; ++jj) {
-						*b_pos++ = rhs[{k + p.z, p.y + jj + j}];
-					}
-				}
+	algorithm::pfor(GridPoint<1>{end.y / size}, [&](const auto& pos) {
+		ct j = pos[0] * size;
+		T* b_pos = &packed_b[j * end.x];
+		for(int k = 0; k < end.x; ++k) {
+			for(int jj = 0; jj < size; ++jj) {
+				*b_pos++ = rhs[{k + p.z, p.y + jj + j}];
 			}
-
-			block({p.x + i, p.y + j, p.z}, end, result, lhs, packed_b + (j * end.x));
 		}
+	});
+
+	algorithm::pfor(point_type{(lhs.rows() - p.x) / size, (end.y) / size}, [&](const auto& pos) {
+		ct i = p.x + pos.x * size;
+		ct j = pos.y * size;
+
+		block<size>({p.x + i, p.y + j, p.z}, end, result, lhs, packed_b + (j * end.x));
+	});
+
+	for(ct i = p.x; i + size - 1 < lhs.rows(); i += size) {
 		for(int ii = i; ii < i + size; ++ii) {
 			for(ct j = end.y - (end.y % size); j < end.y; ++j) {
 				for(ct k = 0; k < end.x; ++k) {
@@ -765,7 +769,7 @@ void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, con
 		ct kb = std::min(k - kk, kc);
 		for(ct j = 0; j < n; j += nc) {
 			ct jb = std::min(n - j, nc);
-			kernel({0, j, kk}, {kb, jb}, result, lhs, rhs);
+			kernel<size>({0, j, kk}, {kb, jb}, result, lhs, rhs);
 		}
 	}
 }
