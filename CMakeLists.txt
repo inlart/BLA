@@ -5,6 +5,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 include(defaults)
 include(allscale)
+include(vc)
 
 find_package(Boost REQUIRED)
 find_package(GTest REQUIRED)
@@ -32,6 +33,7 @@ if(COMPILER_SUPPORTS_MARCH_NATIVE)
 endif()
 
 include_directories(${GTEST_INCLUDE_DIRS})
+include_directories(${Vc_INCLUDE_DIR})
 
 # -- Compilation
 
@@ -64,6 +66,7 @@ foreach(BENCH_FILE ${BENCH_SOURCES})
     target_include_directories(${BENCH_FILENAME} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
     target_link_libraries(${BENCH_FILENAME} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(${BENCH_FILENAME} ${Vc_LIBRARIES})
 
   endif(${BENCH_FILENAME} MATCHES "(.*)allscale(.*)")
 endforeach(BENCH_FILE ${BENCH_SOURCES})
@@ -78,3 +81,4 @@ target_include_directories(matrix_test PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 # -- Test Libraries
 target_link_libraries(matrix_test Eigen3::Eigen)
 target_link_libraries(matrix_test ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(matrix_test ${Vc_LIBRARIES})

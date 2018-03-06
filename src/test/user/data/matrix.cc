@@ -1,5 +1,8 @@
+#include <Vc/Vc>
+#include <Vc/cpuid.h>
 #include <allscale/api/user/data/matrix.h>
 #include <gtest/gtest.h>
+#include <iostream>
 
 namespace allscale {
 namespace api {
@@ -187,8 +190,8 @@ TEST(Matrix, MultiplicationStrassen) {
 }
 
 TEST(Matrix, MultiplicationAllscale) {
-	Matrix<double> m1({256, 256});
-	Matrix<double> m2({m1.columns(), 256});
+	Matrix<double> m1({255, 127});
+	Matrix<double> m2({m1.columns(), 84});
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
@@ -200,8 +203,25 @@ TEST(Matrix, MultiplicationAllscale) {
 		Matrix<double> m3({m1.rows(), m2.columns()});
 		matrix_multiplication_allscale(m3, m1, m2);
 
-
 		ASSERT_TRUE(isAlmostEqual(m3, Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
+	}
+}
+
+TEST(Matrix, MultiplicationAllscaleInteger) {
+	Matrix<int> m1({255, 127});
+	Matrix<int> m2({m1.columns(), 84});
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(1, 10);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 4; ++i) {
+		m1.random(g);
+		m2.random(g);
+		Matrix<int> m3({m1.rows(), m2.columns()});
+		matrix_multiplication_allscale(m3, m1, m2);
+
+		ASSERT_EQ(m3, Matrix<int>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval()));
 	}
 }
 

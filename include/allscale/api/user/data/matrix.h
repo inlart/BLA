@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Dense>
+#include <Vc/Vc>
 #include <allscale/api/user/algorithm/async.h>
 #include <allscale/api/user/data/grid.h>
 #include <cmath>
@@ -15,6 +16,7 @@ using namespace allscale::api::core;
 
 using coordinate_type = std::int64_t;
 using point_type = GridPoint<2>;
+using triple_type = GridPoint<3>;
 
 /*
  * The base class for all matrix expressions
@@ -277,7 +279,7 @@ class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
 
 	coordinate_type columns() const { return lhs.columns(); }
 
-	PacketScalar packet(point_type p) const { return Eigen::internal::padd(lhs.packet(p), rhs.packet(p)); }
+	PacketScalar packet(point_type p) const { return lhs.packet(p) + rhs.packet(p); }
 
   private:
 	const E1& lhs;
@@ -300,7 +302,7 @@ class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
 
 	coordinate_type columns() const { return lhs.columns(); }
 
-	PacketScalar packet(point_type p) const { return Eigen::internal::psub(lhs.packet(p), rhs.packet(p)); }
+	PacketScalar packet(point_type p) const { return lhs.packet(p) - rhs.packet(p); }
 
   private:
 	const E1& lhs;
@@ -345,7 +347,7 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	coordinate_type columns() const { return matrix.columns(); }
 
 
-	PacketScalar packet(point_type p) const { return Eigen::internal::pnegate(matrix.packet(p)); }
+	PacketScalar packet(point_type p) const { return -matrix.packet(p); }
 
   private:
 	const E& matrix;
@@ -366,7 +368,7 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 
 	coordinate_type columns() const { return matrix.columns(); }
 
-	PacketScalar packet(point_type p) const { return Eigen::internal::pmul(matrix.packet(p), Eigen::internal::pset1<PacketScalar>(scalar)); }
+	PacketScalar packet(point_type p) const { return matrix.packet(p) * PacketScalar(scalar); }
 
   private:
 	const T& scalar;
@@ -396,24 +398,27 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 	// TODO: add support for column major storage
 	template <typename Derived>
 	Matrix(const Eigen::MatrixBase<Derived>& matrix) : m_data({matrix.rows(), matrix.cols()}) {
-		if(matrix.IsRowMajor) {
-			const int total_size = rows() * columns();
-			const int packet_size = Eigen::internal::packet_traits<T>::size;
-			const int aligned_end = total_size / packet_size * packet_size;
-
-			algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
-				int i = coord[0] * packet_size;
-				point_type p{i / columns(), i - i / columns() * columns()};
-				Eigen::internal::pstoret<T, PacketScalar, Eigen::Unaligned>(&m_data[p], matrix.template packet<Eigen::Unaligned>(p.x, p.y));
-			});
-
-			for(int i = aligned_end; i < total_size; i++) {
-				point_type p{i / columns(), i - i / columns() * columns()};
-				m_data[p] = matrix(p.x, p.y);
-			}
-		} else {
-			algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = matrix(p.x, p.y); });
-		}
+		//		if(matrix.IsRowMajor) {
+		//			const int total_size = rows() * columns();
+		//			const int packet_size = Eigen::internal::packet_traits<T>::size;
+		//			const int aligned_end = total_size / packet_size * packet_size;
+		//
+		//			algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
+		//				int i = coord[0] * packet_size;
+		//				point_type p{i / columns(), i - i / columns() * columns()};
+		//
+		//				matrix.packet().store(&m_data[p]);
+		//
+		//				Eigen::internal::pstoret<T, PacketScalar, Eigen::Unaligned>(&m_data[p], matrix.template packet<Eigen::Unaligned>(p.x, p.y));
+		//			});
+		//
+		//			for(int i = aligned_end; i < total_size; i++) {
+		//				point_type p{i / columns(), i - i / columns() * columns()};
+		//				m_data[p] = matrix(p.x, p.y);
+		//			}
+		//		} else {
+		algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = matrix(p.x, p.y); });
+		//		}
 	}
 
 	Matrix(const Matrix& mat) { evaluate(mat, *this); }
@@ -500,7 +505,7 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
 	cmap_type getEigenMap() const { return sub({0, rows()}); }
 
-	PacketScalar packet(point_type p) const { return Eigen::internal::ploadt<PacketScalar, Eigen::Unaligned>(&operator[](p)); }
+	PacketScalar packet(point_type p) const { return PacketScalar(&operator[](p)); }
 
   private:
 	data::Grid<T, 2> m_data;
@@ -510,7 +515,7 @@ template <typename E>
 class MatrixExpression {
   public:
 	using T = scalar_type_t<E>;
-	using PacketScalar = typename Eigen::internal::find_best_packet<T, Eigen::Dynamic>::type;
+	using PacketScalar = typename Vc::Vector<T>;
 
 	T operator[](const point_type& pos) const { return static_cast<const E&>(*this)[pos]; }
 
@@ -635,17 +640,16 @@ std::enable_if_t<contiguous_memory_v<E>> evaluate(const MatrixExpression<E>& exp
 	assert_eq(expr.size(), dst.size());
 
 	using T = scalar_type_t<E>;
-	using PacketScalar = typename Eigen::internal::find_best_packet<T, Eigen::Dynamic>::type;
+	using PacketScalar = typename Vc::Vector<T>;
 
 	const int total_size = expr.rows() * expr.columns();
-	const int packet_size = Eigen::internal::packet_traits<T>::size;
+	const int packet_size = PacketScalar::Size;
 	const int aligned_end = total_size / packet_size * packet_size;
 
 	algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
 		int i = coord[0] * packet_size;
 		point_type p{i / expr.columns(), i - i / expr.columns() * expr.columns()};
-		Eigen::internal::pstoret<T, PacketScalar, Eigen::Unaligned>(&dst[p], expr.packet(p));
-
+		expr.packet(p).store(&dst[p]);
 	});
 
 	for(int i = aligned_end; i < total_size; i++) {
@@ -660,13 +664,109 @@ std::enable_if_t<!contiguous_memory_v<E>> evaluate(const MatrixExpression<E>& ex
 	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 
+constexpr coordinate_type nc = 256;
+constexpr coordinate_type kc = 128;
 
-// rhs transposed
-template <typename T>
+// calculate a size * size block starting at position 'p'
+template <int size = 8, typename T>
+void block(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+	using ct = coordinate_type;
+	using vt = Vc::Vector<T>;
+
+	static_assert(size % vt::Size == 0, "vector type size doesn't divide 'size'"); // our vector type 'vt' fits into the size x size segment
+
+	constexpr int vector_size = size / vt::Size; // vector_size contains the number of vt types needed per line
+
+	const auto m = lhs.rows();
+	const auto k = end.x; // lhs.columns();
+	const auto n = rhs.columns();
+
+	vt res[size][vector_size];
+
+	for(ct i = 0; i < size; ++i) {
+		for(ct j = 0; j < vector_size; ++j) {
+			res[i][j].setZero();
+		}
+	}
+
+	for(ct i = p.z; i < p.z + k; ++i) {
+		vt a[size];
+		for(ct j = 0; j < size; ++j) {
+			a[j] = lhs[{p.x + j, i}];
+			//			std::cout << "a_" << j << ": " << a[j] << std::endl;
+		}
+
+		vt b[vector_size];
+
+		for(ct j = 0; j < vector_size; ++j) {
+			b[j].load(&rhs[{i, p.y + j * (ct)vt::Size}]);
+
+			//			std::cout << "b_" << j << ": " << b[j] << std::endl;
+
+			for(ct jj = 0; jj < size; ++jj) {
+				res[jj][j] += a[jj] * b[j];
+				//				std::cout << "res " << jj << "," << j << ": " << res[jj][j] << std::endl;
+			}
+		}
+	}
+
+	for(ct i = 0; i < size; ++i) {
+		for(ct j = 0; j < vector_size; ++j) {
+			for(ct k = 0; k < vt::Size; ++k) {
+				result[{p.x + i, p.y + j * (ct)vt::Size + k}] += res[i][j][k];
+			}
+		}
+	}
+}
+
+template <int size = 8, typename T>
+void kernel(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+	using ct = coordinate_type;
+
+	for(ct i = p.x; i + size - 1 < lhs.rows(); i += size) {
+		for(ct j = 0; j + size - 1 < end.y; j += size) { // rhs.columns(); j += size) {
+			block({p.x + i, p.y + j, p.z}, end, result, lhs, rhs);
+		}
+		for(int ii = i; ii < i + size; ++ii) {
+			for(ct j = end.y - (end.y % size); j < end.y; ++j) {
+				for(ct k = 0; k < end.x; ++k) {
+					result[{p.x + ii, p.y + j}] += lhs[{p.x + ii, p.z + k}] * rhs[{p.z + k, p.y + j}];
+				}
+			}
+		}
+	}
+
+	for(ct i = lhs.rows() - (lhs.rows() % size); i < lhs.rows(); ++i) {
+		for(ct j = 0; j < end.y; ++j) {
+			for(ct k = 0; k < end.x; ++k) {
+				result[{p.x + i, p.y + j}] += lhs[{p.x + i, p.z + k}] * rhs[{p.z + k, p.y + j}];
+			}
+		}
+	}
+}
+
+// TODO: optimized parallel matrix multiplication with blocks
+template <int size = 8, typename T>
 void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
 	assert(lhs.columns() == rhs.rows());
-	// TODO: optimized parallel matrix multiplication with blocks
-	result = lhs * rhs;
+
+	using ct = coordinate_type;
+
+	const auto m = lhs.rows();
+	const auto k = lhs.columns();
+	const auto n = rhs.columns();
+
+	// TODO: find good values for kc, nc (multiple of vector size?)
+
+	result.zero();
+
+	for(ct kk = 0; kk < k; kk += kc) {
+		ct kb = std::min(k - kk, kc);
+		for(ct j = 0; j < n; j += nc) {
+			ct jb = std::min(n - j, nc);
+			kernel({0, j, kk}, {kb, jb}, result, lhs, rhs);
+		}
+	}
 }
 
 template <typename T>
