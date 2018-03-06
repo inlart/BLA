@@ -664,8 +664,8 @@ std::enable_if_t<!contiguous_memory_v<E>> evaluate(const MatrixExpression<E>& ex
 	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 
-constexpr coordinate_type nc = 256;
-constexpr coordinate_type kc = 128;
+constexpr coordinate_type nc = 512;
+constexpr coordinate_type kc = 256;
 
 // calculate a size * size block starting at position 'p'
 template <int size = 8, typename T>
@@ -751,7 +751,7 @@ void kernel(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& l
 }
 
 // TODO: optimized parallel matrix multiplication with blocks
-template <int size = 8, typename T>
+template <typename T>
 void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
 	assert(lhs.columns() == rhs.rows());
 
@@ -760,6 +760,8 @@ void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, con
 	const auto m = lhs.rows();
 	const auto k = lhs.columns();
 	const auto n = rhs.columns();
+
+	constexpr auto size = Vc::Vector<T>::Size;
 
 	// TODO: find good values for kc, nc (multiple of vector size?)
 
