@@ -1,13 +1,20 @@
 # Matrices for AllScale
 
-Provides the "Matrix" data type for the AllScale api. It consists of:
+Provides the "Matrix" data type for the AllScale api.
+
+## Dependencies
+
+* CMake 3.5 (<https://cmake.org/>)
+* Allscale API (<https://github.com/allscale/allscale_api>)
+* Eigen 3.3 (<http://eigen.tuxfamily.org/index.php?title=Main_Page>)
+* Vc 1.3 (<https://github.com/VcDevel/Vc/tree/1.3>)
 
 ## CMake Options
 
 | Option                  | Values          |
 | ----------------------- | --------------- |
 | -DCMAKE_BUILD_TYPE      | Release / Debug |
-| -DOVERRIDE_ALLSCALE_API | \<path>         |
+| -DOVERRIDE_ALLSCALE_API | \<path\>        |
 
 If supported, the flag `-march=native` is set.
 CMake creates executables for all files in `src/benchmark` with a `.cc` file extension.
