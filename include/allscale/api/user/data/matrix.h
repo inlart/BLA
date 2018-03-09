@@ -63,10 +63,24 @@ class MatrixScalarMultiplication;
 template <typename T = double>
 class Matrix;
 
-// Traits
 
 template <typename Expr>
 struct scalar_type;
+
+template <typename Expr>
+struct scalar_type<const Expr> {
+	using type = typename scalar_type<Expr>::type;
+};
+
+template <typename Expr>
+struct scalar_type<volatile Expr> {
+	using type = typename scalar_type<Expr>::type;
+};
+
+template <typename Expr>
+struct scalar_type<const volatile Expr> {
+	using type = typename scalar_type<Expr>::type;
+};
 
 template <typename Expr>
 struct scalar_type<MatrixExpression<Expr>> {
@@ -108,14 +122,25 @@ struct scalar_type<Matrix<T>> {
 template <typename Expr>
 using scalar_type_t = typename scalar_type<Expr>::type;
 
-
-/*
- * value is true if Expr is packetable
- */
 // TODO: handle cv
 template <typename Expr>
 struct contiguous_memory {
 	static constexpr bool value = false;
+};
+
+template <typename Expr>
+struct contiguous_memory<const Expr> {
+	static constexpr bool value = contiguous_memory<Expr>::value;
+};
+
+template <typename Expr>
+struct contiguous_memory<volatile Expr> {
+	static constexpr bool value = contiguous_memory<Expr>::value;
+};
+
+template <typename Expr>
+struct contiguous_memory<const volatile Expr> {
+	static constexpr bool value = contiguous_memory<Expr>::value;
 };
 
 template <typename E>
@@ -155,6 +180,7 @@ struct contiguous_memory<Matrix<T>> {
 
 template <typename Expr>
 constexpr bool contiguous_memory_v = contiguous_memory<Expr>::value;
+
 
 namespace detail {
 template <int Depth = 2048, typename T>
@@ -678,12 +704,12 @@ void block(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lh
 	constexpr int vector_size = size / vt::Size; // vector_size contains the number of vt types needed per line
 
 	const auto m = lhs.rows();
-	const auto k = end.x; // lhs.columns();
+	const auto k = end.x;
 
-	vt res[size][vector_size];
+	std::array<std::array<vt, vector_size>, size> res;
 
 	for(ct i = p.z; i < p.z + k; ++i) {
-		vt a[size];
+		std::array<vt, size> a;
 		for(ct j = 0; j < size; ++j) {
 			a[j] = lhs[{p.x + j, i}];
 		}

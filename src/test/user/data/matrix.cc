@@ -326,7 +326,7 @@ TEST(Matrix, MultipleOperations) {
 	}
 }
 
-TEST(Matrix, Contiguous) {
+TEST(Matrix, Traits) {
 	Matrix<double> m1({55, 56});
 	Matrix<double> m2({55, 56});
 
@@ -334,6 +334,20 @@ TEST(Matrix, Contiguous) {
 
 	ASSERT_TRUE(contiguous_memory_v<decltype(sum)>);
 	ASSERT_FALSE(contiguous_memory_v<decltype(m1 + m2.transpose())>);
+
+	const Matrix<double> m3({55, 56});
+
+	const volatile auto matrix_sum = m1 + m3;
+
+	ASSERT_TRUE(contiguous_memory_v<decltype(matrix_sum)>);
+
+	ASSERT_TRUE((std::is_same<double, scalar_type_t<decltype(matrix_sum)>>::value));
+
+	Matrix<int> m4({55, 60});
+	Matrix<int> m5({55, 60});
+
+	ASSERT_TRUE((std::is_same<int, scalar_type_t<decltype(m4 + m5)>>::value));
+	ASSERT_FALSE((std::is_same<double, scalar_type_t<decltype(m4 + m5)>>::value));
 }
 
 } // end namespace data
