@@ -183,7 +183,7 @@ constexpr bool contiguous_memory_v = contiguous_memory<Expr>::value;
 
 
 namespace detail {
-template <int Depth = 2048, typename T>
+template <int Depth = 1024, typename T>
 void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordinate_type size) {
 	static_assert(Depth > 0, "strassen depth has to be > 0");
 	if(size <= Depth) {
@@ -471,15 +471,15 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 		return *this;
 	}
 
-	T& operator[](const point_type& pos) { return m_data[pos]; }
+	inline T& operator[](const point_type& pos) { return m_data[pos]; }
 
-	const T& operator[](const point_type& pos) const { return m_data[pos]; }
+	inline const T& operator[](const point_type& pos) const { return m_data[pos]; }
 
-	point_type size() const { return m_data.size(); }
+	inline point_type size() const { return m_data.size(); }
 
-	coordinate_type rows() const { return m_data.size()[0]; }
+	inline coordinate_type rows() const { return m_data.size()[0]; }
 
-	coordinate_type columns() const { return m_data.size()[1]; }
+	inline coordinate_type columns() const { return m_data.size()[1]; }
 
 	map_stride_type sub(point_type start, point_type size) {
 		return map_stride_type(&m_data[start], size.x, size.y, Eigen::OuterStride<Eigen::Dynamic>(columns()));
@@ -690,12 +690,11 @@ std::enable_if_t<!contiguous_memory_v<E>> evaluate(const MatrixExpression<E>& ex
 	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 
-constexpr coordinate_type nc = 512;
-constexpr coordinate_type kc = 256;
+#define mindex(i, j, size) ((i) * (size) + (j))
 
 // calculate a size * size block starting at position 'p'
 template <int size = 8, typename T>
-void block(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lhs, const T* rhs) {
+inline void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
 	using ct = coordinate_type;
 	using vt = Vc::Vector<T>;
 
@@ -703,21 +702,28 @@ void block(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lh
 
 	constexpr int vector_size = size / vt::Size; // vector_size contains the number of vt types needed per line
 
-	const auto m = lhs.rows();
+	const auto m = matrix_sizes.x;
 	const auto k = end.x;
+
+	std::array<const T*, size> lhs_ptr;
+
+	for(ct j = 0; j < size; ++j) {
+		lhs_ptr[j] = lhs + mindex(j, 0, matrix_sizes.y);
+	}
 
 	std::array<std::array<vt, vector_size>, size> res;
 
-	for(ct i = p.z; i < p.z + k; ++i) {
+	for(ct i = 0; i < k; ++i) {
 		std::array<vt, size> a;
+
 		for(ct j = 0; j < size; ++j) {
-			a[j] = lhs[{p.x + j, i}];
+			a[j] = *lhs_ptr[j]++;
 		}
 
-		vt b[vector_size];
+		std::array<vt, vector_size> b;
 
 		for(ct j = 0; j < vector_size; ++j) {
-			b[j].load(&rhs[j * vt::Size + (i - p.z) * size]);
+			b[j].load(rhs + j * vt::Size + i * size);
 
 
 			for(ct jj = 0; jj < size; ++jj) {
@@ -728,60 +734,62 @@ void block(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lh
 
 	for(ct i = 0; i < size; ++i) {
 		for(ct j = 0; j < vector_size; ++j) {
+			ct jj = j * (ct)vt::Size;
 			for(ct k = 0; k < vt::Size; ++k) {
-				result[{p.x + i, p.y + j * (ct)vt::Size + k}] += res[i][j][k];
+				result[mindex(i, jj + k, matrix_sizes.z)] += res[i][j][k];
 			}
 		}
 	}
 }
 
 template <int size = 8, typename T>
-void kernel(triple_type p, point_type end, Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
 	using ct = coordinate_type;
-	T packed_b[end.y * end.x]; // todo: maybe make it a Matrix?
+
+	T packed_b[end.y * end.x];
 
 	algorithm::pfor(GridPoint<1>{end.y / size}, [&](const auto& pos) {
 		ct j = pos[0] * size;
-		T* b_pos = &packed_b[j * end.x];
+		T* b_pos = packed_b + (j * end.x);
 		for(int k = 0; k < end.x; ++k) {
 			for(int jj = 0; jj < size; ++jj) {
-				*b_pos++ = rhs[{k + p.z, p.y + jj + j}];
+				*b_pos++ = rhs[mindex(k, jj + j, matrix_sizes.z)];
 			}
 		}
 	});
 
-	algorithm::pfor(point_type{(lhs.rows() - p.x) / size, (end.y) / size}, [&](const auto& pos) {
-		ct i = p.x + pos.x * size;
+	algorithm::pfor(point_type{matrix_sizes.x / size, end.y / size}, [&](const auto& pos) {
+		ct i = pos.x * size;
 		ct j = pos.y * size;
 
-		block<size>({p.x + i, p.y + j, p.z}, end, result, lhs, packed_b + (j * end.x));
+		block<size>(end, result + mindex(i, j, matrix_sizes.z), lhs + mindex(i, 0, matrix_sizes.y), packed_b + (j * end.x), matrix_sizes);
 	});
 
-	for(ct i = p.x; i + size - 1 < lhs.rows(); i += size) {
-		for(int ii = i; ii < i + size; ++ii) {
-			for(ct j = end.y - (end.y % size); j < end.y; ++j) {
-				for(ct k = 0; k < end.x; ++k) {
-					result[{p.x + ii, p.y + j}] += lhs[{p.x + ii, p.z + k}] * rhs[{p.z + k, p.y + j}];
-				}
+	for(ct i = 0; i < matrix_sizes.x - (matrix_sizes.x % size); ++i) {
+		for(ct j = end.y - (end.y % size); j < end.y; ++j) {
+			for(ct k = 0; k < end.x; ++k) {
+				result[mindex(i, j, matrix_sizes.z)] += lhs[mindex(i, k, matrix_sizes.y)] * rhs[mindex(k, j, matrix_sizes.z)];
 			}
 		}
 	}
 
-	for(ct i = lhs.rows() - (lhs.rows() % size); i < lhs.rows(); ++i) {
+	for(ct i = matrix_sizes.x - (matrix_sizes.x % size); i < matrix_sizes.x; ++i) {
 		for(ct j = 0; j < end.y; ++j) {
 			for(ct k = 0; k < end.x; ++k) {
-				result[{p.x + i, p.y + j}] += lhs[{p.x + i, p.z + k}] * rhs[{p.z + k, p.y + j}];
+				result[mindex(i, j, matrix_sizes.z)] += lhs[mindex(i, k, matrix_sizes.y)] * rhs[mindex(k, j, matrix_sizes.z)];
 			}
 		}
 	}
 }
 
-// TODO: optimized parallel matrix multiplication with blocks
 template <typename T>
 void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
 	assert(lhs.columns() == rhs.rows());
 
 	using ct = coordinate_type;
+
+	const coordinate_type nc = 512;
+	const coordinate_type kc = 256;
 
 	const auto m = lhs.rows();
 	const auto k = lhs.columns();
@@ -793,11 +801,13 @@ void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, con
 
 	result.zero();
 
+
 	for(ct kk = 0; kk < k; kk += kc) {
 		ct kb = std::min(k - kk, kc);
 		for(ct j = 0; j < n; j += nc) {
 			ct jb = std::min(n - j, nc);
-			kernel<size>({0, j, kk}, {kb, jb}, result, lhs, rhs);
+
+			kernel<size>({kb, jb}, &result[{0, j}], &lhs[{0, kk}], &rhs[{kk, j}], {m, k, n});
 		}
 	}
 }
