@@ -4,7 +4,7 @@ require 'csv'
 
 class Latex
     @@colors_count = 0
-    @@colors = ["red", "blue", "yellow", "cyan", "gray", "green", "black", "purple", "pink"]
+    @@colors = ["black", "blue", "brown", "cyan", "darkgray", "gray", "green", "lightgray", "lime", "magenta", "olive", "orange", "pink", "purple", "red", "teal", "violet", "yellow"]
     @@api_colors = Hash.new
     @@plot_count = 1
 
