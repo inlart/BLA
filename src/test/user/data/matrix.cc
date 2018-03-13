@@ -175,8 +175,8 @@ TEST(Matrix, AssignMultiplication) {
 }
 
 TEST(Matrix, MultiplicationStrassen) {
-	Matrix<double> m1({2, 2});
-	Matrix<double> m2({m1.columns(), 2});
+	Matrix<double> m1({8, 8});
+	Matrix<double> m2({m1.columns(), 8});
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
@@ -186,6 +186,26 @@ TEST(Matrix, MultiplicationStrassen) {
 		m1.random(g);
 		m2.random(g);
 		ASSERT_TRUE(isAlmostEqual(strassen(m1, m2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
+	}
+}
+
+TEST(Matrix, MultiplicationBLAS) {
+	Matrix<double> m1({231, 48});
+	Matrix<double> m2({m1.columns(), 117});
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 4; ++i) {
+		m1.random(g);
+		m2.random(g);
+
+		Matrix<double> res({m1.rows(), m2.columns()});
+
+		matrix_multiplication_blas(res, m1, m2);
+
+		ASSERT_TRUE(isAlmostEqual(res, Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
 	}
 }
 

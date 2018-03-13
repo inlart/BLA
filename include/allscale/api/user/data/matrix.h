@@ -4,6 +4,7 @@
 #include <Vc/Vc>
 #include <allscale/api/user/algorithm/async.h>
 #include <allscale/api/user/data/grid.h>
+#include <cblas.h> // BLAS
 #include <cmath>
 #include <cstdlib>
 
@@ -62,7 +63,6 @@ class MatrixScalarMultiplication;
  */
 template <typename T = double>
 class Matrix;
-
 
 template <typename Expr>
 struct scalar_type;
@@ -180,6 +180,22 @@ struct contiguous_memory<Matrix<T>> {
 
 template <typename Expr>
 constexpr bool contiguous_memory_v = contiguous_memory<Expr>::value;
+
+/*
+ *
+ * Computation Tree
+ * Transforms operations to be calculated more efficient
+ */
+
+/*
+ * (AB)C = A(BC) check number of multiplications
+ * (AB)^T = A^T * B^T first one is probably faster
+ * A(B + C) = AB + AC
+ * (B + C)D = BD + CD first is probably faster, but this check might be hard (we have to know that 'D' is the same matrix on both sites
+ */
+
+template <typename E>
+struct computation_tree;
 
 
 namespace detail {
@@ -421,30 +437,9 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
 	Matrix(const T& value) { fill(value); }
 
-	// TODO: add support for column major storage
 	template <typename Derived>
 	Matrix(const Eigen::MatrixBase<Derived>& matrix) : m_data({matrix.rows(), matrix.cols()}) {
-		//		if(matrix.IsRowMajor) {
-		//			const int total_size = rows() * columns();
-		//			const int packet_size = Eigen::internal::packet_traits<T>::size;
-		//			const int aligned_end = total_size / packet_size * packet_size;
-		//
-		//			algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
-		//				int i = coord[0] * packet_size;
-		//				point_type p{i / columns(), i - i / columns() * columns()};
-		//
-		//				matrix.packet().store(&m_data[p]);
-		//
-		//				Eigen::internal::pstoret<T, PacketScalar, Eigen::Unaligned>(&m_data[p], matrix.template packet<Eigen::Unaligned>(p.x, p.y));
-		//			});
-		//
-		//			for(int i = aligned_end; i < total_size; i++) {
-		//				point_type p{i / columns(), i - i / columns() * columns()};
-		//				m_data[p] = matrix(p.x, p.y);
-		//			}
-		//		} else {
 		algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = matrix(p.x, p.y); });
-		//		}
 	}
 
 	Matrix(const Matrix& mat) { evaluate(mat, *this); }
@@ -810,6 +805,25 @@ void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, con
 			kernel<size>({kb, jb}, &result[{0, j}], &lhs[{0, kk}], &rhs[{kk, j}], {m, k, n});
 		}
 	}
+}
+
+template <typename T>
+void matrix_multiplication_blas(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+	assert(lhs.columns() == rhs.rows());
+
+	assert_fail();
+
+	// TODO:
+
+	//	cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, lhs.rows(), rhs.columns(), lhs.columns(), 1.0, &lhs[{0, 0}], lhs.columns(), &rhs[{0, 0}],
+	//	            rhs.columns(), 0.0, &result[{0, 0}], rhs.columns());
+}
+
+void matrix_multiplication_blas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
+	assert(lhs.columns() == rhs.rows());
+
+	cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, lhs.rows(), rhs.columns(), lhs.columns(), 1.0, &lhs[{0, 0}], lhs.columns(), &rhs[{0, 0}],
+	            rhs.columns(), 0.0, &result[{0, 0}], rhs.columns());
 }
 
 template <typename T>

@@ -8,6 +8,7 @@ include(allscale)
 include(vc)
 
 find_package(Boost REQUIRED)
+find_package(BLAS REQUIRED)
 find_package(GTest REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
@@ -34,6 +35,7 @@ endif()
 
 include_directories(${GTEST_INCLUDE_DIRS})
 include_directories(${Vc_INCLUDE_DIR})
+include_directories(${BLAS_INCLUDE_DIR})
 
 # -- Compilation
 
@@ -67,6 +69,7 @@ foreach(BENCH_FILE ${BENCH_SOURCES})
 
     target_link_libraries(${BENCH_FILENAME} ${CMAKE_THREAD_LIBS_INIT})
     target_link_libraries(${BENCH_FILENAME} ${Vc_LIBRARIES})
+    target_link_libraries(${BENCH_FILENAME} ${BLAS_LIBRARIES})
 
   endif(${BENCH_FILENAME} MATCHES "(.*)allscale(.*)")
 endforeach(BENCH_FILE ${BENCH_SOURCES})
@@ -82,3 +85,4 @@ target_include_directories(matrix_test PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 target_link_libraries(matrix_test Eigen3::Eigen)
 target_link_libraries(matrix_test ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(matrix_test ${Vc_LIBRARIES})
+target_link_libraries(matrix_test ${BLAS_LIBRARIES})
