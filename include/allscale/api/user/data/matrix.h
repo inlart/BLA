@@ -159,15 +159,15 @@ constexpr bool contiguous_memory_v = contiguous_memory<Expr>::value;
  */
 
 /*
+ * A^T^T = A
  * (AB)C = A(BC) check number of multiplications
- * (AB)^T = A^T * B^T first one is probably faster
+ * (AB)^T = B^T * A^T first one is probably faster
  * A(B + C) = AB + AC
  * (B + C)D = BD + CD first is probably faster, but this check might be hard (we have to know that 'D' is the same matrix on both sites
  */
 
 template <typename E>
 struct computation_tree;
-
 
 namespace detail {
 template <int Depth = 1024, typename T>
@@ -831,6 +831,14 @@ void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& l
 		                         }));
 
 	multiplication_rec({0, lhs.rows()}).wait();
+}
+
+void matrix_multiplication_pvblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
+	assert(lhs.columns() == rhs.rows());
+
+	algorithm::pfor(utils::Vector<coordinate_type, 1>{lhs.rows()}, [&](const auto& pos) {
+		cblas_dgemv(CblasRowMajor, CblasNoTrans, lhs.rows(), lhs.columns(), 1., &lhs[{0, 0}], lhs.columns(), &rhs[{pos[0], 0}], 1, 0, &result[{pos[0], 0}], 1);
+	});
 }
 
 template <typename T>
