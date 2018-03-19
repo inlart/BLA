@@ -56,6 +56,17 @@ class MatrixTranspose;
 template <typename E>
 class MatrixScalarMultiplication;
 
+// Helper
+template <typename T>
+struct set_type {
+	using type = T;
+};
+
+template <typename A, typename B>
+struct and_value {
+	static constexpr bool value = A::value && B::value;
+};
+
 /*
  * Represents the Matrix
  * Elements are modifiable
@@ -68,115 +79,75 @@ template <typename Expr>
 struct scalar_type;
 
 template <typename Expr>
-struct scalar_type<const Expr> {
-	using type = typename scalar_type<Expr>::type;
-};
+struct scalar_type<const Expr> : public set_type<typename scalar_type<Expr>::type> {};
 
 template <typename Expr>
-struct scalar_type<volatile Expr> {
-	using type = typename scalar_type<Expr>::type;
-};
+struct scalar_type<volatile Expr> : public set_type<typename scalar_type<Expr>::type> {};
 
 template <typename Expr>
-struct scalar_type<const volatile Expr> {
-	using type = typename scalar_type<Expr>::type;
-};
+struct scalar_type<const volatile Expr> : public set_type<typename scalar_type<Expr>::type> {};
 
 template <typename Expr>
-struct scalar_type<MatrixExpression<Expr>> {
-	using type = typename scalar_type<Expr>::type;
-};
+struct scalar_type<MatrixExpression<Expr>> : public set_type<typename scalar_type<Expr>::type> {};
 
 template <typename E1, typename E2>
-struct scalar_type<MatrixAddition<E1, E2>> {
+struct scalar_type<MatrixAddition<E1, E2>> : public set_type<typename scalar_type<E1>::type> {
 	static_assert(std::is_same<typename scalar_type<E1>::type, typename scalar_type<E2>::type>::value, "Can't add matrices with different member type");
-	using type = typename scalar_type<E1>::type;
 };
 
 template <typename E1, typename E2>
-struct scalar_type<MatrixSubtraction<E1, E2>> {
+struct scalar_type<MatrixSubtraction<E1, E2>> : public set_type<typename scalar_type<E1>::type> {
 	static_assert(std::is_same<typename scalar_type<E1>::type, typename scalar_type<E2>::type>::value, "Can't sub matrices with different member type");
-	using type = typename scalar_type<E1>::type;
 };
 
 template <typename E>
-struct scalar_type<MatrixNegation<E>> {
-	using type = typename scalar_type<E>::type;
-};
+struct scalar_type<MatrixNegation<E>> : public set_type<typename scalar_type<E>::type> {};
 
 template <typename E>
-struct scalar_type<MatrixTranspose<E>> {
-	using type = typename scalar_type<E>::type;
-};
+struct scalar_type<MatrixTranspose<E>> : public set_type<typename scalar_type<E>::type> {};
 
 template <typename E>
-struct scalar_type<MatrixScalarMultiplication<E>> {
-	using type = typename scalar_type<E>::type;
-};
+struct scalar_type<MatrixScalarMultiplication<E>> : public set_type<typename scalar_type<E>::type> {};
 
 template <typename T>
-struct scalar_type<Matrix<T>> {
-	using type = T;
-};
+struct scalar_type<Matrix<T>> : public set_type<T> {};
 
 template <typename Expr>
 using scalar_type_t = typename scalar_type<Expr>::type;
 
-// TODO: handle cv
-template <typename Expr>
-struct contiguous_memory {
-	static constexpr bool value = false;
-};
 
 template <typename Expr>
-struct contiguous_memory<const Expr> {
-	static constexpr bool value = contiguous_memory<Expr>::value;
-};
+struct contiguous_memory : public std::false_type {};
 
 template <typename Expr>
-struct contiguous_memory<volatile Expr> {
-	static constexpr bool value = contiguous_memory<Expr>::value;
-};
+struct contiguous_memory<const Expr> : contiguous_memory<Expr> {};
 
 template <typename Expr>
-struct contiguous_memory<const volatile Expr> {
-	static constexpr bool value = contiguous_memory<Expr>::value;
-};
+struct contiguous_memory<volatile Expr> : contiguous_memory<Expr> {};
+
+template <typename Expr>
+struct contiguous_memory<const volatile Expr> : contiguous_memory<Expr> {};
 
 template <typename E>
-struct contiguous_memory<MatrixExpression<E>> {
-	static constexpr bool value = contiguous_memory<E>::value;
-};
+struct contiguous_memory<MatrixExpression<E>> : public contiguous_memory<E> {};
 
 template <typename E1, typename E2>
-struct contiguous_memory<MatrixAddition<E1, E2>> {
-	static constexpr bool value = contiguous_memory<E1>::value && contiguous_memory<E2>::value;
-};
+struct contiguous_memory<MatrixAddition<E1, E2>> : public and_value<contiguous_memory<E1>, contiguous_memory<E2>> {};
 
 template <typename E1, typename E2>
-struct contiguous_memory<MatrixSubtraction<E1, E2>> {
-	static constexpr bool value = contiguous_memory<E1>::value && contiguous_memory<E2>::value;
-};
+struct contiguous_memory<MatrixSubtraction<E1, E2>> : public and_value<contiguous_memory<E1>, contiguous_memory<E2>> {};
 
 template <typename E>
-struct contiguous_memory<MatrixNegation<E>> {
-	static constexpr bool value = contiguous_memory<E>::value;
-};
+struct contiguous_memory<MatrixNegation<E>> : public contiguous_memory<E> {};
 
 template <typename E>
-struct contiguous_memory<MatrixTranspose<E>> {
-	static constexpr bool value = false;
-};
+struct contiguous_memory<MatrixTranspose<E>> : public std::false_type {};
 
 template <typename E>
-struct contiguous_memory<MatrixScalarMultiplication<E>> {
-	static constexpr bool value = contiguous_memory<E>::value;
-};
+struct contiguous_memory<MatrixScalarMultiplication<E>> : public contiguous_memory<E> {};
 
 template <typename T>
-struct contiguous_memory<Matrix<T>> {
-	static constexpr bool value = true;
-};
+struct contiguous_memory<Matrix<T>> : public std::true_type {};
 
 template <typename Expr>
 constexpr bool contiguous_memory_v = contiguous_memory<Expr>::value;
