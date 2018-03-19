@@ -170,7 +170,7 @@ struct contiguous_memory<MatrixTranspose<E>> {
 
 template <typename E>
 struct contiguous_memory<MatrixScalarMultiplication<E>> {
-	static constexpr bool value = true;
+	static constexpr bool value = contiguous_memory<E>::value;
 };
 
 template <typename T>
@@ -807,23 +807,59 @@ void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, con
 	}
 }
 
-template <typename T>
-void matrix_multiplication_blas(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
-	assert(lhs.columns() == rhs.rows());
-
-	assert_fail();
-
-	// TODO:
-
-	//	cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, lhs.rows(), rhs.columns(), lhs.columns(), 1.0, &lhs[{0, 0}], lhs.columns(), &rhs[{0, 0}],
-	//	            rhs.columns(), 0.0, &result[{0, 0}], rhs.columns());
-}
+// template <typename T>
+// void matrix_multiplication_blas(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+//	assert(lhs.columns() == rhs.rows());
+//
+//	assert_fail();
+//
+//	// TODO:
+//
+//	//	cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, lhs.rows(), rhs.columns(), lhs.columns(), 1.0, &lhs[{0, 0}], lhs.columns(), &rhs[{0, 0}],
+//	//	            rhs.columns(), 0.0, &result[{0, 0}], rhs.columns());
+//}
 
 void matrix_multiplication_blas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
 	assert(lhs.columns() == rhs.rows());
 
 	cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, lhs.rows(), rhs.columns(), lhs.columns(), 1.0, &lhs[{0, 0}], lhs.columns(), &rhs[{0, 0}],
 	            rhs.columns(), 0.0, &result[{0, 0}], rhs.columns());
+}
+
+void matrix_multiplication_blas(Matrix<float>& result, const Matrix<float>& lhs, const Matrix<float>& rhs) {
+	assert(lhs.columns() == rhs.rows());
+
+	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, lhs.rows(), rhs.columns(), lhs.columns(), 1.0, &lhs[{0, 0}], lhs.columns(), &rhs[{0, 0}],
+	            rhs.columns(), 0.0, &result[{0, 0}], rhs.columns());
+}
+
+void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
+	assert(lhs.columns() == rhs.rows());
+
+	auto blas_multiplication = [&](const RowRange& r) {
+		assert_le(r.start, r.end);
+
+		cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, r.end - r.start, rhs.columns(), lhs.columns(), 1.0, &lhs[{r.start, 0}], lhs.columns(),
+		            &rhs[{0, 0}], rhs.columns(), 0.0, &result[{r.start, 0}], rhs.columns());
+	};
+
+	auto multiplication_rec = prec(
+	    // base case test
+	    [&](const RowRange& r) { return r.start + 64 >= r.end; },
+	    // base case
+	    blas_multiplication, pick(
+	                             // parallel recursive split
+	                             [&](const RowRange& r, const auto& rec) {
+		                             int mid = r.start + (r.end - r.start) / 2;
+		                             return parallel(rec({r.start, mid}), rec({mid, r.end}));
+		                         },
+	                             // BLAS multiplication if no further parallelism can be exploited
+	                             [&](const RowRange& r, const auto&) {
+		                             blas_multiplication(r);
+		                             return done();
+		                         }));
+
+	multiplication_rec({0, lhs.rows()}).wait();
 }
 
 template <typename T>
