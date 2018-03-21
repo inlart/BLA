@@ -378,20 +378,60 @@ TEST(Matrix, Simplify) {
 	ASSERT_EQ(m3, m4);
 }
 
+TEST(Matrix, CustomTypes) {
+	struct A;
+	struct B;
+
+
+	struct A {
+		int operator+(const B& b) const { return 1; }
+		double operator-(const B& b) const { return 0.1337; }
+	};
+
+	struct B {
+		double operator+(const A& b) const { return 0.1337; }
+		int operator-(const A& b) const { return 1; }
+	};
+
+	Matrix<A> m1({55, 58});
+	Matrix<B> m2({55, 58});
+
+	Matrix<int> m3({55, 58});
+	Matrix<double> m4({55, 58});
+
+	Matrix<int> test_i({55, 58});
+	test_i.fill(1);
+
+	Matrix<double> test_d({55, 58});
+	test_d.fill(0.1337);
+
+	m3 = m1 + m2;
+	ASSERT_EQ(m3, test_i);
+
+	m4 = m2 + m1;
+	ASSERT_TRUE(isAlmostEqual(m4, test_d));
+
+	m3 = m2 - m1;
+	ASSERT_EQ(m3, test_i);
+
+	m4 = m1 - m2;
+	ASSERT_TRUE(isAlmostEqual(m4, test_d));
+}
+
 TEST(Matrix, Traits) {
 	Matrix<double> m1({55, 56});
 	Matrix<double> m2({55, 56});
 
 	auto sum = m1 + m2;
 
-	ASSERT_TRUE(contiguous_memory_v<decltype(sum)>);
-	ASSERT_FALSE(contiguous_memory_v<decltype(m1 + m2.transpose())>);
+	ASSERT_TRUE(vectorizable_v<decltype(sum)>);
+	ASSERT_FALSE(vectorizable_v<decltype(m1 + m2.transpose())>);
 
 	const Matrix<double> m3({55, 56});
 
 	const volatile auto matrix_sum = m1 + m3;
 
-	ASSERT_TRUE(contiguous_memory_v<decltype(matrix_sum)>);
+	ASSERT_TRUE(vectorizable_v<decltype(matrix_sum)>);
 
 	ASSERT_TRUE((std::is_same<double, scalar_type_t<decltype(matrix_sum)>>::value));
 

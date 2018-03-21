@@ -62,9 +62,17 @@ struct set_type {
 	using type = T;
 };
 
-template <typename A, typename B>
-struct and_value {
-	static constexpr bool value = A::value && B::value;
+template <bool... A>
+struct and_value;
+
+template <bool A>
+struct and_value<A> {
+	static constexpr bool value = A;
+};
+
+template <bool A, bool... B>
+struct and_value<A, B...> {
+	static constexpr bool value = A && and_value<B...>::value;
 };
 
 /*
@@ -74,6 +82,7 @@ struct and_value {
  */
 template <typename T = double>
 class Matrix;
+
 
 template <typename Expr>
 struct scalar_type;
@@ -91,14 +100,12 @@ template <typename Expr>
 struct scalar_type<MatrixExpression<Expr>> : public set_type<typename scalar_type<Expr>::type> {};
 
 template <typename E1, typename E2>
-struct scalar_type<MatrixAddition<E1, E2>> : public set_type<typename scalar_type<E1>::type> {
-	static_assert(std::is_same<typename scalar_type<E1>::type, typename scalar_type<E2>::type>::value, "Can't add matrices with different member type");
-};
+struct scalar_type<MatrixAddition<E1, E2>>
+    : public set_type<decltype(std::declval<typename scalar_type<E1>::type>() + std::declval<typename scalar_type<E2>::type>())> {};
 
 template <typename E1, typename E2>
-struct scalar_type<MatrixSubtraction<E1, E2>> : public set_type<typename scalar_type<E1>::type> {
-	static_assert(std::is_same<typename scalar_type<E1>::type, typename scalar_type<E2>::type>::value, "Can't sub matrices with different member type");
-};
+struct scalar_type<MatrixSubtraction<E1, E2>>
+    : public set_type<decltype(std::declval<typename scalar_type<E1>::type>() - std::declval<typename scalar_type<E2>::type>())> {};
 
 template <typename E>
 struct scalar_type<MatrixNegation<E>> : public set_type<typename scalar_type<E>::type> {};
@@ -117,40 +124,43 @@ using scalar_type_t = typename scalar_type<Expr>::type;
 
 
 template <typename Expr>
-struct contiguous_memory : public std::false_type {};
+struct vectorizable : public std::false_type {};
 
 template <typename Expr>
-struct contiguous_memory<const Expr> : contiguous_memory<Expr> {};
+struct vectorizable<const Expr> : vectorizable<Expr> {};
 
 template <typename Expr>
-struct contiguous_memory<volatile Expr> : contiguous_memory<Expr> {};
+struct vectorizable<volatile Expr> : vectorizable<Expr> {};
 
 template <typename Expr>
-struct contiguous_memory<const volatile Expr> : contiguous_memory<Expr> {};
+struct vectorizable<const volatile Expr> : vectorizable<Expr> {};
 
 template <typename E>
-struct contiguous_memory<MatrixExpression<E>> : public contiguous_memory<E> {};
+struct vectorizable<MatrixExpression<E>> : public vectorizable<E> {};
 
 template <typename E1, typename E2>
-struct contiguous_memory<MatrixAddition<E1, E2>> : public and_value<contiguous_memory<E1>, contiguous_memory<E2>> {};
+struct vectorizable<MatrixAddition<E1, E2>>
+    : public and_value<vectorizable<E1>::value, vectorizable<E2>::value, std::is_arithmetic<scalar_type_t<MatrixAddition<E1, E2>>>::value> {};
 
 template <typename E1, typename E2>
-struct contiguous_memory<MatrixSubtraction<E1, E2>> : public and_value<contiguous_memory<E1>, contiguous_memory<E2>> {};
+struct vectorizable<MatrixSubtraction<E1, E2>>
+    : public and_value<vectorizable<E1>::value, vectorizable<E2>::value, std::is_arithmetic<scalar_type_t<MatrixSubtraction<E1, E2>>>::value> {};
 
 template <typename E>
-struct contiguous_memory<MatrixNegation<E>> : public contiguous_memory<E> {};
+struct vectorizable<MatrixNegation<E>> : public vectorizable<E> {};
 
 template <typename E>
-struct contiguous_memory<MatrixTranspose<E>> : public std::false_type {};
+struct vectorizable<MatrixTranspose<E>> : public std::false_type {};
 
 template <typename E>
-struct contiguous_memory<MatrixScalarMultiplication<E>> : public contiguous_memory<E> {};
+struct vectorizable<MatrixScalarMultiplication<E>> : public vectorizable<E> {};
 
 template <typename T>
-struct contiguous_memory<Matrix<T>> : public std::true_type {};
+struct vectorizable<Matrix<T>> : public std::is_arithmetic<T> {};
 
 template <typename Expr>
-constexpr bool contiguous_memory_v = contiguous_memory<Expr>::value;
+constexpr bool vectorizable_v = vectorizable<Expr>::value;
+
 
 template <typename E>
 struct needs_reference : public set_type<E> {};
@@ -160,6 +170,31 @@ struct needs_reference<Matrix<T>> : public set_type<Matrix<T>&> {};
 
 template <typename E>
 using needs_reference_t = typename needs_reference<E>::type;
+
+
+template <typename T>
+struct is_associative : public std::false_type {};
+
+template <>
+struct is_associative<int> : public std::true_type {};
+
+template <>
+struct is_associative<unsigned> : public std::true_type {};
+
+template <>
+struct is_associative<long> : public std::true_type {};
+
+template <>
+struct is_associative<unsigned long> : public std::true_type {};
+
+template <class...>
+using void_t = void;
+
+template <typename T>
+struct type_consistent : public and_value<std::is_same<T, decltype(std::declval<T>() * std::declval<T>())>::value> {};
+
+template <typename T>
+constexpr bool type_consistent_v = type_consistent<T>::value;
 
 /*
  *
@@ -212,6 +247,12 @@ MatrixScalarMultiplication<E> simplify(MatrixScalarMultiplication<E> e) {
 template <typename E>
 E simplify(MatrixTranspose<MatrixTranspose<E>> e) {
 	return e.getExpression().getExpression();
+}
+
+template <typename E>
+MatrixScalarMultiplication<MatrixScalarMultiplication<E>> simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E>> e) {
+	// TODO: e.g. 5 * (6 * A) = 30 * A
+	return e;
 }
 
 template <typename E>
@@ -426,6 +467,8 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	Exp matrix;
 };
 
+
+// TODO: also add a ScalarMatrixMultiplication class?
 template <typename E>
 class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplication<E>> {
 	using typename MatrixExpression<MatrixScalarMultiplication<E>>::T;
@@ -690,7 +733,7 @@ const Matrix<T>& eval(const MatrixExpression<Matrix<T>>& me) {
 }
 
 template <typename E>
-std::enable_if_t<contiguous_memory_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
+std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
 	assert_eq(expr.size(), dst.size());
 
 	using T = scalar_type_t<E>;
@@ -713,7 +756,7 @@ std::enable_if_t<contiguous_memory_v<E>> evaluate(const MatrixExpression<E>& exp
 }
 
 template <typename E>
-std::enable_if_t<!contiguous_memory_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
+std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
 	assert_eq(expr.size(), dst.size());
 	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
