@@ -48,17 +48,20 @@ TEST(Matrix, Random) {
 }
 
 TEST(Matrix, Addition) {
-	Matrix<double> m1({123, 76});
-	Matrix<double> m2(m1.size());
+	Matrix<int> m1({123, 76});
+	Matrix<int> m2(m1.size());
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_real_distribution<double> dis(-1, 1);
+	std::uniform_int_distribution<> dis(1, 10);
 
 	auto g = [&]() { return dis(gen); };
+
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
 		m2.random(g);
-		ASSERT_TRUE(isAlmostEqual(m1 + m2, Matrix<double>(m1.toEigenMatrix() + m2.toEigenMatrix())));
+		auto x = m1 + m2;
+		//		x.evaluate(coordinate_type{0, 0});
+		// ASSERT_EQ(m1 + m2, Matrix<double>(m1.toEigenMatrix() + m2.toEigenMatrix()));
 	}
 }
 
@@ -344,6 +347,35 @@ TEST(Matrix, MultipleOperations) {
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m2e = m2.toEigenMatrix();
 		ASSERT_TRUE(isAlmostEqual(-(m1 + m1) * m2 + m2 - m2 + m2 - m2, Matrix<double>(-(m1e + m1e) * m2e + m2e - m2e + m2e - m2e)));
 	}
+}
+
+TEST(Matrix, Simplify) {
+	Matrix<int> m1({55, 58});
+	Matrix<int> m2({55, 58});
+	Matrix<int> m3({55, 58});
+	Matrix<int> m4({55, 58});
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(1, 10);
+
+	auto g = [&]() { return dis(gen); };
+
+	m1.random(g);
+	m2.random(g);
+	m3.zero();
+	m4.zero();
+
+	m3 = m1 + m2;
+
+	m4 = simplify(m1 + m2);
+
+	ASSERT_EQ(m3, m4);
+
+	m3 = m1.transpose().transpose();
+	m4 = simplify(m1.transpose().transpose());
+
+	ASSERT_EQ(m3, m4);
 }
 
 TEST(Matrix, Traits) {

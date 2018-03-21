@@ -152,6 +152,15 @@ struct contiguous_memory<Matrix<T>> : public std::true_type {};
 template <typename Expr>
 constexpr bool contiguous_memory_v = contiguous_memory<Expr>::value;
 
+template <typename E>
+struct needs_reference : public set_type<E> {};
+
+template <typename T>
+struct needs_reference<Matrix<T>> : public set_type<Matrix<T>&> {};
+
+template <typename E>
+using needs_reference_t = typename needs_reference<E>::type;
+
 /*
  *
  * Computation Tree
@@ -165,6 +174,45 @@ constexpr bool contiguous_memory_v = contiguous_memory<Expr>::value;
  * A(B + C) = AB + AC
  * (B + C)D = BD + CD first is probably faster, but this check might be hard (we have to know that 'D' is the same matrix on both sites
  */
+
+// TODO: do this at compile time?
+// TODO: apply simplify recursively
+
+template <typename E>
+MatrixExpression<E> simplify(MatrixExpression<E> e) {
+	return e;
+}
+
+template <typename E1, typename E2>
+MatrixAddition<E1, E2> simplify(MatrixAddition<E1, E2> e) {
+	return e;
+}
+
+template <typename E1, typename E2>
+MatrixSubtraction<E1, E2> simplify(MatrixSubtraction<E1, E2> e) {
+	return e;
+}
+
+template <typename E>
+MatrixNegation<E> simplify(MatrixNegation<E> e) {
+	return e;
+}
+
+template <typename E>
+MatrixTranspose<E> simplify(MatrixTranspose<E> e) {
+	return e;
+}
+
+template <typename E>
+MatrixScalarMultiplication<E> simplify(MatrixScalarMultiplication<E> e) {
+	return e;
+}
+
+// What we really simplify
+template <typename E>
+E simplify(MatrixTranspose<MatrixTranspose<E>> e) {
+	return e.getExpression().getExpression();
+}
 
 template <typename E>
 struct computation_tree;
@@ -281,8 +329,11 @@ class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
 	using typename MatrixExpression<MatrixAddition<E1, E2>>::T;
 	using typename MatrixExpression<MatrixAddition<E1, E2>>::PacketScalar;
 
+	using Exp1 = needs_reference_t<std::add_const_t<E1>>;
+	using Exp2 = needs_reference_t<std::add_const_t<E2>>;
+
   public:
-	MatrixAddition(const E1& u, const E2& v) : lhs(u), rhs(v) { assert(u.size() == v.size()); }
+	MatrixAddition(Exp1 u, Exp2 v) : lhs(u), rhs(v) { assert(u.size() == v.size()); }
 
 	T operator[](const point_type& pos) const { return lhs[pos] + rhs[pos]; }
 
@@ -295,8 +346,8 @@ class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
 	PacketScalar packet(point_type p) const { return lhs.packet(p) + rhs.packet(p); }
 
   private:
-	const E1& lhs;
-	const E2& rhs;
+	Exp1 lhs;
+	Exp2 rhs;
 };
 
 template <typename E1, typename E2>
@@ -304,8 +355,11 @@ class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
 	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::T;
 	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::PacketScalar;
 
+	using Exp1 = needs_reference_t<std::add_const_t<E1>>;
+	using Exp2 = needs_reference_t<std::add_const_t<E2>>;
+
   public:
-	MatrixSubtraction(const E1& u, const E2& v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
+	MatrixSubtraction(Exp1 u, const Exp2 v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
 
 	T operator[](const point_type& pos) const { return lhs[pos] - rhs[pos]; }
 
@@ -318,8 +372,8 @@ class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
 	PacketScalar packet(point_type p) const { return lhs.packet(p) - rhs.packet(p); }
 
   private:
-	const E1& lhs;
-	const E2& rhs;
+	Exp1 lhs;
+	Exp2 rhs;
 };
 
 template <typename E>
@@ -327,8 +381,10 @@ class MatrixTranspose : public MatrixExpression<MatrixTranspose<E>> {
 	using typename MatrixExpression<MatrixTranspose<E>>::T;
 	using typename MatrixExpression<MatrixTranspose<E>>::PacketScalar;
 
+	using Exp = needs_reference_t<std::add_const_t<E>>;
+
   public:
-	MatrixTranspose(const E& u) : expression(u) {}
+	MatrixTranspose(Exp u) : expression(u) {}
 
 	T operator[](const point_type& pos) const { return expression[{pos.y, pos.x}]; }
 
@@ -338,10 +394,12 @@ class MatrixTranspose : public MatrixExpression<MatrixTranspose<E>> {
 
 	coordinate_type columns() const { return expression.rows(); }
 
+	Exp getExpression() const { return expression; }
+
 	//	PacketScalar packet(point_type p) const { assert_falsereturn expression.packet(p); }
 
   private:
-	const E& expression;
+	Exp expression;
 };
 
 template <typename E>
@@ -349,8 +407,10 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	using typename MatrixExpression<MatrixNegation<E>>::T;
 	using typename MatrixExpression<MatrixNegation<E>>::PacketScalar;
 
+	using Exp = needs_reference_t<std::add_const_t<E>>;
+
   public:
-	MatrixNegation(const E& e) : matrix(e) {}
+	MatrixNegation(Exp e) : matrix(e) {}
 	T operator[](const point_type& pos) const { return -matrix[pos]; }
 
 	point_type size() const { return matrix.size(); }
@@ -363,16 +423,18 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	PacketScalar packet(point_type p) const { return -matrix.packet(p); }
 
   private:
-	const E& matrix;
+	Exp matrix;
 };
 
-template <typename Exp>
-class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplication<Exp>> {
-	using typename MatrixExpression<MatrixScalarMultiplication<Exp>>::T;
-	using typename MatrixExpression<MatrixScalarMultiplication<Exp>>::PacketScalar;
+template <typename E>
+class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplication<E>> {
+	using typename MatrixExpression<MatrixScalarMultiplication<E>>::T;
+	using typename MatrixExpression<MatrixScalarMultiplication<E>>::PacketScalar;
+
+	using Exp = needs_reference_t<std::add_const_t<E>>;
 
   public:
-	MatrixScalarMultiplication(const T& u, const Exp& v) : scalar(u), matrix(v) {}
+	MatrixScalarMultiplication(const T& u, Exp v) : scalar(u), matrix(v) {}
 
 	T operator[](const point_type& pos) const { return scalar * matrix[pos]; }
 
@@ -385,7 +447,7 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 
   private:
 	const T& scalar;
-	const Exp& matrix;
+	Exp matrix;
 };
 
 template <typename T>
@@ -402,7 +464,7 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 	Matrix(const point_type& size) : m_data(size) {}
 
 	template <typename E>
-	Matrix(MatrixExpression<E> const& mat) : m_data(mat.size()) {
+	Matrix(const MatrixExpression<E>& mat) : m_data(mat.size()) {
 		evaluate(mat, *this);
 	}
 
@@ -413,7 +475,7 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 		algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = matrix(p.x, p.y); });
 	}
 
-	Matrix(const Matrix& mat) { evaluate(mat, *this); }
+	Matrix(const Matrix& mat) : m_data(mat.size()) { evaluate(mat, *this); }
 
 	Matrix(Matrix&&) = default;
 
