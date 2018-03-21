@@ -187,14 +187,18 @@ struct is_associative<long> : public std::true_type {};
 template <>
 struct is_associative<unsigned long> : public std::true_type {};
 
+template <typename T>
+constexpr bool is_associative_v = is_associative<T>::value;
+
+
 template <class...>
 using void_t = void;
 
 template <typename T>
-struct type_consistent : public and_value<std::is_same<T, decltype(std::declval<T>() * std::declval<T>())>::value> {};
+struct type_consistent_multiplication : public and_value<std::is_same<T, decltype(std::declval<T>() * std::declval<T>())>::value> {};
 
 template <typename T>
-constexpr bool type_consistent_v = type_consistent<T>::value;
+constexpr bool type_consistent_multiplication_v = type_consistent_multiplication<T>::value;
 
 /*
  *
@@ -249,11 +253,12 @@ E simplify(MatrixTranspose<MatrixTranspose<E>> e) {
 	return e.getExpression().getExpression();
 }
 
-// template <typename E>
-// MatrixScalarMultiplication<MatrixScalarMultiplication<E>> simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E>> e) {
-//	// TODO: e.g. 5 * (6 * A) = 30 * A
-//	return e;
-//}
+template <typename E, typename U>
+std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, MatrixScalarMultiplication<E, U>>
+simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
+	// TODO: e.g. (A * 5) * 6 = A * 30
+	return MatrixScalarMultiplication<E, U>(e.getExpression().getExpression(), e.getExpression().getScalar() * e.getScalar());
+}
 
 namespace detail {
 template <int Depth = 1024, typename T>
@@ -464,8 +469,6 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	Exp matrix;
 };
 
-
-// TODO: also add a ScalarMatrixMultiplication class?
 template <typename E, typename U>
 class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplication<E, U>> {
 	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::T;
@@ -474,20 +477,52 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 	using Exp = needs_reference_t<std::add_const_t<E>>;
 
   public:
-	MatrixScalarMultiplication(const U& u, Exp v) : scalar(u), matrix(v) {}
+	MatrixScalarMultiplication(Exp v, const U& u) : scalar(u), expression(v) {}
 
-	T operator[](const point_type& pos) const { return scalar * matrix[pos]; }
+	T operator[](const point_type& pos) const { return expression[pos] * scalar; }
 
-	point_type size() const { return matrix.size(); }
-	coordinate_type rows() const { return matrix.rows(); }
+	point_type size() const { return expression.size(); }
+	coordinate_type rows() const { return expression.rows(); }
 
-	coordinate_type columns() const { return matrix.columns(); }
+	coordinate_type columns() const { return expression.columns(); }
 
-	PacketScalar packet(point_type p) const { return matrix.packet(p) * PacketScalar(scalar); }
+	PacketScalar packet(point_type p) const { return expression.packet(p) * PacketScalar(scalar); }
+
+	const U& getScalar() const { return scalar; }
+
+	Exp getExpression() const { return expression; }
 
   private:
-	const U& scalar;
-	Exp matrix;
+	const U scalar;
+	Exp expression;
+};
+
+template <typename E, typename U>
+class ScalarMatrixMultiplication : public MatrixExpression<MatrixScalarMultiplication<E, U>> {
+	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::T;
+	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::PacketScalar;
+
+	using Exp = needs_reference_t<std::add_const_t<E>>;
+
+  public:
+	ScalarMatrixMultiplication(const U& u, Exp v) : scalar(u), expression(v) {}
+
+	T operator[](const point_type& pos) const { return scalar * expression[pos]; }
+
+	point_type size() const { return expression.size(); }
+	coordinate_type rows() const { return expression.rows(); }
+
+	coordinate_type columns() const { return expression.columns(); }
+
+	PacketScalar packet(point_type p) const { return PacketScalar(scalar) * expression.packet(p); }
+
+	const U& getScalar() const { return scalar; }
+
+	Exp getExpression() const { return expression; }
+
+  private:
+	const U scalar;
+	Exp expression;
 };
 
 template <typename T>
@@ -976,13 +1011,13 @@ void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix
 // -- scalar * matrix multiplication
 // Note: without the std::enable_if a matrix * matrix multiplication would be ambiguous
 template <typename E, typename U>
-std::enable_if_t<!std::is_base_of<MatrixExpression<U>, U>::value, MatrixScalarMultiplication<E, U>> operator*(const U& u, const MatrixExpression<E>& v) {
-	return MatrixScalarMultiplication<E, U>(u, v);
+std::enable_if_t<!std::is_base_of<MatrixExpression<U>, U>::value, ScalarMatrixMultiplication<E, U>> operator*(const U& u, const MatrixExpression<E>& v) {
+	return ScalarMatrixMultiplication<E, U>(u, v);
 }
 
 template <typename E, typename U>
 std::enable_if_t<!std::is_base_of<MatrixExpression<U>, U>::value, MatrixScalarMultiplication<E, U>> operator*(const MatrixExpression<E>& v, const U& u) {
-	return u * v;
+	return MatrixScalarMultiplication<E, U>(v, u);
 }
 
 // -- matrix * matrix multiplication

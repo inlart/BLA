@@ -248,8 +248,8 @@ TEST(Matrix, MultiplicationAllscaleInteger) {
 	}
 }
 
-TEST(Matrix, ScalarMultiplication) {
-	Matrix<int> m1({45, 45});
+TEST(Matrix, ScalarMatrixMultiplication) {
+	Matrix<double> m1({45, 45});
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(-1, 1);
@@ -257,7 +257,20 @@ TEST(Matrix, ScalarMultiplication) {
 	auto g = [&]() { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
-		ASSERT_EQ(3 * m1, Matrix<int>((3 * m1.toEigenMatrix()).eval()));
+		ASSERT_EQ(3. * m1, Matrix<int>((3. * m1.toEigenMatrix()).eval()));
+	}
+}
+
+TEST(Matrix, MatrixScalarMultiplication) {
+	Matrix<double> m1({45, 45});
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 4; ++i) {
+		m1.random(g);
+		ASSERT_EQ(m1 * 3., Matrix<int>((m1.toEigenMatrix() * 3.).eval()));
 	}
 }
 
@@ -376,6 +389,28 @@ TEST(Matrix, Simplify) {
 	m4 = simplify(m1.transpose().transpose());
 
 	ASSERT_EQ(m3, m4);
+}
+
+TEST(Matrix, SimplifyMatrixScalarMultiplication) {
+	Matrix<int> m1({55, 55});
+	Matrix<int> m2({55, 55});
+	Matrix<int> m3({55, 55});
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(1, 5);
+
+	auto g = [&]() { return dis(gen); };
+
+	m1.identity(); // random(g);
+	m2.zero();
+	m3.zero();
+
+	m2 = m1 * 1 * 1;
+
+	m3 = simplify(m1 * 1 * 1);
+
+	ASSERT_EQ(m2, m3);
 }
 
 TEST(Matrix, CustomTypes) {
