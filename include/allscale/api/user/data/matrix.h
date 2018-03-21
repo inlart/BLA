@@ -53,7 +53,7 @@ class MatrixTranspose;
 /*
  * Represents the multiplication of a scalar with a matrix
  */
-template <typename E>
+template <typename E, typename U>
 class MatrixScalarMultiplication;
 
 // Helper
@@ -113,8 +113,8 @@ struct scalar_type<MatrixNegation<E>> : public set_type<typename scalar_type<E>:
 template <typename E>
 struct scalar_type<MatrixTranspose<E>> : public set_type<typename scalar_type<E>::type> {};
 
-template <typename E>
-struct scalar_type<MatrixScalarMultiplication<E>> : public set_type<typename scalar_type<E>::type> {};
+template <typename E, typename U>
+struct scalar_type<MatrixScalarMultiplication<E, U>> : public set_type<decltype(std::declval<typename scalar_type<E>::type>() * std::declval<U>())> {};
 
 template <typename T>
 struct scalar_type<Matrix<T>> : public set_type<T> {};
@@ -152,8 +152,8 @@ struct vectorizable<MatrixNegation<E>> : public vectorizable<E> {};
 template <typename E>
 struct vectorizable<MatrixTranspose<E>> : public std::false_type {};
 
-template <typename E>
-struct vectorizable<MatrixScalarMultiplication<E>> : public vectorizable<E> {};
+template <typename E, typename U>
+struct vectorizable<MatrixScalarMultiplication<E, U>> : public and_value<vectorizable<E>::value, std::is_same<scalar_type_t<E>, U>::value> {};
 
 template <typename T>
 struct vectorizable<Matrix<T>> : public std::is_arithmetic<T> {};
@@ -238,8 +238,8 @@ MatrixTranspose<E> simplify(MatrixTranspose<E> e) {
 	return e;
 }
 
-template <typename E>
-MatrixScalarMultiplication<E> simplify(MatrixScalarMultiplication<E> e) {
+template <typename E, typename U>
+MatrixScalarMultiplication<E, U> simplify(MatrixScalarMultiplication<E, U> e) {
 	return e;
 }
 
@@ -249,14 +249,11 @@ E simplify(MatrixTranspose<MatrixTranspose<E>> e) {
 	return e.getExpression().getExpression();
 }
 
-template <typename E>
-MatrixScalarMultiplication<MatrixScalarMultiplication<E>> simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E>> e) {
-	// TODO: e.g. 5 * (6 * A) = 30 * A
-	return e;
-}
-
-template <typename E>
-struct computation_tree;
+// template <typename E>
+// MatrixScalarMultiplication<MatrixScalarMultiplication<E>> simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E>> e) {
+//	// TODO: e.g. 5 * (6 * A) = 30 * A
+//	return e;
+//}
 
 namespace detail {
 template <int Depth = 1024, typename T>
@@ -469,15 +466,15 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 
 
 // TODO: also add a ScalarMatrixMultiplication class?
-template <typename E>
-class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplication<E>> {
-	using typename MatrixExpression<MatrixScalarMultiplication<E>>::T;
-	using typename MatrixExpression<MatrixScalarMultiplication<E>>::PacketScalar;
+template <typename E, typename U>
+class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplication<E, U>> {
+	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::T;
+	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::PacketScalar;
 
 	using Exp = needs_reference_t<std::add_const_t<E>>;
 
   public:
-	MatrixScalarMultiplication(const T& u, Exp v) : scalar(u), matrix(v) {}
+	MatrixScalarMultiplication(const U& u, Exp v) : scalar(u), matrix(v) {}
 
 	T operator[](const point_type& pos) const { return scalar * matrix[pos]; }
 
@@ -489,7 +486,7 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 	PacketScalar packet(point_type p) const { return matrix.packet(p) * PacketScalar(scalar); }
 
   private:
-	const T& scalar;
+	const U& scalar;
 	Exp matrix;
 };
 
@@ -662,20 +659,24 @@ Matrix<T>& operator*=(Matrix<T>& u, const MatrixExpression<E>& v) {
 }
 
 
+// -- matrix matrix addition
 template <typename E1, typename E2>
 MatrixAddition<E1, E2> const operator+(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
 	return MatrixAddition<E1, E2>(u, v);
 }
 
+// -- matrix matrix subtraction
 template <typename E1, typename E2>
 MatrixSubtraction<E1, E2> const operator-(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
 	return MatrixSubtraction<E1, E2>(u, v);
 }
 
+// -- matrix negation
 template <typename E>
 MatrixNegation<E> const operator-(const MatrixExpression<E>& e) {
 	return MatrixNegation<E>(e);
 }
+
 
 template <typename E1, typename E2>
 bool isAlmostEqual(const MatrixExpression<E1>& a, const MatrixExpression<E2>& b, scalar_type_t<E1> epsilon = 0.001) {
@@ -707,6 +708,7 @@ bool operator!=(const MatrixExpression<E1>& a, const MatrixExpression<E2>& b) {
 	return !(a == b);
 }
 
+// -- print a matrix expression
 template <typename E>
 std::ostream& operator<<(std::ostream& os, MatrixExpression<E> const& m) {
 	for(coordinate_type i = 0; i < m.rows(); ++i) {
@@ -732,6 +734,7 @@ const Matrix<T>& eval(const MatrixExpression<Matrix<T>>& me) {
 	return me;
 }
 
+// -- evaluate a matrix expression using vectorization
 template <typename E>
 std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
 	assert_eq(expr.size(), dst.size());
@@ -755,6 +758,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Ma
 	}
 }
 
+// -- evaluate a matrix expression by simply copying each value
 template <typename E>
 std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
 	assert_eq(expr.size(), dst.size());
@@ -763,7 +767,7 @@ std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, M
 
 #define mindex(i, j, size) ((i) * (size) + (j))
 
-// calculate a size * size block starting at position 'p'
+// calculate a size * size block
 template <int size = 8, typename T>
 inline void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
 	using ct = coordinate_type;
@@ -813,6 +817,7 @@ inline void block(point_type end, T* result, const T* lhs, const T* rhs, triple_
 	}
 }
 
+// -- parallel matrix * matrix multiplication kernel
 template <int size = 8, typename T>
 void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
 	using ct = coordinate_type;
@@ -853,6 +858,7 @@ void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type m
 	}
 }
 
+// -- parallel matrix * matrix multiplication
 template <typename T>
 void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
 	assert(lhs.columns() == rhs.rows());
@@ -883,18 +889,7 @@ void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, con
 	}
 }
 
-// template <typename T>
-// void matrix_multiplication_blas(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
-//	assert(lhs.columns() == rhs.rows());
-//
-//	assert_fail();
-//
-//	// TODO:
-//
-//	//	cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, lhs.rows(), rhs.columns(), lhs.columns(), 1.0, &lhs[{0, 0}], lhs.columns(), &rhs[{0, 0}],
-//	//	            rhs.columns(), 0.0, &result[{0, 0}], rhs.columns());
-//}
-
+// -- matrix * matrix multiplication using a single BLAS level 3 function calls
 void matrix_multiplication_blas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
 	assert(lhs.columns() == rhs.rows());
 
@@ -902,13 +897,7 @@ void matrix_multiplication_blas(Matrix<double>& result, const Matrix<double>& lh
 	            rhs.columns(), 0.0, &result[{0, 0}], rhs.columns());
 }
 
-void matrix_multiplication_blas(Matrix<float>& result, const Matrix<float>& lhs, const Matrix<float>& rhs) {
-	assert(lhs.columns() == rhs.rows());
-
-	cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, lhs.rows(), rhs.columns(), lhs.columns(), 1.0, &lhs[{0, 0}], lhs.columns(), &rhs[{0, 0}],
-	            rhs.columns(), 0.0, &result[{0, 0}], rhs.columns());
-}
-
+// -- parallel matrix * matrix multiplication using BLAS level 3 function calls
 void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
 	assert(lhs.columns() == rhs.rows());
 
@@ -938,6 +927,7 @@ void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& l
 	multiplication_rec({0, lhs.rows()}).wait();
 }
 
+// -- parallel matrix * matrix multiplication using BLAS level 2 function calls
 void matrix_multiplication_pvblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
 	assert(lhs.columns() == rhs.rows());
 
@@ -946,6 +936,7 @@ void matrix_multiplication_pvblas(Matrix<double>& result, const Matrix<double>& 
 	});
 }
 
+// -- parallel matrix * matrix multiplication using the Eigen multiplication as base case
 template <typename T>
 void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
 	assert(lhs.columns() == rhs.rows());
@@ -982,22 +973,19 @@ void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix
 	multiplication_rec({0, lhs.rows()}).wait();
 }
 
-/*
- * scalar * matrix multiplication
- */
-template <typename E>
-MatrixScalarMultiplication<E> operator*(const scalar_type_t<E>& u, const MatrixExpression<E>& v) {
-	return MatrixScalarMultiplication<E>(u, v);
+// -- scalar * matrix multiplication
+// Note: without the std::enable_if a matrix * matrix multiplication would be ambiguous
+template <typename E, typename U>
+std::enable_if_t<!std::is_base_of<MatrixExpression<U>, U>::value, MatrixScalarMultiplication<E, U>> operator*(const U& u, const MatrixExpression<E>& v) {
+	return MatrixScalarMultiplication<E, U>(u, v);
 }
 
-template <typename E>
-MatrixScalarMultiplication<E> operator*(const MatrixExpression<E>& v, const scalar_type_t<E>& u) {
+template <typename E, typename U>
+std::enable_if_t<!std::is_base_of<MatrixExpression<U>, U>::value, MatrixScalarMultiplication<E, U>> operator*(const MatrixExpression<E>& v, const U& u) {
 	return u * v;
 }
 
-/*
- * matrix * matrix multiplication
- */
+// -- matrix * matrix multiplication
 template <typename E1, typename E2>
 Matrix<scalar_type_t<E1>> operator*(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
 	Matrix<scalar_type_t<E1>> tmp({u.rows(), v.columns()});
@@ -1005,9 +993,9 @@ Matrix<scalar_type_t<E1>> operator*(const MatrixExpression<E1>& u, const MatrixE
 	return tmp;
 }
 
-/*
- * Strassen-Winograd's matrix multiplication algorithm
- */
+
+// -- Strassen-Winograd's matrix multiplication algorithm
+
 template <int Depth = 2048, typename T>
 Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
 	assert_eq(A.columns(), B.rows());
@@ -1018,12 +1006,14 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
 	point_type size{m, m};
 
 	if(A.size() == size && B.size() == size) {
+		// no need to resize
 		Matrix<T> result(size);
 
 		detail::strassen_rec<Depth>(A, B, result, m);
 
 		return result;
 	} else {
+		// resize and call the actual strassen algorithm
 		Matrix<T> A_padded(size);
 		Matrix<T> B_padded(size);
 
