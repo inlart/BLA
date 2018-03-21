@@ -51,10 +51,16 @@ template <typename E>
 class MatrixTranspose;
 
 /*
- * Represents the multiplication of a scalar with a matrix
+ * Represents the multiplication of matrix * scalar
  */
 template <typename E, typename U>
 class MatrixScalarMultiplication;
+
+/*
+ * Represents the multiplication of scalar * matrix
+ */
+template <typename E, typename U>
+class ScalarMatrixMultiplication;
 
 // Helper
 template <typename T>
@@ -217,34 +223,46 @@ constexpr bool type_consistent_multiplication_v = type_consistent_multiplication
 // TODO: do this at compile time?
 // TODO: apply simplify recursively
 
-template <typename E>
-MatrixExpression<E> simplify(MatrixExpression<E> e) {
-	return e;
+template <typename T>
+const Matrix<T>& simplify(const Matrix<T>& m) {
+	return m;
+}
+
+// TODO: fix the types
+
+template <typename E1, typename E2>
+MatrixAddition<std::remove_cv_t<std::remove_reference_t<decltype(simplify(std::declval<E1>()))>>,
+               std::remove_cv_t<std::remove_reference_t<decltype(simplify(std::declval<E2>()))>>>
+simplify(MatrixAddition<E1, E2> e) {
+	return MatrixAddition<std::remove_cv_t<std::remove_reference_t<decltype(simplify(simplify(std::declval<E1>())))>>,
+	                      std::remove_cv_t<std::remove_reference_t<decltype(simplify(std::declval<E2>()))>>>(simplify(e.getLeftExpression()),
+	                                                                                                         simplify(e.getRightExpression()));
 }
 
 template <typename E1, typename E2>
-MatrixAddition<E1, E2> simplify(MatrixAddition<E1, E2> e) {
-	return e;
-}
-
-template <typename E1, typename E2>
-MatrixSubtraction<E1, E2> simplify(MatrixSubtraction<E1, E2> e) {
-	return e;
+MatrixSubtraction<decltype(simplify(std::declval<E1>())), decltype(simplify(std::declval<E2>()))> simplify(MatrixSubtraction<E1, E2> e) {
+	return MatrixSubtraction<decltype(simplify(simplify(std::declval<E1>()))), decltype(simplify(std::declval<E2>()))>(simplify(e.getLeftExpression()),
+	                                                                                                                   simplify(e.getRightExpression()));
 }
 
 template <typename E>
-MatrixNegation<E> simplify(MatrixNegation<E> e) {
-	return e;
+MatrixNegation<decltype(simplify(std::declval<E>()))> simplify(MatrixNegation<E> e) {
+	return MatrixNegation<decltype(simplify(std::declval<E>()))>(simplify(e.getExpression()));
 }
 
 template <typename E>
-MatrixTranspose<E> simplify(MatrixTranspose<E> e) {
-	return e;
+MatrixTranspose<decltype(simplify(std::declval<E>()))> simplify(MatrixTranspose<E> e) {
+	return MatrixTranspose<decltype(simplify(std::declval<E>()))>(simplify(e.getExpression()));
 }
 
 template <typename E, typename U>
-MatrixScalarMultiplication<E, U> simplify(MatrixScalarMultiplication<E, U> e) {
-	return e;
+MatrixScalarMultiplication<decltype(simplify(std::declval<E>())), U> simplify(MatrixScalarMultiplication<E, U> e) {
+	return MatrixScalarMultiplication<decltype(simplify(std::declval<E>())), U>(simplify(e.getExpression()), e.getScalar());
+}
+
+template <typename E, typename U>
+ScalarMatrixMultiplication<decltype(simplify(std::declval<E>())), U> simplify(ScalarMatrixMultiplication<E, U> e) {
+	return ScalarMatrixMultiplication<decltype(simplify(std::declval<E>())), U>(e.getScalar(), simplify(e.getExpression()));
 }
 
 // What we really simplify
@@ -388,6 +406,10 @@ class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
 
 	PacketScalar packet(point_type p) const { return lhs.packet(p) + rhs.packet(p); }
 
+	Exp1 getLeftExpression() const { return lhs; }
+
+	Exp2 getRightExpression() const { return rhs; }
+
   private:
 	Exp1 lhs;
 	Exp2 rhs;
@@ -453,20 +475,21 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	using Exp = needs_reference_t<std::add_const_t<E>>;
 
   public:
-	MatrixNegation(Exp e) : matrix(e) {}
-	T operator[](const point_type& pos) const { return -matrix[pos]; }
+	MatrixNegation(Exp e) : expression(e) {}
+	T operator[](const point_type& pos) const { return -expression[pos]; }
 
-	point_type size() const { return matrix.size(); }
+	point_type size() const { return expression.size(); }
 
-	coordinate_type rows() const { return matrix.rows(); }
+	coordinate_type rows() const { return expression.rows(); }
 
-	coordinate_type columns() const { return matrix.columns(); }
+	coordinate_type columns() const { return expression.columns(); }
 
+	PacketScalar packet(point_type p) const { return -expression.packet(p); }
 
-	PacketScalar packet(point_type p) const { return -matrix.packet(p); }
+	Exp getExpression() const { return expression; }
 
   private:
-	Exp matrix;
+	Exp expression;
 };
 
 template <typename E, typename U>

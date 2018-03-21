@@ -391,6 +391,32 @@ TEST(Matrix, Simplify) {
 	ASSERT_EQ(m3, m4);
 }
 
+TEST(Matrix, SimplifyRecursive) {
+	Matrix<int> m1({55, 58});
+	Matrix<int> m2({55, 58});
+	Matrix<int> m3({55, 58});
+	Matrix<int> m4({55, 58});
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(1, 10);
+
+	auto g = [&]() { return dis(gen); };
+
+	m1.random(g);
+	m2.random(g);
+	m3.zero();
+	m4.zero();
+
+	m3 = m1 + m2.transpose().transpose();
+
+	m4 = simplify(m1 + m2.transpose().transpose());
+
+	ASSERT_EQ(m3, m4);
+
+	ASSERT_TRUE((std::is_same<std::remove_cv_t<decltype(m1 + m2)>, std::remove_cv_t<decltype(simplify(m1 + m2.transpose().transpose()))>>::value));
+}
+
 TEST(Matrix, SimplifyMatrixScalarMultiplication) {
 	Matrix<int> m1({55, 55});
 	Matrix<int> m2({55, 55});
@@ -406,9 +432,9 @@ TEST(Matrix, SimplifyMatrixScalarMultiplication) {
 	m2.zero();
 	m3.zero();
 
-	m2 = m1 * 1 * 1;
+	m2 = m1 * 5 * 6;
 
-	m3 = simplify(m1 * 1 * 1);
+	m3 = simplify(m1 * 5 * 6);
 
 	ASSERT_EQ(m2, m3);
 }
