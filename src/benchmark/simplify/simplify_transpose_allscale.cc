@@ -31,8 +31,6 @@ BenchResult bench_allscale(int n) {
 	Eigen::MatrixXd b_eigen = b.toEigenMatrix();
 	Eigen::MatrixXd result_eigen = result.toEigenMatrix();
 
-
-	Matrix res_eigen = (a_eigen * b_eigen).eval();
 	auto first_elem_square_sums = 0.0; // to try and avoid optimiser pitfals
 
 	for(int i = 0; i < NUMBER_BENCHMARK_RUNS; ++i) {
@@ -43,7 +41,7 @@ BenchResult bench_allscale(int n) {
 		}
 		result_eigen = a_eigen + b_eigen.transpose().transpose();
 		first_elem_square_sums += result[{0, 0}] * result[{0, 0}];
-		if(!isAlmostEqual(result, Matrix(result), 0.001)) {
+		if(!isAlmostEqual(result, Matrix(result_eigen), 0.001)) {
 			std::cerr << "Matrix multiplication check failed" << std::endl;
 			return BenchResult(0);
 		}
