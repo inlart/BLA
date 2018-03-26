@@ -8,6 +8,7 @@ Provides the "Matrix" data type for the AllScale api.
 * Allscale API (<https://github.com/allscale/allscale_api>)
 * Eigen 3.3 (<http://eigen.tuxfamily.org/index.php?title=Main_Page>)
 * Vc 1.3 (<https://github.com/VcDevel/Vc/tree/1.3>)
+* A C BLAS implementation (e.g. <https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide>)
 
 ## CMake Options
 
