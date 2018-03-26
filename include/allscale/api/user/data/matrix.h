@@ -167,12 +167,15 @@ struct vectorizable<Matrix<T>> : public std::is_arithmetic<T> {};
 template <typename Expr>
 constexpr bool vectorizable_v = vectorizable<Expr>::value;
 
-
+// TODO: rewrite this
 template <typename E>
 struct needs_reference : public set_type<E> {};
 
 template <typename T>
 struct needs_reference<Matrix<T>> : public set_type<Matrix<T>&> {};
+
+template <typename T>
+struct needs_reference<const Matrix<T>> : public set_type<const Matrix<T>&> {};
 
 template <typename E>
 using needs_reference_t = typename needs_reference<E>::type;
@@ -221,53 +224,56 @@ constexpr bool type_consistent_multiplication_v = type_consistent_multiplication
  */
 
 // TODO: do this at compile time?
-// TODO: apply simplify recursively
-
 template <typename T>
 const Matrix<T>& simplify(const Matrix<T>& m) {
 	return m;
 }
 
-// TODO: fix the types
-
-template <typename E1, typename E2>
-MatrixAddition<std::remove_cv_t<std::remove_reference_t<decltype(simplify(std::declval<E1>()))>>,
-               std::remove_cv_t<std::remove_reference_t<decltype(simplify(std::declval<E2>()))>>>
-simplify(MatrixAddition<E1, E2> e) {
-	return MatrixAddition<std::remove_cv_t<std::remove_reference_t<decltype(simplify(simplify(std::declval<E1>())))>>,
-	                      std::remove_cv_t<std::remove_reference_t<decltype(simplify(std::declval<E2>()))>>>(simplify(e.getLeftExpression()),
-	                                                                                                         simplify(e.getRightExpression()));
-}
-
-template <typename E1, typename E2>
-MatrixSubtraction<decltype(simplify(std::declval<E1>())), decltype(simplify(std::declval<E2>()))> simplify(MatrixSubtraction<E1, E2> e) {
-	return MatrixSubtraction<decltype(simplify(simplify(std::declval<E1>()))), decltype(simplify(std::declval<E2>()))>(simplify(e.getLeftExpression()),
-	                                                                                                                   simplify(e.getRightExpression()));
+template <typename T>
+const Matrix<T>& simplify(const MatrixExpression<Matrix<T>>& e) {
+	return static_cast<const Matrix<T>&>(e);
 }
 
 template <typename E>
-MatrixNegation<decltype(simplify(std::declval<E>()))> simplify(MatrixNegation<E> e) {
-	return MatrixNegation<decltype(simplify(std::declval<E>()))>(simplify(e.getExpression()));
+auto simplify(const MatrixExpression<E>& e) {
+	return simplify(static_cast<const E&>(e));
+}
+
+template <typename E1, typename E2>
+auto simplify(MatrixAddition<E1, E2> e) {
+	return MatrixAddition<std::decay_t<decltype(simplify(simplify(std::declval<E1>())))>, std::decay_t<decltype(simplify(std::declval<E2>()))>>(
+	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
+}
+
+template <typename E1, typename E2>
+auto simplify(MatrixSubtraction<E1, E2> e) {
+	return MatrixSubtraction<std::decay_t<decltype(simplify(simplify(std::declval<E1>())))>, std::decay_t<decltype(simplify(std::declval<E2>()))>>(
+	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
 }
 
 template <typename E>
-MatrixTranspose<decltype(simplify(std::declval<E>()))> simplify(MatrixTranspose<E> e) {
-	return MatrixTranspose<decltype(simplify(std::declval<E>()))>(simplify(e.getExpression()));
+auto simplify(MatrixNegation<E> e) {
+	return MatrixNegation<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+}
+
+template <typename E>
+auto simplify(MatrixTranspose<E> e) {
+	return MatrixTranspose<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E, typename U>
-MatrixScalarMultiplication<decltype(simplify(std::declval<E>())), U> simplify(MatrixScalarMultiplication<E, U> e) {
-	return MatrixScalarMultiplication<decltype(simplify(std::declval<E>())), U>(simplify(e.getExpression()), e.getScalar());
+auto simplify(MatrixScalarMultiplication<E, U> e) {
+	return MatrixScalarMultiplication<std::decay_t<decltype(simplify(std::declval<E>()))>, U>(simplify(e.getExpression()), e.getScalar());
 }
 
 template <typename E, typename U>
-ScalarMatrixMultiplication<decltype(simplify(std::declval<E>())), U> simplify(ScalarMatrixMultiplication<E, U> e) {
-	return ScalarMatrixMultiplication<decltype(simplify(std::declval<E>())), U>(e.getScalar(), simplify(e.getExpression()));
+auto simplify(ScalarMatrixMultiplication<E, U> e) {
+	return ScalarMatrixMultiplication<std::decay_t<decltype(simplify(std::declval<E>()))>, U>(e.getScalar(), simplify(e.getExpression()));
 }
 
 // What we really simplify
 template <typename E>
-E simplify(MatrixTranspose<MatrixTranspose<E>> e) {
+needs_reference_t<std::add_const_t<E>> simplify(MatrixTranspose<MatrixTranspose<E>> e) {
 	return e.getExpression().getExpression();
 }
 
@@ -435,6 +441,10 @@ class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
 	coordinate_type columns() const { return lhs.columns(); }
 
 	PacketScalar packet(point_type p) const { return lhs.packet(p) - rhs.packet(p); }
+
+	Exp1 getLeftExpression() const { return lhs; }
+
+	Exp2 getRightExpression() const { return rhs; }
 
   private:
 	Exp1 lhs;
@@ -794,8 +804,10 @@ const Matrix<T>& eval(const MatrixExpression<Matrix<T>>& me) {
 
 // -- evaluate a matrix expression using vectorization
 template <typename E>
-std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
-	assert_eq(expr.size(), dst.size());
+std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
+	assert_eq(expression.size(), dst.size());
+
+	needs_reference_t<std::add_const_t<decltype(simplify(expression))>> expr = simplify(expression);
 
 	using T = scalar_type_t<E>;
 	using PacketScalar = typename Vc::Vector<T>;
@@ -818,8 +830,10 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Ma
 
 // -- evaluate a matrix expression by simply copying each value
 template <typename E>
-std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
-	assert_eq(expr.size(), dst.size());
+std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
+	assert_eq(expression.size(), dst.size());
+	needs_reference_t<std::add_const_t<decltype(simplify(expression))>> expr = simplify(expression);
+
 	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 

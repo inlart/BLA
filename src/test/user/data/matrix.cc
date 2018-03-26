@@ -59,9 +59,7 @@ TEST(Matrix, Addition) {
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
 		m2.random(g);
-		auto x = m1 + m2;
-		//		x.evaluate(coordinate_type{0, 0});
-		// ASSERT_EQ(m1 + m2, Matrix<double>(m1.toEigenMatrix() + m2.toEigenMatrix()));
+		ASSERT_EQ(m1 + m2, Matrix<double>(m1.toEigenMatrix() + m2.toEigenMatrix()));
 	}
 }
 
