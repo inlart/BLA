@@ -16,14 +16,16 @@ BenchResult bench_allscale(int n) {
 	Matrix a({n, n});
 	Matrix b({n, n});
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<double> dis(-1, 1);
+	a.fill(1.);
+	allscale::api::user::algorithm::pfor(b.size(), [&](auto p) { b[p] = (p[0] + p[1] + 1) / (double)(n * n); });
 
-	auto g = [&]() { return dis(gen); };
-
-	a.random(g);
-	b.random(g);
+	//    std::random_device rd;
+	//    std::mt19937 gen(rd());
+	//    std::uniform_real_distribution<double> dis(-1, 1);
+	//
+	//    auto g = [&]() {
+	//    	return dis(gen);
+	//    };
 
 	Eigen::MatrixXd a_eigen = a.toEigenMatrix();
 	Eigen::MatrixXd b_eigen = b.toEigenMatrix();
