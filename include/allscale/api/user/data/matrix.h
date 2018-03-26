@@ -167,18 +167,24 @@ struct vectorizable<Matrix<T>> : public std::is_arithmetic<T> {};
 template <typename Expr>
 constexpr bool vectorizable_v = vectorizable<Expr>::value;
 
-// TODO: rewrite this
-template <typename E>
-struct needs_reference : public set_type<E> {};
-
-template <typename T>
-struct needs_reference<Matrix<T>> : public set_type<Matrix<T>&> {};
-
-template <typename T>
-struct needs_reference<const Matrix<T>> : public set_type<const Matrix<T>&> {};
 
 template <typename E>
-using needs_reference_t = typename needs_reference<E>::type;
+struct expression_member : public set_type<const E> {};
+
+template <typename E>
+struct expression_member<const E> : public expression_member<E> {};
+
+template <typename E>
+struct expression_member<volatile E> : public expression_member<E> {};
+
+template <typename E>
+struct expression_member<const volatile E> : public expression_member<E> {};
+
+template <typename T>
+struct expression_member<Matrix<T>> : public set_type<const Matrix<T>&> {};
+
+template <typename E>
+using expression_member_t = typename expression_member<E>::type;
 
 
 template <typename T>
@@ -273,7 +279,7 @@ auto simplify(ScalarMatrixMultiplication<E, U> e) {
 
 // What we really simplify
 template <typename E>
-needs_reference_t<std::add_const_t<E>> simplify(MatrixTranspose<MatrixTranspose<E>> e) {
+expression_member_t<E> simplify(MatrixTranspose<MatrixTranspose<E>> e) {
 	return e.getExpression().getExpression();
 }
 
@@ -396,8 +402,8 @@ class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
 	using typename MatrixExpression<MatrixAddition<E1, E2>>::T;
 	using typename MatrixExpression<MatrixAddition<E1, E2>>::PacketScalar;
 
-	using Exp1 = needs_reference_t<std::add_const_t<E1>>;
-	using Exp2 = needs_reference_t<std::add_const_t<E2>>;
+	using Exp1 = expression_member_t<E1>;
+	using Exp2 = expression_member_t<E2>;
 
   public:
 	MatrixAddition(Exp1 u, Exp2 v) : lhs(u), rhs(v) { assert(u.size() == v.size()); }
@@ -426,8 +432,8 @@ class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
 	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::T;
 	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::PacketScalar;
 
-	using Exp1 = needs_reference_t<std::add_const_t<E1>>;
-	using Exp2 = needs_reference_t<std::add_const_t<E2>>;
+	using Exp1 = expression_member_t<E1>;
+	using Exp2 = expression_member_t<E2>;
 
   public:
 	MatrixSubtraction(Exp1 u, const Exp2 v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
@@ -456,7 +462,7 @@ class MatrixTranspose : public MatrixExpression<MatrixTranspose<E>> {
 	using typename MatrixExpression<MatrixTranspose<E>>::T;
 	using typename MatrixExpression<MatrixTranspose<E>>::PacketScalar;
 
-	using Exp = needs_reference_t<std::add_const_t<E>>;
+	using Exp = expression_member_t<E>;
 
   public:
 	MatrixTranspose(Exp u) : expression(u) {}
@@ -482,7 +488,7 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	using typename MatrixExpression<MatrixNegation<E>>::T;
 	using typename MatrixExpression<MatrixNegation<E>>::PacketScalar;
 
-	using Exp = needs_reference_t<std::add_const_t<E>>;
+	using Exp = expression_member_t<E>;
 
   public:
 	MatrixNegation(Exp e) : expression(e) {}
@@ -507,7 +513,7 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::T;
 	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::PacketScalar;
 
-	using Exp = needs_reference_t<std::add_const_t<E>>;
+	using Exp = expression_member_t<E>;
 
   public:
 	MatrixScalarMultiplication(Exp v, const U& u) : scalar(u), expression(v) {}
@@ -535,7 +541,7 @@ class ScalarMatrixMultiplication : public MatrixExpression<MatrixScalarMultiplic
 	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::T;
 	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::PacketScalar;
 
-	using Exp = needs_reference_t<std::add_const_t<E>>;
+	using Exp = expression_member_t<E>;
 
   public:
 	ScalarMatrixMultiplication(const U& u, Exp v) : scalar(u), expression(v) {}
@@ -807,7 +813,7 @@ template <typename E>
 std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
 	assert_eq(expression.size(), dst.size());
 
-	needs_reference_t<std::add_const_t<decltype(simplify(expression))>> expr = simplify(expression);
+	expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
 	using T = scalar_type_t<E>;
 	using PacketScalar = typename Vc::Vector<T>;
@@ -832,7 +838,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expressi
 template <typename E>
 std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
 	assert_eq(expression.size(), dst.size());
-	needs_reference_t<std::add_const_t<decltype(simplify(expression))>> expr = simplify(expression);
+	expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
 	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
