@@ -343,6 +343,18 @@ TEST(Matrix, SubMatrix) {
 	ASSERT_NE(s4, s1);
 }
 
+TEST(Matrix, IdentityMatrix) {
+    Matrix<int> m1({37, 31});
+    IdentityMatrix<int> m2(point_type{m1.columns(), m1.columns()}, 0, 1);
+
+    Matrix<int> result(m1.size());
+
+    result = m1 * m2;
+
+
+    ASSERT_EQ(m1, result);
+}
+
 TEST(Matrix, MultipleOperations) {
 	Matrix<double> m1({55, 55});
 	Matrix<double> m2({55, 56});

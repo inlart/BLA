@@ -77,6 +77,12 @@ class Matrix;
 template <typename E>
 class SubMatrix;
 
+/*
+ * Represents an identity matrix
+ */
+template <typename T>
+class IdentityMatrix;
+
 // Helper
 template <typename T>
 struct set_type {
@@ -131,6 +137,9 @@ struct scalar_type<MatrixScalarMultiplication<E, U>> : public set_type<decltype(
 template <typename T>
 struct scalar_type<Matrix<T>> : public set_type<T> {};
 
+template <typename T>
+struct scalar_type<IdentityMatrix<T>> : public set_type<T> {};
+
 template <typename E>
 struct scalar_type<SubMatrix<E>> : public set_type<typename scalar_type<E>::type> {};
 
@@ -175,6 +184,9 @@ struct vectorizable<Matrix<T>> : public std::is_arithmetic<T> {};
 
 template <typename E>
 struct vectorizable<SubMatrix<E>> : public std::false_type {};
+
+template <typename T>
+struct vectorizable<IdentityMatrix<T>> : public std::false_type {};
 
 template <typename Expr>
 constexpr bool vectorizable_v = vectorizable<Expr>::value;
@@ -242,6 +254,11 @@ constexpr bool type_consistent_multiplication_v = type_consistent_multiplication
 template <typename T>
 const Matrix<T>& simplify(const Matrix<T>& m) {
 	return m;
+}
+
+template <typename T>
+IdentityMatrix<T> simplify(IdentityMatrix<T> m) {
+    return m;
 }
 
 template <typename T>
@@ -720,6 +737,33 @@ class SubMatrix : public MatrixExpression<SubMatrix<E>> {
     Exp expression;
     point_type sub_start;
     point_type sub_size;
+};
+
+template <typename T>
+class IdentityMatrix : public MatrixExpression<IdentityMatrix<T>> {
+//    using typename MatrixExpression<IdentityMatrix<E>>::PacketScalar;
+
+  public:
+    IdentityMatrix(point_type matrix_size, const T& neutral_element = 1, const T& zero_element = 0) : matrix_size(matrix_size), neutral_element(neutral_element), zero_element(zero_element) {
+    }
+
+    T operator[](const point_type& pos) const {
+        assert_lt(pos, matrix_size);
+        return pos.x == pos.y ? neutral_element : zero_element;
+    }
+
+    point_type size() const { return matrix_size; }
+
+    coordinate_type rows() const { return matrix_size[0]; }
+
+    coordinate_type columns() const { return matrix_size[1]; }
+
+//    PacketScalar packet(point_type p) const { }
+
+  private:
+    point_type matrix_size;
+    T neutral_element;
+    T zero_element;
 };
 
 template <typename E>
