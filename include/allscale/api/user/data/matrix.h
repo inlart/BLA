@@ -62,6 +62,21 @@ class MatrixScalarMultiplication;
 template <typename E, typename U>
 class ScalarMatrixMultiplication;
 
+
+/*
+ * Represents the Matrix
+ * Elements are modifiable
+ * Guarantees contiguous memory
+ */
+template <typename T = double>
+class Matrix;
+
+/*
+ * Represents a part of a Matrix
+ */
+template <typename E>
+class SubMatrix;
+
 // Helper
 template <typename T>
 struct set_type {
@@ -80,15 +95,6 @@ template <bool A, bool... B>
 struct and_value<A, B...> {
 	static constexpr bool value = A && and_value<B...>::value;
 };
-
-/*
- * Represents the Matrix
- * Elements are modifiable
- * Guarantees contiguous memory
- */
-template <typename T = double>
-class Matrix;
-
 
 template <typename Expr>
 struct scalar_type;
@@ -124,6 +130,9 @@ struct scalar_type<MatrixScalarMultiplication<E, U>> : public set_type<decltype(
 
 template <typename T>
 struct scalar_type<Matrix<T>> : public set_type<T> {};
+
+template <typename E>
+struct scalar_type<SubMatrix<E>> : public set_type<typename scalar_type<E>::type> {};
 
 template <typename Expr>
 using scalar_type_t = typename scalar_type<Expr>::type;
@@ -163,6 +172,9 @@ struct vectorizable<MatrixScalarMultiplication<E, U>> : public and_value<vectori
 
 template <typename T>
 struct vectorizable<Matrix<T>> : public std::is_arithmetic<T> {};
+
+template <typename E>
+struct vectorizable<SubMatrix<E>> : public std::false_type {};
 
 template <typename Expr>
 constexpr bool vectorizable_v = vectorizable<Expr>::value;
@@ -256,7 +268,7 @@ auto simplify(MatrixSubtraction<E1, E2> e) {
 
 template <typename E>
 auto simplify(MatrixNegation<E> e) {
-	return MatrixNegation<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+    return MatrixNegation<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E>
@@ -272,6 +284,11 @@ auto simplify(MatrixScalarMultiplication<E, U> e) {
 template <typename E, typename U>
 auto simplify(ScalarMatrixMultiplication<E, U> e) {
 	return ScalarMatrixMultiplication<std::decay_t<decltype(simplify(std::declval<E>()))>, U>(e.getScalar(), simplify(e.getExpression()));
+}
+
+template <typename E>
+auto simplify(SubMatrix<E> e) {
+    return SubMatrix<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getStart(), e.size());
 }
 
 // What we really simplify
@@ -626,20 +643,12 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
 	inline coordinate_type columns() const { return m_data.size()[1]; }
 
-	map_stride_type sub(point_type start, point_type size) {
-		return map_stride_type(&m_data[start], size.x, size.y, Eigen::OuterStride<Eigen::Dynamic>(columns()));
-	}
-
-	cmap_stride_type sub(point_type start, point_type size) const {
-		return cmap_stride_type(&m_data[start], size.x, size.y, Eigen::OuterStride<Eigen::Dynamic>(columns()));
-	}
-
-	map_type sub(const RowRange& r) {
+	map_type eigenSub(const RowRange& r) {
 		assert_le(r.start, r.end);
 		return map_type(&m_data[{r.start, 0}], r.end - r.start, columns());
 	}
 
-	cmap_type sub(const RowRange& r) const {
+	cmap_type eigenSub(const RowRange& r) const {
 		assert_le(r.start, r.end);
 		return cmap_type(&m_data[{r.start, 0}], r.end - r.start, columns());
 	}
@@ -672,14 +681,45 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 		return result;
 	}
 
-	map_type getEigenMap() { return sub({0, rows()}); }
+	map_type getEigenMap() { return eigenSub({0, rows()}); }
 
-	cmap_type getEigenMap() const { return sub({0, rows()}); }
+	cmap_type getEigenMap() const { return eigenSub({0, rows()}); }
 
 	PacketScalar packet(point_type p) const { return PacketScalar(&operator[](p)); }
 
   private:
 	data::Grid<T, 2> m_data;
+};
+
+template <typename E>
+class SubMatrix : public MatrixExpression<SubMatrix<E>> {
+    using typename MatrixExpression<SubMatrix<E>>::T;
+    using typename MatrixExpression<SubMatrix<E>>::PacketScalar;
+
+    using Exp = expression_member_t<E>;
+
+  public:
+    SubMatrix(Exp v, point_type sub_start, point_type sub_size) : expression(v), sub_start(sub_start), sub_size(sub_size) {
+        assert_le(sub_start + sub_size, expression.size());
+    }
+
+    T operator[](const point_type& pos) const { return expression[pos + sub_start]; }
+
+    point_type size() const { return sub_size; }
+    coordinate_type rows() const { return sub_size[0]; }
+
+    coordinate_type columns() const { return sub_size[1]; }
+
+//    PacketScalar packet(point_type p) const { }
+
+    Exp getExpression() const { return expression; }
+
+    point_type getStart() const { return sub_start; }
+
+  private:
+    Exp expression;
+    point_type sub_start;
+    point_type sub_size;
 };
 
 template <typename E>
@@ -705,6 +745,10 @@ class MatrixExpression {
 	bool isSquare() const { return rows() == columns(); }
 
 	MatrixTranspose<E> transpose() const { return MatrixTranspose<E>(static_cast<const E&>(*this)); }
+
+    SubMatrix<E> sub(point_type start, point_type size) const {
+        return SubMatrix<E>(static_cast<const E&>(*this), start, size);
+    }
 
 	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
 
@@ -1088,8 +1132,8 @@ void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix
 	auto eigen_multiplication = [&](const RowRange& r) {
 		assert_le(r.start, r.end);
 
-		auto eigen_res_row = result.sub(r);
-		auto eigen_lhs_row = lhs.sub(r);
+		auto eigen_res_row = result.eigenSub(r);
+		auto eigen_lhs_row = lhs.eigenSub(r);
 
 		// Eigen matrix multiplication
 		eigen_res_row = eigen_lhs_row * eigen_rhs;
