@@ -6,6 +6,7 @@
 #include <allscale/api/user/data/grid.h>
 #include <cblas.h> // BLAS
 #include <cmath>
+#include <memory>
 #include <cstdlib>
 
 namespace allscale {
@@ -37,6 +38,12 @@ class MatrixAddition;
  */
 template <typename E1, typename E2>
 class MatrixSubtraction;
+
+/*
+ * Represents the multiplication of MatrixExpressions E1 and E2
+ */
+template <typename E1, typename E2>
+class MatrixMultiplication;
 
 /*
  * Represents the negation of the MatrixExpression E
@@ -125,6 +132,10 @@ template <typename E1, typename E2>
 struct scalar_type<MatrixSubtraction<E1, E2>>
     : public set_type<decltype(std::declval<typename scalar_type<E1>::type>() - std::declval<typename scalar_type<E2>::type>())> {};
 
+template <typename E1, typename E2>
+struct scalar_type<MatrixMultiplication<E1, E2>>
+    : public set_type<decltype(std::declval<typename scalar_type<E1>::type>() * std::declval<typename scalar_type<E2>::type>())> {};
+
 template <typename E>
 struct scalar_type<MatrixNegation<E>> : public set_type<typename scalar_type<E>::type> {};
 
@@ -181,6 +192,9 @@ struct vectorizable<MatrixScalarMultiplication<E, U>> : public and_value<vectori
 
 template <typename T>
 struct vectorizable<Matrix<T>> : public std::is_arithmetic<T> {};
+
+template <typename E1, typename E2>
+struct vectorizable<MatrixMultiplication<E1, E2>> : public std::is_arithmetic<scalar_type_t<MatrixMultiplication<E1, E2>>> {};
 
 template <typename E>
 struct vectorizable<SubMatrix<E>> : public std::false_type {};
@@ -259,6 +273,13 @@ const Matrix<T>& simplify(const Matrix<T>& m) {
 template <typename T>
 IdentityMatrix<T> simplify(IdentityMatrix<T> m) {
     return m;
+}
+
+template <typename E1, typename E2>
+auto simplify(MatrixMultiplication<E1, E2> e) {
+    MatrixMultiplication<std::decay_t<decltype(simplify(std::declval<E1>()))>,std::decay_t<decltype(simplify(std::declval<E2>()))>> e_simple(simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
+    e_simple.evaluate(); //TODO: do this here?
+    return e_simple;
 }
 
 template <typename T>
@@ -466,32 +487,87 @@ class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
 
 template <typename E1, typename E2>
 class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
-	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::T;
-	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::PacketScalar;
+    using typename MatrixExpression<MatrixSubtraction<E1, E2>>::T;
+    using typename MatrixExpression<MatrixSubtraction<E1, E2>>::PacketScalar;
 
-	using Exp1 = expression_member_t<E1>;
-	using Exp2 = expression_member_t<E2>;
+    using Exp1 = expression_member_t<E1>;
+    using Exp2 = expression_member_t<E2>;
 
   public:
-	MatrixSubtraction(Exp1 u, const Exp2 v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
+    MatrixSubtraction(Exp1 u, Exp2 v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
 
-	T operator[](const point_type& pos) const { return lhs[pos] - rhs[pos]; }
+    T operator[](const point_type& pos) const { return lhs[pos] - rhs[pos]; }
 
-	point_type size() const { return rhs.size(); }
+    point_type size() const { return rhs.size(); }
 
-	coordinate_type rows() const { return lhs.rows(); }
+    coordinate_type rows() const { return lhs.rows(); }
 
-	coordinate_type columns() const { return lhs.columns(); }
+    coordinate_type columns() const { return lhs.columns(); }
 
-	PacketScalar packet(point_type p) const { return lhs.packet(p) - rhs.packet(p); }
+    PacketScalar packet(point_type p) const { return lhs.packet(p) - rhs.packet(p); }
 
-	Exp1 getLeftExpression() const { return lhs; }
+    Exp1 getLeftExpression() const { return lhs; }
 
-	Exp2 getRightExpression() const { return rhs; }
+    Exp2 getRightExpression() const { return rhs; }
 
   private:
-	Exp1 lhs;
-	Exp2 rhs;
+    Exp1 lhs;
+    Exp2 rhs;
+};
+
+template <typename E1, typename E2>
+class MatrixMultiplication : public MatrixExpression<MatrixMultiplication<E1, E2>> {
+    using typename MatrixExpression<MatrixMultiplication<E1, E2>>::T;
+    using typename MatrixExpression<MatrixMultiplication<E1, E2>>::PacketScalar;
+
+    using Exp1 = expression_member_t<E1>;
+    using Exp2 = expression_member_t<E2>;
+
+  public:
+    MatrixMultiplication(Exp1 u, Exp2 v) : lhs(u), rhs(v), tmp(nullptr) { assert_eq(lhs.columns(), rhs.rows()); }
+
+    T operator[](const point_type& pos) const {
+        if(tmp != nullptr)
+            return (*tmp)[pos];
+
+        // compute
+        T val{};
+
+        for(int k = 0; k < lhs.columns(); ++k) {
+            val += lhs[{pos.x, k}] * rhs[{k, pos.y}];
+        }
+
+        return val;
+    }
+
+    point_type size() const { return {rows(), columns()}; }
+
+    coordinate_type rows() const { return lhs.rows(); }
+
+    coordinate_type columns() const { return rhs.columns(); }
+
+    PacketScalar packet(point_type p) const {
+        evaluate();
+        return tmp->packet(p);
+    }
+
+    Exp1 getLeftExpression() const { return lhs; }
+
+    Exp2 getRightExpression() const { return rhs; }
+
+    void evaluate() const {
+        if(tmp != nullptr) return;
+
+        tmp = std::make_shared<Matrix<T>>(size());
+
+        matrix_multiplication(*tmp, eval(lhs), eval(rhs));
+    }
+
+  private:
+    Exp1 lhs;
+    Exp2 rhs;
+    // TODO: make unique
+    mutable std::shared_ptr<Matrix<T>> tmp; // contains a temporary matrix
 };
 
 template <typename E>
@@ -1127,7 +1203,7 @@ void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& 
 	    // base case test
 	    [&](const BlockRange& r) {
 		    auto block = r.end - r.start;
-		    return block.x * block.y <= 4096 * 4096;
+		    return block.x * block.y <= 128 * 128;
 		},
 	    // base case
 	    blas_multiplication, pick(
@@ -1167,7 +1243,7 @@ void matrix_multiplication_pvblas(Matrix<double>& result, const Matrix<double>& 
 
 // -- parallel matrix * matrix multiplication using the Eigen multiplication as base case
 template <typename T>
-void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+void matrix_multiplication_peigen(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
 	assert(lhs.columns() == rhs.rows());
 
 	// create an Eigen map for the rhs of the multiplication
@@ -1202,6 +1278,17 @@ void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix
 	multiplication_rec({0, lhs.rows()}).wait();
 }
 
+// -- default matrix * matrix multiplication
+template <typename T>
+void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+    matrix_multiplication_peigen(result,lhs, rhs);
+}
+
+template <>
+void matrix_multiplication(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
+    matrix_multiplication_pbblas(result,lhs, rhs);
+}
+
 // -- scalar * matrix multiplication
 // Note: without the std::enable_if a matrix * matrix multiplication would be ambiguous
 template <typename E, typename U>
@@ -1216,10 +1303,8 @@ std::enable_if_t<!std::is_base_of<MatrixExpression<U>, U>::value, MatrixScalarMu
 
 // -- matrix * matrix multiplication
 template <typename E1, typename E2>
-Matrix<scalar_type_t<E1>> operator*(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
-	Matrix<scalar_type_t<E1>> tmp({u.rows(), v.columns()});
-	matrix_multiplication(tmp, eval(u), eval(v));
-	return tmp;
+MatrixMultiplication<E1, E2> operator*(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
+	return MatrixMultiplication<E1, E2>(u, v);
 }
 
 
