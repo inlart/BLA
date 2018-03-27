@@ -345,7 +345,9 @@ TEST(Matrix, SubMatrix) {
 
 TEST(Matrix, IdentityMatrix) {
     Matrix<int> m1({37, 31});
-    IdentityMatrix<int> m2(point_type{m1.columns(), m1.columns()}, 0, 1);
+    IdentityMatrix<int> m2(point_type{m1.columns(), m1.columns()});
+
+    m1.fill(1337);
 
     Matrix<int> result(m1.size());
 
