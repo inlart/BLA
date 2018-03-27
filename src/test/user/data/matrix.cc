@@ -412,7 +412,7 @@ TEST(Matrix, SimplifyRecursive) {
 
 	ASSERT_EQ(m3, m4);
 
-	ASSERT_TRUE((std::is_same<std::remove_cv_t<decltype(m1 + m2)>, std::remove_cv_t<decltype(simplify(m1 + m2.transpose().transpose()))>>::value));
+	ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1 + m2)>, std::decay_t<decltype(simplify(m1 + m2.transpose().transpose()))>>::value));
 }
 
 TEST(Matrix, SimplifyMatrixScalarMultiplication) {
@@ -435,6 +435,32 @@ TEST(Matrix, SimplifyMatrixScalarMultiplication) {
 	m3 = simplify(m1 * 5 * 6);
 
 	ASSERT_EQ(m2, m3);
+}
+
+TEST(Matrix, SimplifyNegation) {
+	Matrix<int> m1({55, 58});
+	Matrix<int> m2({55, 58});
+	Matrix<int> m3({55, 58});
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(1, 9);
+
+	auto g = [&]() { return dis(gen); };
+
+	m1.random(g);
+	m2.zero();
+	m3.zero();
+
+	m2 = -(-m1);
+
+	m3 = simplify(-(-m1));
+
+
+	ASSERT_EQ(m2, m3);
+
+
+	ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1)>, std::decay_t<decltype(simplify(-(-m1)))>>::value));
 }
 
 TEST(Matrix, CustomTypes) {

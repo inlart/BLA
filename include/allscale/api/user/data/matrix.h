@@ -206,11 +206,8 @@ template <typename T>
 constexpr bool is_associative_v = is_associative<T>::value;
 
 
-template <class...>
-using void_t = void;
-
 template <typename T>
-struct type_consistent_multiplication : public and_value<std::is_same<T, decltype(std::declval<T>() * std::declval<T>())>::value> {};
+struct type_consistent_multiplication : public std::is_same<T, decltype(std::declval<T>() * std::declval<T>())> {};
 
 template <typename T>
 constexpr bool type_consistent_multiplication_v = type_consistent_multiplication<T>::value;
@@ -280,6 +277,12 @@ auto simplify(ScalarMatrixMultiplication<E, U> e) {
 // What we really simplify
 template <typename E>
 expression_member_t<E> simplify(MatrixTranspose<MatrixTranspose<E>> e) {
+	return e.getExpression().getExpression();
+}
+
+// What we really simplify
+template <typename E>
+expression_member_t<E> simplify(MatrixNegation<MatrixNegation<E>> e) {
 	return e.getExpression().getExpression();
 }
 
@@ -988,7 +991,7 @@ void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& l
 
 	auto multiplication_rec = prec(
 	    // base case test
-	    [&](const RowRange& r) { return r.start + 64 >= r.end; },
+	    [&](const RowRange& r) { return r.start + 256 >= r.end; },
 	    // base case
 	    blas_multiplication, pick(
 	                             // parallel recursive split
@@ -1003,6 +1006,66 @@ void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& l
 		                         }));
 
 	multiplication_rec({0, lhs.rows()}).wait();
+}
+
+
+struct BlockRange {
+	point_type start;
+	point_type end;
+
+	point_type range() const { return end - start; }
+
+	coordinate_type area() const {
+		auto x = range();
+		return x.x * x.y;
+	}
+};
+
+// -- parallel block matrix * matrix multiplication using BLAS level 3 function calls
+void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
+	assert(lhs.columns() == rhs.rows());
+
+	result.zero();
+
+	auto blas_multiplication = [&](const BlockRange& r) {
+		assert_le(r.start, r.end);
+
+
+		cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, r.end.x - r.start.x, r.end.y - r.start.y, lhs.columns(), 1.0, &lhs[{r.start.x, 0}],
+		            lhs.columns(), &rhs[{0, r.start.y}], rhs.columns(), 0.0, &result[{r.start.x, r.start.y}], rhs.columns());
+	};
+
+	auto multiplication_rec = prec(
+	    // base case test
+	    [&](const BlockRange& r) {
+		    auto block = r.end - r.start;
+		    return block.x * block.y <= 4096 * 4096;
+		},
+	    // base case
+	    blas_multiplication, pick(
+	                             // parallel recursive split
+	                             [&](const BlockRange& r, const auto& rec) {
+
+		                             auto mid = r.start + (r.end - r.start) / 2;
+
+		                             BlockRange top_left{r.start, mid};
+		                             BlockRange top_right{{r.start.x, mid.y}, {mid.x, r.end.y}};
+		                             BlockRange bottom_left{{mid.x, r.start.y}, {r.end.x, mid.y}};
+		                             BlockRange bottom_right{mid, r.end};
+
+		                             return parallel(parallel(rec(top_left), rec(top_right)), parallel(rec(bottom_left), rec(bottom_right)));
+		                         },
+	                             // BLAS multiplication if no further parallelism can be exploited
+	                             [&](const BlockRange& r, const auto&) {
+		                             blas_multiplication(r);
+		                             return done();
+		                         }));
+
+	BlockRange b;
+	b.start = {0, 0};
+	b.end = {result.rows(), result.columns()};
+
+	multiplication_rec(b).wait();
 }
 
 // -- parallel matrix * matrix multiplication using BLAS level 2 function calls

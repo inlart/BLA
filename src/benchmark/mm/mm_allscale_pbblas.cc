@@ -33,7 +33,7 @@ BenchResult bench_allscale(int n) {
 	for(int i = 0; i < NUMBER_BENCHMARK_RUNS; ++i) {
 		{
 			Timer t;
-			matrix_multiplication_pblas(mult, a, b);
+			matrix_multiplication_pbblas(mult, a, b);
 			res.addMeasurement(t.elapsed());
 		}
 
