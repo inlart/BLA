@@ -1,8 +1,6 @@
 #!/usr/bin/ruby
 
 require 'csv'
-require 'benchmark'
-require 'open3'
 
 if(ENV["NPROC"])
     max_threads = Integer(ENV["NPROC"])
@@ -62,7 +60,7 @@ inputs.each do |input|
 
                 time = 0
 
-                ret, stderr, status = Open3.capture3("#{bin_folder}#{extension} #{input} raw")
+                ret = `#{bin_folder}#{extension} #{input} raw`
                 puts ret
                 values = ret.split(' ').map(&:to_f)
                 time = values.inject{ |sum, el| sum + el }.to_f / values.size
