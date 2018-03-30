@@ -65,9 +65,6 @@ inputs.each do |input|
                 values = ret.split(' ').map(&:to_f)
                 time = values.inject{ |sum, el| sum + el }.to_f / values.size
 
-
-                time = time.real
-
                 total_time += time
             end
 
