@@ -240,6 +240,12 @@ struct is_associative<long> : public std::true_type {};
 template <>
 struct is_associative<unsigned long> : public std::true_type {};
 
+template <>
+struct is_associative<double> : public std::true_type {};
+
+template <>
+struct is_associative<float> : public std::true_type {};
+
 template <typename T>
 constexpr bool is_associative_v = is_associative<T>::value;
 
@@ -1186,8 +1192,11 @@ struct BlockRange {
 };
 
 // -- parallel block matrix * matrix multiplication using BLAS level 3 function calls
-void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
+void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs, bool transLHS, bool transRHS) {
 	assert(lhs.columns() == rhs.rows());
+
+	const CBLAS_TRANSPOSE tlhs = transLHS ? CblasTrans : CblasNoTrans;
+	const CBLAS_TRANSPOSE trhs = transRHS ? CblasTrans : CblasNoTrans;
 
 	result.zero();
 
@@ -1195,7 +1204,7 @@ void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& 
 		assert_le(r.start, r.end);
 
 
-		cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, r.end.x - r.start.x, r.end.y - r.start.y, lhs.columns(), 1.0, &lhs[{r.start.x, 0}],
+		cblas_dgemm(CblasRowMajor, tlhs, trhs, r.end.x - r.start.x, r.end.y - r.start.y, lhs.columns(), 1.0, &lhs[{r.start.x, 0}],
 		            lhs.columns(), &rhs[{0, r.start.y}], rhs.columns(), 0.0, &result[{r.start.x, r.start.y}], rhs.columns());
 	};
 
@@ -1286,7 +1295,19 @@ void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix
 
 template <>
 void matrix_multiplication(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
-    matrix_multiplication_pbblas(result,lhs, rhs);
+    matrix_multiplication_pbblas(result,lhs, rhs, false, false);
+}
+
+void matrix_multiplication(Matrix<double>& result, const MatrixTranspose<Matrix<double>>& lhs, const Matrix<double>& rhs) {
+    matrix_multiplication_pbblas(result,lhs, rhs, true, false);
+}
+
+void matrix_multiplication(Matrix<double>& result, const Matrix<double>& lhs, const MatrixTranspose<Matrix<double>>& rhs) {
+    matrix_multiplication_pbblas(result,lhs, rhs, false, true);
+}
+
+void matrix_multiplication(Matrix<double>& result, const MatrixTranspose<Matrix<double>>& lhs, const MatrixTranspose<Matrix<double>>& rhs) {
+    matrix_multiplication_pbblas(result,lhs, rhs, true, true);
 }
 
 // -- scalar * matrix multiplication
