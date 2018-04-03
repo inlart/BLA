@@ -269,9 +269,7 @@ constexpr bool type_consistent_multiplication_v = type_consistent_multiplication
 /*
  * A^T^T = A
  * (AB)C = A(BC) check number of multiplications
- * (AB)^T = B^T * A^T first one is probably faster
- * A(B + C) = AB + AC
- * (B + C)D = BD + CD first is probably faster, but this check might be hard (we have to know that 'D' is the same matrix on both sites
+ * (AB)^T = B^T * A^T first one is probably faster TODO: test this
  */
 
 // TODO: do this at compile time?
@@ -1261,15 +1259,6 @@ void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& 
 	b.end = {result.rows(), result.columns()};
 
 	multiplication_rec(b).wait();
-}
-
-// -- parallel matrix * matrix multiplication using BLAS level 2 function calls
-void matrix_multiplication_pvblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
-	assert(lhs.columns() == rhs.rows());
-
-	algorithm::pfor(utils::Vector<coordinate_type, 1>{lhs.rows()}, [&](const auto& pos) {
-		cblas_dgemv(CblasRowMajor, CblasNoTrans, lhs.rows(), lhs.columns(), 1., &lhs[{0, 0}], lhs.columns(), &rhs[{pos[0], 0}], 1, 0, &result[{pos[0], 0}], 1);
-	});
 }
 
 // -- parallel matrix * matrix multiplication using the Eigen multiplication as base case
