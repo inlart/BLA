@@ -240,11 +240,15 @@ struct is_associative<long> : public std::true_type {};
 template <>
 struct is_associative<unsigned long> : public std::true_type {};
 
+#ifndef ALLSCALE_NO_FAST_MATH
+
 template <>
 struct is_associative<double> : public std::true_type {};
 
 template <>
 struct is_associative<float> : public std::true_type {};
+
+#endif
 
 template <typename T>
 constexpr bool is_associative_v = is_associative<T>::value;
