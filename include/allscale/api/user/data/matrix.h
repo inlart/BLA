@@ -366,6 +366,12 @@ expression_member_t<E> simplify(MatrixMultiplication<IdentityMatrix<T>, E> e) {
     return e.getRightExpression();
 }
 
+template <typename T>
+IdentityMatrix<T> simplify(MatrixMultiplication<IdentityMatrix<T>, IdentityMatrix<T>> e) {
+    assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
+    return e.getLeftExpression();
+}
+
 namespace detail {
 template <int Depth = 1024, typename T>
 void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordinate_type size) {

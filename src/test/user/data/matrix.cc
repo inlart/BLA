@@ -481,9 +481,11 @@ TEST(Matrix, SimplifyIdentityMatrix) {
     Matrix<int> m1({55, 58});
     Matrix<int> m2({58, 55});
     IdentityMatrix<int> m3(point_type{55, 55});
+    IdentityMatrix<int> m4(point_type{55, 55});
 
     Matrix<int> r1({55, 58});
     Matrix<int> r2({58, 55});
+    Matrix<int> r3({55, 55});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -505,6 +507,12 @@ TEST(Matrix, SimplifyIdentityMatrix) {
     ASSERT_EQ(m2, r2);
 
     ASSERT_TRUE((std::is_same<std::decay_t<decltype(m2)>, std::decay_t<decltype(simplify(m3 * m2))>>::value));
+
+    r3 = simplify(m3 * m4);
+
+    ASSERT_EQ(m3, r3);
+
+    ASSERT_TRUE((std::is_same<std::decay_t<decltype(m3)>, std::decay_t<decltype(simplify(m3 * m4))>>::value));
 }
 
 TEST(Matrix, CustomTypes) {
