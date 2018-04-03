@@ -20,7 +20,7 @@ class Latex
     def self.print_pgfplot(name, ylabel, data)
 
         puts "\\begin{tikzpicture}[scale=0.6]"
-        puts "\\begin{axis}[xlabel=Threads, xtick distance=1, ylabel=#{ylabel}, xmin=1, ymin=0, legend pos=outer north east]"
+        puts "\\begin{axis}[xlabel=Threads, ylabel=#{ylabel}, xmin=1, ymin=0, legend pos=outer north east]" # , xtick distance=1
         color = 0
         legend = Array.new
         data.each do |compiler, thread_tests|
