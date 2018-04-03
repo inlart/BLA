@@ -360,8 +360,20 @@ simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
 
 template <typename E, typename U>
 std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, ScalarMatrixMultiplication<E, U>>
+simplify(ScalarMatrixMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
+    return ScalarMatrixMultiplication<E, U>(e.getExpression().getScalar() * e.getScalar(), e.getExpression().getExpression());
+}
+
+template <typename E, typename U>
+std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, ScalarMatrixMultiplication<E, U>>
 simplify(ScalarMatrixMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
     return ScalarMatrixMultiplication<E, U>(e.getScalar() * e.getExpression().getScalar(), e.getExpression().getExpression());
+}
+
+template <typename E, typename U>
+std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, MatrixScalarMultiplication<E, U>>
+simplify(MatrixScalarMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
+    return MatrixScalarMultiplication<E, U>(e.getExpression().getExpression(), e.getExpression().getScalar() * e.getScalar());
 }
 
 template <typename E, typename T>

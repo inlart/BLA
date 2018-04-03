@@ -530,7 +530,7 @@ TEST(Simplify, RecursiveTranspose) {
 	ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1 + m2)>, std::decay_t<decltype(simplify(m1 + m2.transpose().transpose()))>>::value));
 }
 
-TEST(Simplify, MatrixScalarMultiplication) {
+TEST(Simplify, MatrixScalarScalarMultiplication) {
 	Matrix<int> m1({55, 55});
 	Matrix<int> m2({55, 55});
 	Matrix<int> m3({55, 55});
@@ -548,7 +548,7 @@ TEST(Simplify, MatrixScalarMultiplication) {
 	ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1 * 30)>, std::decay_t<decltype(simplify(m1 * 5 * 6))>>::value));
 }
 
-TEST(Simplify, ScalarMatrixMultiplication) {
+TEST(Simplify, ScalarScalarMatrixMultiplication) {
     Matrix<int> m1({55, 55});
     Matrix<int> m2({55, 55});
     Matrix<int> m3({55, 55});
@@ -565,6 +565,42 @@ TEST(Simplify, ScalarMatrixMultiplication) {
     ASSERT_EQ(m2, m3);
 
     ASSERT_TRUE((std::is_same<std::decay_t<decltype(30 * m1)>, std::decay_t<decltype(simplify(5 * (6 * m1)))>>::value));
+}
+
+TEST(Simplify, ScalarMatrixScalarMultiplication1) {
+    Matrix<int> m1({55, 55});
+    Matrix<int> m2({55, 55});
+    Matrix<int> m3({55, 55});
+
+    m1.identity();
+    m2.zero();
+    m3.zero();
+
+    m2 = 6 * (m1 * 5);
+
+    m3 = simplify(6 * (m1 * 5));
+
+    ASSERT_EQ(m2, m3);
+
+    ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1)>, std::decay_t<decltype(simplify(6 * (m1 * 5)).getExpression())>>::value));
+}
+
+TEST(Simplify, ScalarMatrixScalarMultiplication2) {
+    Matrix<int> m1({55, 55});
+    Matrix<int> m2({55, 55});
+    Matrix<int> m3({55, 55});
+
+    m1.identity();
+    m2.zero();
+    m3.zero();
+
+    m2 = (m1 * 5) * 6;
+
+    m3 = simplify((m1 * 5) * 6);
+
+    ASSERT_EQ(m2, m3);
+
+    ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1)>, std::decay_t<decltype(simplify((m1 * 5) * 6).getExpression())>>::value));
 }
 
 TEST(Simplify, Negation) {
