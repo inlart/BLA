@@ -25,13 +25,13 @@ TEST(Matrix, CustomTypes) {
 
 
     struct A {
-        int operator+(const B& b) const { return 1; }
-        double operator-(const B& b) const { return 0.1337; }
+        int operator+(const B&) const { return 1; }
+        double operator-(const B&) const { return 0.1337; }
     };
 
     struct B {
-        double operator+(const A& b) const { return 0.1337; }
-        int operator-(const A& b) const { return 1; }
+        double operator+(const A&) const { return 0.1337; }
+        int operator-(const A&) const { return 1; }
     };
 
     Matrix<A> m1({55, 58});
@@ -502,13 +502,7 @@ TEST(Simplify, MatrixScalarMultiplication) {
 	Matrix<int> m2({55, 55});
 	Matrix<int> m3({55, 55});
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dis(1, 5);
-
-	auto g = [&]() { return dis(gen); };
-
-	m1.identity(); // random(g);
+	m1.identity();
 	m2.zero();
 	m3.zero();
 

@@ -896,6 +896,10 @@ class MatrixExpression {
         return SubMatrix<E>(static_cast<const E&>(*this), start, size);
     }
 
+    T determinant() {
+
+    }
+
 	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
 
 	operator E&() { return static_cast<E&>(*this); }
@@ -1048,7 +1052,6 @@ inline void block(point_type end, T* result, const T* lhs, const T* rhs, triple_
 
 	constexpr int vector_size = size / vt::Size; // vector_size contains the number of vt types needed per line
 
-	const auto m = matrix_sizes.x;
 	const auto k = end.x;
 
 	std::array<const T*, size> lhs_ptr;
@@ -1081,7 +1084,7 @@ inline void block(point_type end, T* result, const T* lhs, const T* rhs, triple_
 	for(ct i = 0; i < size; ++i) {
 		for(ct j = 0; j < vector_size; ++j) {
 			ct jj = j * (ct)vt::Size;
-			for(ct k = 0; k < vt::Size; ++k) {
+			for(ct k = 0; k < (ct)vt::Size; ++k) {
 				result[mindex(i, jj + k, matrix_sizes.z)] += res[i][j][k];
 			}
 		}
