@@ -354,6 +354,18 @@ simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
 	return MatrixScalarMultiplication<E, U>(e.getExpression().getExpression(), e.getExpression().getScalar() * e.getScalar());
 }
 
+template <typename E, typename T>
+expression_member_t<E> simplify(MatrixMultiplication<E, IdentityMatrix<T>> e) {
+    assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
+    return e.getLeftExpression();
+}
+
+template <typename E, typename T>
+expression_member_t<E> simplify(MatrixMultiplication<IdentityMatrix<T>, E> e) {
+    assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
+    return e.getRightExpression();
+}
+
 namespace detail {
 template <int Depth = 1024, typename T>
 void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordinate_type size) {

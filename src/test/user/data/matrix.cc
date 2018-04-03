@@ -477,6 +477,36 @@ TEST(Matrix, SimplifyNegation) {
 	ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1)>, std::decay_t<decltype(simplify(-(-m1)))>>::value));
 }
 
+TEST(Matrix, SimplifyIdentityMatrix) {
+    Matrix<int> m1({55, 58});
+    Matrix<int> m2({58, 55});
+    IdentityMatrix<int> m3(point_type{55, 55});
+
+    Matrix<int> r1({55, 58});
+    Matrix<int> r2({58, 55});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 9);
+
+    auto g = [&]() { return dis(gen); };
+
+    m1.random(g);
+    m2.random(g);
+
+    r1 = simplify(m3 * m1);
+
+    ASSERT_EQ(m1, r1);
+
+    ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1)>, std::decay_t<decltype(simplify(m3 * m1))>>::value));
+
+    r2 = simplify(m2 * m3);
+
+    ASSERT_EQ(m2, r2);
+
+    ASSERT_TRUE((std::is_same<std::decay_t<decltype(m2)>, std::decay_t<decltype(simplify(m3 * m2))>>::value));
+}
+
 TEST(Matrix, CustomTypes) {
 	struct A;
 	struct B;
