@@ -441,6 +441,39 @@ TEST(Operation, Multiple) {
     }
 }
 
+TEST(Operation, DISABLED_Determinant) {
+    Matrix<double> m1({2, 2});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&]() { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.random(g);
+        ASSERT_EQ(m1.determinant(), (m1[{0, 0}] * m1[{1, 1}] - m1[{0, 1}] * m1[{1, 0}]));
+    }
+}
+
+TEST(Operation, DISABLED_DeterminantEigen) {
+    Matrix<double> m1({41, 41});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&]() { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.random(g);
+
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = m1.toEigenMatrix();
+
+        double det_diff = m1.determinant() - m1e.determinant();
+        if(det_diff < 0) det_diff = -det_diff;
+        ASSERT_TRUE(det_diff < 0.1);
+    }
+}
+
 // -- simplify matrix expressions
 TEST(Simplify, Transpose) {
 	Matrix<int> m1({55, 58});
