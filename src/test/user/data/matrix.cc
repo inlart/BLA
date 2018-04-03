@@ -544,6 +544,27 @@ TEST(Simplify, MatrixScalarMultiplication) {
 	m3 = simplify(m1 * 5 * 6);
 
 	ASSERT_EQ(m2, m3);
+
+	ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1 * 30)>, std::decay_t<decltype(simplify(m1 * 5 * 6))>>::value));
+}
+
+TEST(Simplify, ScalarMatrixMultiplication) {
+    Matrix<int> m1({55, 55});
+    Matrix<int> m2({55, 55});
+    Matrix<int> m3({55, 55});
+
+    m1.identity();
+    m2.zero();
+    m3.zero();
+
+    m2 = 5 * (6 * m1);
+
+
+    m3 = simplify(5 * (6 * m1));
+
+    ASSERT_EQ(m2, m3);
+
+    ASSERT_TRUE((std::is_same<std::decay_t<decltype(30 * m1)>, std::decay_t<decltype(simplify(5 * (6 * m1)))>>::value));
 }
 
 TEST(Simplify, Negation) {

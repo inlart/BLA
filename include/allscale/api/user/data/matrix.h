@@ -145,6 +145,9 @@ struct scalar_type<MatrixTranspose<E>> : public set_type<typename scalar_type<E>
 template <typename E, typename U>
 struct scalar_type<MatrixScalarMultiplication<E, U>> : public set_type<decltype(std::declval<typename scalar_type<E>::type>() * std::declval<U>())> {};
 
+template <typename E, typename U>
+struct scalar_type<ScalarMatrixMultiplication<E, U>> : public set_type<decltype(std::declval<U>() * std::declval<typename scalar_type<E>::type>())> {};
+
 template <typename T>
 struct scalar_type<Matrix<T>> : public set_type<T> {};
 
@@ -352,8 +355,13 @@ expression_member_t<E> simplify(MatrixNegation<MatrixNegation<E>> e) {
 template <typename E, typename U>
 std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, MatrixScalarMultiplication<E, U>>
 simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
-	// TODO: e.g. (A * 5) * 6 = A * 30
 	return MatrixScalarMultiplication<E, U>(e.getExpression().getExpression(), e.getExpression().getScalar() * e.getScalar());
+}
+
+template <typename E, typename U>
+std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, ScalarMatrixMultiplication<E, U>>
+simplify(ScalarMatrixMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
+    return ScalarMatrixMultiplication<E, U>(e.getScalar() * e.getExpression().getScalar(), e.getExpression().getExpression());
 }
 
 template <typename E, typename T>
@@ -676,9 +684,9 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 };
 
 template <typename E, typename U>
-class ScalarMatrixMultiplication : public MatrixExpression<MatrixScalarMultiplication<E, U>> {
-	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::T;
-	using typename MatrixExpression<MatrixScalarMultiplication<E, U>>::PacketScalar;
+class ScalarMatrixMultiplication : public MatrixExpression<ScalarMatrixMultiplication<E, U>> {
+	using typename MatrixExpression<ScalarMatrixMultiplication<E, U>>::T;
+	using typename MatrixExpression<ScalarMatrixMultiplication<E, U>>::PacketScalar;
 
 	using Exp = expression_member_t<E>;
 
@@ -897,7 +905,8 @@ class MatrixExpression {
     }
 
     T determinant() {
-
+        assert_fail();
+        return T{};
     }
 
 	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
