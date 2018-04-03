@@ -19,7 +19,48 @@ TEST(Matrix, Access) {
 	}
 }
 
-TEST(Matrix, EigenConversion) {
+TEST(Matrix, CustomTypes) {
+    struct A;
+    struct B;
+
+
+    struct A {
+        int operator+(const B& b) const { return 1; }
+        double operator-(const B& b) const { return 0.1337; }
+    };
+
+    struct B {
+        double operator+(const A& b) const { return 0.1337; }
+        int operator-(const A& b) const { return 1; }
+    };
+
+    Matrix<A> m1({55, 58});
+    Matrix<B> m2({55, 58});
+
+    Matrix<int> m3({55, 58});
+    Matrix<double> m4({55, 58});
+
+    Matrix<int> test_i({55, 58});
+    test_i.fill(1);
+
+    Matrix<double> test_d({55, 58});
+    test_d.fill(0.1337);
+
+    m3 = m1 + m2;
+    ASSERT_EQ(m3, test_i);
+
+    m4 = m2 + m1;
+    ASSERT_TRUE(isAlmostEqual(m4, test_d));
+
+    m3 = m2 - m1;
+    ASSERT_EQ(m3, test_i);
+
+    m4 = m1 - m2;
+    ASSERT_TRUE(isAlmostEqual(m4, test_d));
+}
+
+// -- utility
+TEST(Utility, EigenConversion) {
 	Matrix<int> m({4, 4});
 	for(coordinate_type i = 0; i < m.rows(); ++i) {
 		for(coordinate_type j = 0; j < m.columns(); ++j) {
@@ -31,7 +72,7 @@ TEST(Matrix, EigenConversion) {
 	ASSERT_EQ(m, n);
 }
 
-TEST(Matrix, Random) {
+TEST(Utility, Random) {
 	Matrix<double> m({2, 2});
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -47,7 +88,102 @@ TEST(Matrix, Random) {
 	}
 }
 
-TEST(Matrix, Addition) {
+TEST(Utility, Equal) {
+    Matrix<double> m1({45, 59});
+    Matrix<double> m2({45, 59});
+
+    for(int i = 0; i < 4; ++i) {
+        m1.fill(1);
+        m2.fill(1);
+        ASSERT_EQ(m1, m2);
+        ASSERT_EQ(m2, m1);
+
+        m2 = 3. * m2;
+
+        ASSERT_NE(m1, m2);
+        ASSERT_NE(m2, m1);
+    }
+}
+
+TEST(Utility, EigenMap) {
+    Matrix<double> m1({23, 45});
+    Matrix<double> m2({m1.columns(), 53});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&]() { return dis(gen); };
+    for(int i = 0; i < 4; ++i) {
+        m1.random(g);
+        m2.random(g);
+        auto map1 = m1.getEigenMap();
+        auto map2 = m2.getEigenMap();
+        ASSERT_TRUE(isAlmostEqual(Matrix<double>(map1 * map2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
+    }
+}
+
+TEST(Utility, Traits) {
+    Matrix<double> m1({55, 56});
+    Matrix<double> m2({55, 56});
+
+    auto sum = m1 + m2;
+
+    ASSERT_TRUE(vectorizable_v<decltype(sum)>);
+    ASSERT_FALSE(vectorizable_v<decltype(m1 + m2.transpose())>);
+
+    const Matrix<double> m3({55, 56});
+
+    const volatile auto matrix_sum = m1 + m3;
+
+    ASSERT_TRUE(vectorizable_v<decltype(matrix_sum)>);
+
+    ASSERT_TRUE((std::is_same<double, scalar_type_t<decltype(matrix_sum)>>::value));
+
+    Matrix<int> m4({55, 60});
+    Matrix<int> m5({55, 60});
+
+    ASSERT_TRUE((std::is_same<int, scalar_type_t<decltype(m4 + m5)>>::value));
+    ASSERT_FALSE((std::is_same<double, scalar_type_t<decltype(m4 + m5)>>::value));
+}
+
+//-- expression
+TEST(Expression, SubMatrix) {
+    const int n = 8;
+    const int nh = n / 2;
+    Matrix<int> m1({n, n});
+
+    algorithm::pfor(m1.size(), [&](const auto& p) { m1[p] = p.y % nh + nh * (p.x % nh); });
+
+    Matrix<int> s1 = m1.sub({0, 0}, {nh, nh});
+    Matrix<int> s2 = m1.sub({0, nh}, {nh, nh});
+    Matrix<int> s3 = m1.sub({nh, 0}, {nh, nh});
+    Matrix<int> s4 = m1.sub({nh, nh}, {nh, nh});
+
+    ASSERT_EQ(s1, s2);
+    ASSERT_EQ(s2, s3);
+    ASSERT_EQ(s3, s4);
+
+    s4[{0, 0}] = 1;
+
+    ASSERT_NE(s4, s1);
+}
+
+TEST(Expression, IdentityMatrix) {
+    Matrix<int> m1({37, 31});
+    IdentityMatrix<int> m2(point_type{m1.columns(), m1.columns()});
+
+    m1.fill(1337);
+
+    Matrix<int> result(m1.size());
+
+    result = m1 * m2;
+
+
+    ASSERT_EQ(m1, result);
+}
+
+// -- operations
+TEST(Operation, Addition) {
 	Matrix<int> m1({123, 76});
 	Matrix<int> m2(m1.size());
 	std::random_device rd;
@@ -63,7 +199,7 @@ TEST(Matrix, Addition) {
 	}
 }
 
-TEST(Matrix, AssignAddition) {
+TEST(Operation, AssignAddition) {
 	Matrix<double> m1({123, 76});
 	Matrix<double> m2(m1.size());
 	std::random_device rd;
@@ -85,7 +221,7 @@ TEST(Matrix, AssignAddition) {
 	}
 }
 
-TEST(Matrix, Subtraction) {
+TEST(Operation, Subtraction) {
 	Matrix<double> m1({31, 47});
 	Matrix<double> m2(m1.size());
 	std::random_device rd;
@@ -101,7 +237,7 @@ TEST(Matrix, Subtraction) {
 	}
 }
 
-TEST(Matrix, AssignSubtraction) {
+TEST(Operation, AssignSubtraction) {
 	Matrix<double> m1({123, 76});
 	Matrix<double> m2(m1.size());
 	std::random_device rd;
@@ -123,7 +259,7 @@ TEST(Matrix, AssignSubtraction) {
 	}
 }
 
-TEST(Matrix, Negation) {
+TEST(Operation, Negation) {
 	Matrix<double> m({100, 99});
 	m.zero();
 	ASSERT_TRUE(isAlmostEqual(m, -m));
@@ -138,7 +274,7 @@ TEST(Matrix, Negation) {
 	}
 }
 
-TEST(Matrix, Multiplication) {
+TEST(Operation, Multiplication) {
 	Matrix<double> m1({45, 45});
 	Matrix<double> m2({m1.columns(), 45});
 	std::random_device rd;
@@ -153,7 +289,7 @@ TEST(Matrix, Multiplication) {
 	}
 }
 
-TEST(Matrix, AssignMultiplication) {
+TEST(Operation, AssignMultiplication) {
 	Matrix<double> m1({123, 76});
 	Matrix<double> m2({m1.columns(), m1.columns()});
 	std::random_device rd;
@@ -175,7 +311,7 @@ TEST(Matrix, AssignMultiplication) {
 	}
 }
 
-TEST(Matrix, MultiplicationStrassen) {
+TEST(Operation, MultiplicationStrassen) {
 	Matrix<double> m1({8, 8});
 	Matrix<double> m2({m1.columns(), 8});
 	std::random_device rd;
@@ -190,7 +326,7 @@ TEST(Matrix, MultiplicationStrassen) {
 	}
 }
 
-TEST(Matrix, MultiplicationBLAS) {
+TEST(Operation, MultiplicationBLAS) {
 	Matrix<double> m1({231, 48});
 	Matrix<double> m2({m1.columns(), 117});
 	std::random_device rd;
@@ -210,7 +346,7 @@ TEST(Matrix, MultiplicationBLAS) {
 	}
 }
 
-TEST(Matrix, MultiplicationAllscale) {
+TEST(Operation, MultiplicationAllscale) {
 	Matrix<double> m1({255, 127});
 	Matrix<double> m2({m1.columns(), 84});
 	std::random_device rd;
@@ -228,7 +364,7 @@ TEST(Matrix, MultiplicationAllscale) {
 	}
 }
 
-TEST(Matrix, MultiplicationAllscaleInteger) {
+TEST(Operation, MultiplicationAllscaleInteger) {
 	Matrix<int> m1({255, 127});
 	Matrix<int> m2({m1.columns(), 84});
 	std::random_device rd;
@@ -246,7 +382,7 @@ TEST(Matrix, MultiplicationAllscaleInteger) {
 	}
 }
 
-TEST(Matrix, ScalarMatrixMultiplication) {
+TEST(Operation, ScalarMatrixMultiplication) {
 	Matrix<double> m1({45, 45});
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -259,7 +395,7 @@ TEST(Matrix, ScalarMatrixMultiplication) {
 	}
 }
 
-TEST(Matrix, MatrixScalarMultiplication) {
+TEST(Operation, MatrixScalarMultiplication) {
 	Matrix<double> m1({45, 45});
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -272,41 +408,7 @@ TEST(Matrix, MatrixScalarMultiplication) {
 	}
 }
 
-TEST(Matrix, EigenMap) {
-	Matrix<double> m1({23, 45});
-	Matrix<double> m2({m1.columns(), 53});
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<double> dis(-1, 1);
-
-	auto g = [&]() { return dis(gen); };
-	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
-		m2.random(g);
-		auto map1 = m1.getEigenMap();
-		auto map2 = m2.getEigenMap();
-		ASSERT_TRUE(isAlmostEqual(Matrix<double>(map1 * map2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
-	}
-}
-
-TEST(Matrix, Equal) {
-	Matrix<double> m1({45, 59});
-	Matrix<double> m2({45, 59});
-
-	for(int i = 0; i < 4; ++i) {
-		m1.fill(1);
-		m2.fill(1);
-		ASSERT_EQ(m1, m2);
-		ASSERT_EQ(m2, m1);
-
-		m2 = 3. * m2;
-
-		ASSERT_NE(m1, m2);
-		ASSERT_NE(m2, m1);
-	}
-}
-
-TEST(Matrix, Transpose) {
+TEST(Operation, Transpose) {
 	Matrix<double> m1({47, 39});
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -322,59 +424,25 @@ TEST(Matrix, Transpose) {
 	algorithm::pfor(m1.size(), [&](const point_type& p) { ASSERT_EQ(m1[p], (m2[{p.y, p.x}])); });
 }
 
-TEST(Matrix, SubMatrix) {
-	const int n = 8;
-	const int nh = n / 2;
-	Matrix<int> m1({n, n});
+TEST(Operation, Multiple) {
+    Matrix<double> m1({55, 55});
+    Matrix<double> m2({55, 56});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
 
-	algorithm::pfor(m1.size(), [&](const auto& p) { m1[p] = p.y % nh + nh * (p.x % nh); });
-
-	Matrix<int> s1 = m1.sub({0, 0}, {nh, nh});
-	Matrix<int> s2 = m1.sub({0, nh}, {nh, nh});
-	Matrix<int> s3 = m1.sub({nh, 0}, {nh, nh});
-	Matrix<int> s4 = m1.sub({nh, nh}, {nh, nh});
-
-	ASSERT_EQ(s1, s2);
-	ASSERT_EQ(s2, s3);
-	ASSERT_EQ(s3, s4);
-
-	s4[{0, 0}] = 1;
-
-	ASSERT_NE(s4, s1);
+    auto g = [&]() { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.random(g);
+        m2.random(g);
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = m1.toEigenMatrix();
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m2e = m2.toEigenMatrix();
+        ASSERT_TRUE(isAlmostEqual(-(m1 + m1) * m2 + m2 - m2 + m2 - m2, Matrix<double>(-(m1e + m1e) * m2e + m2e - m2e + m2e - m2e)));
+    }
 }
 
-TEST(Matrix, IdentityMatrix) {
-    Matrix<int> m1({37, 31});
-    IdentityMatrix<int> m2(point_type{m1.columns(), m1.columns()});
-
-    m1.fill(1337);
-
-    Matrix<int> result(m1.size());
-
-    result = m1 * m2;
-
-
-    ASSERT_EQ(m1, result);
-}
-
-TEST(Matrix, MultipleOperations) {
-	Matrix<double> m1({55, 55});
-	Matrix<double> m2({55, 56});
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<double> dis(-1, 1);
-
-	auto g = [&]() { return dis(gen); };
-	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
-		m2.random(g);
-		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = m1.toEigenMatrix();
-		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m2e = m2.toEigenMatrix();
-		ASSERT_TRUE(isAlmostEqual(-(m1 + m1) * m2 + m2 - m2 + m2 - m2, Matrix<double>(-(m1e + m1e) * m2e + m2e - m2e + m2e - m2e)));
-	}
-}
-
-TEST(Matrix, Simplify) {
+// -- simplify matrix expressions
+TEST(Simplify, Transpose) {
 	Matrix<int> m1({55, 58});
 	Matrix<int> m2({55, 58});
 	Matrix<int> m3({55, 58});
@@ -403,7 +471,7 @@ TEST(Matrix, Simplify) {
 	ASSERT_EQ(m3, m4);
 }
 
-TEST(Matrix, SimplifyRecursive) {
+TEST(Simplify, RecursiveTranspose) {
 	Matrix<int> m1({55, 58});
 	Matrix<int> m2({55, 58});
 	Matrix<int> m3({55, 58});
@@ -429,7 +497,7 @@ TEST(Matrix, SimplifyRecursive) {
 	ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1 + m2)>, std::decay_t<decltype(simplify(m1 + m2.transpose().transpose()))>>::value));
 }
 
-TEST(Matrix, SimplifyMatrixScalarMultiplication) {
+TEST(Simplify, MatrixScalarMultiplication) {
 	Matrix<int> m1({55, 55});
 	Matrix<int> m2({55, 55});
 	Matrix<int> m3({55, 55});
@@ -451,7 +519,7 @@ TEST(Matrix, SimplifyMatrixScalarMultiplication) {
 	ASSERT_EQ(m2, m3);
 }
 
-TEST(Matrix, SimplifyNegation) {
+TEST(Simplify, Negation) {
 	Matrix<int> m1({55, 58});
 	Matrix<int> m2({55, 58});
 	Matrix<int> m3({55, 58});
@@ -477,7 +545,7 @@ TEST(Matrix, SimplifyNegation) {
 	ASSERT_TRUE((std::is_same<std::decay_t<decltype(m1)>, std::decay_t<decltype(simplify(-(-m1)))>>::value));
 }
 
-TEST(Matrix, SimplifyIdentityMatrix) {
+TEST(Simplify, IdentityMatrix) {
     Matrix<int> m1({55, 58});
     Matrix<int> m2({58, 55});
     IdentityMatrix<int> m3(point_type{55, 55});
@@ -513,70 +581,6 @@ TEST(Matrix, SimplifyIdentityMatrix) {
     ASSERT_EQ(m3, r3);
 
     ASSERT_TRUE((std::is_same<std::decay_t<decltype(m3)>, std::decay_t<decltype(simplify(m3 * m4))>>::value));
-}
-
-TEST(Matrix, CustomTypes) {
-	struct A;
-	struct B;
-
-
-	struct A {
-		int operator+(const B& b) const { return 1; }
-		double operator-(const B& b) const { return 0.1337; }
-	};
-
-	struct B {
-		double operator+(const A& b) const { return 0.1337; }
-		int operator-(const A& b) const { return 1; }
-	};
-
-	Matrix<A> m1({55, 58});
-	Matrix<B> m2({55, 58});
-
-	Matrix<int> m3({55, 58});
-	Matrix<double> m4({55, 58});
-
-	Matrix<int> test_i({55, 58});
-	test_i.fill(1);
-
-	Matrix<double> test_d({55, 58});
-	test_d.fill(0.1337);
-
-	m3 = m1 + m2;
-	ASSERT_EQ(m3, test_i);
-
-	m4 = m2 + m1;
-	ASSERT_TRUE(isAlmostEqual(m4, test_d));
-
-	m3 = m2 - m1;
-	ASSERT_EQ(m3, test_i);
-
-	m4 = m1 - m2;
-	ASSERT_TRUE(isAlmostEqual(m4, test_d));
-}
-
-TEST(Matrix, Traits) {
-	Matrix<double> m1({55, 56});
-	Matrix<double> m2({55, 56});
-
-	auto sum = m1 + m2;
-
-	ASSERT_TRUE(vectorizable_v<decltype(sum)>);
-	ASSERT_FALSE(vectorizable_v<decltype(m1 + m2.transpose())>);
-
-	const Matrix<double> m3({55, 56});
-
-	const volatile auto matrix_sum = m1 + m3;
-
-	ASSERT_TRUE(vectorizable_v<decltype(matrix_sum)>);
-
-	ASSERT_TRUE((std::is_same<double, scalar_type_t<decltype(matrix_sum)>>::value));
-
-	Matrix<int> m4({55, 60});
-	Matrix<int> m5({55, 60});
-
-	ASSERT_TRUE((std::is_same<int, scalar_type_t<decltype(m4 + m5)>>::value));
-	ASSERT_FALSE((std::is_same<double, scalar_type_t<decltype(m4 + m5)>>::value));
 }
 
 } // end namespace data
