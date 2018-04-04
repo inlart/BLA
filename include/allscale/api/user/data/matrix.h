@@ -1,8 +1,8 @@
 #pragma once
 
-#include <allscale/api/user/data/impl/expressions.h>
-#include <allscale/api/user/data/impl/matrix_multiplication.h>
-#include <allscale/api/user/data/impl/traits.h>
+#include "impl/expressions.h"
+#include "impl/matrix_multiplication.h"
+#include "impl/traits.h"
 
 namespace allscale {
 namespace api {

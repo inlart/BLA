@@ -1,6 +1,6 @@
 #pragma once
 
-#include <allscale/api/user/data/impl/forward.h>
+#include "forward.h"
 
 namespace allscale {
 namespace api {

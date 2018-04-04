@@ -1,11 +1,12 @@
 #pragma once
 
-#include <allscale/api/user/data/grid.h>
-#include <allscale/api/user/data/impl/forward.h>
-#include <allscale/api/user/data/impl/traits.h>
+#include "traits.h"
+
+#include "forward.h"
 
 #include <Eigen/Dense>
 #include <Vc/Vc>
+#include <allscale/api/user/data/grid.h>
 
 namespace allscale {
 namespace api {

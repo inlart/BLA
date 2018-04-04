@@ -1,11 +1,13 @@
 #pragma once
 
+#include "expressions.h"
+
+#include "forward.h"
+
 #include <allscale/api/core/prec.h>
 #include <allscale/api/user/algorithm/async.h>
 #include <allscale/api/user/algorithm/pfor.h>
 #include <allscale/api/user/data/grid.h>
-#include <allscale/api/user/data/impl/expressions.h>
-#include <allscale/api/user/data/impl/forward.h>
 
 // -- Other
 #include <Vc/Vc>
