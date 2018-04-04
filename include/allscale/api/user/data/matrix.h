@@ -6,8 +6,8 @@
 #include <allscale/api/user/data/grid.h>
 #include <cblas.h> // BLAS
 #include <cmath>
-#include <memory>
 #include <cstdlib>
+#include <memory>
 
 namespace allscale {
 namespace api {
@@ -283,14 +283,15 @@ const Matrix<T>& simplify(const Matrix<T>& m) {
 
 template <typename T>
 IdentityMatrix<T> simplify(IdentityMatrix<T> m) {
-    return m;
+	return m;
 }
 
 template <typename E1, typename E2>
 auto simplify(MatrixMultiplication<E1, E2> e) {
-    MatrixMultiplication<std::decay_t<decltype(simplify(std::declval<E1>()))>,std::decay_t<decltype(simplify(std::declval<E2>()))>> e_simple(simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
-    e_simple.evaluate(); //TODO: do this here?
-    return e_simple;
+	MatrixMultiplication<std::decay_t<decltype(simplify(std::declval<E1>()))>, std::decay_t<decltype(simplify(std::declval<E2>()))>> e_simple(
+	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
+	e_simple.evaluate(); // TODO: do this here?
+	return e_simple;
 }
 
 template <typename T>
@@ -317,7 +318,7 @@ auto simplify(MatrixSubtraction<E1, E2> e) {
 
 template <typename E>
 auto simplify(MatrixNegation<E> e) {
-    return MatrixNegation<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+	return MatrixNegation<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E>
@@ -337,7 +338,7 @@ auto simplify(ScalarMatrixMultiplication<E, U> e) {
 
 template <typename E>
 auto simplify(SubMatrix<E> e) {
-    return SubMatrix<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getStart(), e.size());
+	return SubMatrix<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getStart(), e.size());
 }
 
 // What we really simplify
@@ -361,37 +362,37 @@ simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
 template <typename E, typename U>
 std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, ScalarMatrixMultiplication<E, U>>
 simplify(ScalarMatrixMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
-    return ScalarMatrixMultiplication<E, U>(e.getExpression().getScalar() * e.getScalar(), e.getExpression().getExpression());
+	return ScalarMatrixMultiplication<E, U>(e.getExpression().getScalar() * e.getScalar(), e.getExpression().getExpression());
 }
 
 template <typename E, typename U>
 std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, ScalarMatrixMultiplication<E, U>>
 simplify(ScalarMatrixMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
-    return ScalarMatrixMultiplication<E, U>(e.getScalar() * e.getExpression().getScalar(), e.getExpression().getExpression());
+	return ScalarMatrixMultiplication<E, U>(e.getScalar() * e.getExpression().getScalar(), e.getExpression().getExpression());
 }
 
 template <typename E, typename U>
 std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, MatrixScalarMultiplication<E, U>>
 simplify(MatrixScalarMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
-    return MatrixScalarMultiplication<E, U>(e.getExpression().getExpression(), e.getExpression().getScalar() * e.getScalar());
+	return MatrixScalarMultiplication<E, U>(e.getExpression().getExpression(), e.getExpression().getScalar() * e.getScalar());
 }
 
 template <typename E, typename T>
 expression_member_t<E> simplify(MatrixMultiplication<E, IdentityMatrix<T>> e) {
-    assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
-    return e.getLeftExpression();
+	assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
+	return e.getLeftExpression();
 }
 
 template <typename E, typename T>
 expression_member_t<E> simplify(MatrixMultiplication<IdentityMatrix<T>, E> e) {
-    assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
-    return e.getRightExpression();
+	assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
+	return e.getRightExpression();
 }
 
 template <typename T>
 IdentityMatrix<T> simplify(MatrixMultiplication<IdentityMatrix<T>, IdentityMatrix<T>> e) {
-    assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
-    return e.getLeftExpression();
+	assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
+	return e.getLeftExpression();
 }
 
 namespace detail {
@@ -533,87 +534,86 @@ class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
 
 template <typename E1, typename E2>
 class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
-    using typename MatrixExpression<MatrixSubtraction<E1, E2>>::T;
-    using typename MatrixExpression<MatrixSubtraction<E1, E2>>::PacketScalar;
+	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::T;
+	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::PacketScalar;
 
-    using Exp1 = expression_member_t<E1>;
-    using Exp2 = expression_member_t<E2>;
+	using Exp1 = expression_member_t<E1>;
+	using Exp2 = expression_member_t<E2>;
 
   public:
-    MatrixSubtraction(Exp1 u, Exp2 v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
+	MatrixSubtraction(Exp1 u, Exp2 v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
 
-    T operator[](const point_type& pos) const { return lhs[pos] - rhs[pos]; }
+	T operator[](const point_type& pos) const { return lhs[pos] - rhs[pos]; }
 
-    point_type size() const { return rhs.size(); }
+	point_type size() const { return rhs.size(); }
 
-    coordinate_type rows() const { return lhs.rows(); }
+	coordinate_type rows() const { return lhs.rows(); }
 
-    coordinate_type columns() const { return lhs.columns(); }
+	coordinate_type columns() const { return lhs.columns(); }
 
-    PacketScalar packet(point_type p) const { return lhs.packet(p) - rhs.packet(p); }
+	PacketScalar packet(point_type p) const { return lhs.packet(p) - rhs.packet(p); }
 
-    Exp1 getLeftExpression() const { return lhs; }
+	Exp1 getLeftExpression() const { return lhs; }
 
-    Exp2 getRightExpression() const { return rhs; }
+	Exp2 getRightExpression() const { return rhs; }
 
   private:
-    Exp1 lhs;
-    Exp2 rhs;
+	Exp1 lhs;
+	Exp2 rhs;
 };
 
 template <typename E1, typename E2>
 class MatrixMultiplication : public MatrixExpression<MatrixMultiplication<E1, E2>> {
-    using typename MatrixExpression<MatrixMultiplication<E1, E2>>::T;
-    using typename MatrixExpression<MatrixMultiplication<E1, E2>>::PacketScalar;
+	using typename MatrixExpression<MatrixMultiplication<E1, E2>>::T;
+	using typename MatrixExpression<MatrixMultiplication<E1, E2>>::PacketScalar;
 
-    using Exp1 = expression_member_t<E1>;
-    using Exp2 = expression_member_t<E2>;
+	using Exp1 = expression_member_t<E1>;
+	using Exp2 = expression_member_t<E2>;
 
   public:
-    MatrixMultiplication(Exp1 u, Exp2 v) : lhs(u), rhs(v), tmp(nullptr) { assert_eq(lhs.columns(), rhs.rows()); }
+	MatrixMultiplication(Exp1 u, Exp2 v) : lhs(u), rhs(v), tmp(nullptr) { assert_eq(lhs.columns(), rhs.rows()); }
 
-    T operator[](const point_type& pos) const {
-        if(tmp != nullptr)
-            return (*tmp)[pos];
+	T operator[](const point_type& pos) const {
+		if(tmp != nullptr) return (*tmp)[pos];
 
-        // compute
-        T val{};
+		// compute
+		T val{};
 
-        for(int k = 0; k < lhs.columns(); ++k) {
-            val += lhs[{pos.x, k}] * rhs[{k, pos.y}];
-        }
+		for(int k = 0; k < lhs.columns(); ++k) {
+			val += lhs[{pos.x, k}] * rhs[{k, pos.y}];
+		}
 
-        return val;
-    }
+		return val;
+	}
 
-    point_type size() const { return {rows(), columns()}; }
+	point_type size() const { return {rows(), columns()}; }
 
-    coordinate_type rows() const { return lhs.rows(); }
+	coordinate_type rows() const { return lhs.rows(); }
 
-    coordinate_type columns() const { return rhs.columns(); }
+	coordinate_type columns() const { return rhs.columns(); }
 
-    PacketScalar packet(point_type p) const {
-        evaluate();
-        return tmp->packet(p);
-    }
+	PacketScalar packet(point_type p) const {
+		evaluate();
+		return tmp->packet(p);
+	}
 
-    Exp1 getLeftExpression() const { return lhs; }
+	Exp1 getLeftExpression() const { return lhs; }
 
-    Exp2 getRightExpression() const { return rhs; }
+	Exp2 getRightExpression() const { return rhs; }
 
-    void evaluate() const {
-        if(tmp != nullptr) return;
+	void evaluate() const {
+		if(tmp != nullptr) return;
 
-        tmp = std::make_shared<Matrix<T>>(size());
+		tmp = std::make_shared<Matrix<T>>(size());
 
-        matrix_multiplication(*tmp, eval(lhs), eval(rhs));
-    }
+		matrix_multiplication(*tmp, eval(lhs), eval(rhs));
+	}
 
   private:
-    Exp1 lhs;
-    Exp2 rhs;
-    // TODO: make unique
-    mutable std::shared_ptr<Matrix<T>> tmp; // contains a temporary matrix
+	Exp1 lhs;
+	Exp2 rhs;
+	// TODO: make unique
+	mutable std::shared_ptr<Matrix<T>> tmp; // contains a temporary matrix
 };
 
 template <typename E>
@@ -832,60 +832,60 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
 template <typename E>
 class SubMatrix : public MatrixExpression<SubMatrix<E>> {
-    using typename MatrixExpression<SubMatrix<E>>::T;
-    using typename MatrixExpression<SubMatrix<E>>::PacketScalar;
+	using typename MatrixExpression<SubMatrix<E>>::T;
+	using typename MatrixExpression<SubMatrix<E>>::PacketScalar;
 
-    using Exp = expression_member_t<E>;
+	using Exp = expression_member_t<E>;
 
   public:
-    SubMatrix(Exp v, point_type sub_start, point_type sub_size) : expression(v), sub_start(sub_start), sub_size(sub_size) {
-        assert_le(sub_start + sub_size, expression.size());
-    }
+	SubMatrix(Exp v, point_type sub_start, point_type sub_size) : expression(v), sub_start(sub_start), sub_size(sub_size) {
+		assert_le(sub_start + sub_size, expression.size());
+	}
 
-    T operator[](const point_type& pos) const { return expression[pos + sub_start]; }
+	T operator[](const point_type& pos) const { return expression[pos + sub_start]; }
 
-    point_type size() const { return sub_size; }
-    coordinate_type rows() const { return sub_size[0]; }
+	point_type size() const { return sub_size; }
+	coordinate_type rows() const { return sub_size[0]; }
 
-    coordinate_type columns() const { return sub_size[1]; }
+	coordinate_type columns() const { return sub_size[1]; }
 
-//    PacketScalar packet(point_type p) const { }
+	//    PacketScalar packet(point_type p) const { }
 
-    Exp getExpression() const { return expression; }
+	Exp getExpression() const { return expression; }
 
-    point_type getStart() const { return sub_start; }
+	point_type getStart() const { return sub_start; }
 
   private:
-    Exp expression;
-    point_type sub_start;
-    point_type sub_size;
+	Exp expression;
+	point_type sub_start;
+	point_type sub_size;
 };
 
 template <typename T>
 class IdentityMatrix : public MatrixExpression<IdentityMatrix<T>> {
-//    using typename MatrixExpression<IdentityMatrix<E>>::PacketScalar;
+	//    using typename MatrixExpression<IdentityMatrix<E>>::PacketScalar;
 
   public:
-    IdentityMatrix(point_type matrix_size, const T& neutral_element = 1, const T& zero_element = 0) : matrix_size(matrix_size), neutral_element(neutral_element), zero_element(zero_element) {
-    }
+	IdentityMatrix(point_type matrix_size, const T& neutral_element = 1, const T& zero_element = 0)
+	    : matrix_size(matrix_size), neutral_element(neutral_element), zero_element(zero_element) {}
 
-    T operator[](const point_type& pos) const {
-        assert_lt(pos, matrix_size);
-        return pos.x == pos.y ? neutral_element : zero_element;
-    }
+	T operator[](const point_type& pos) const {
+		assert_lt(pos, matrix_size);
+		return pos.x == pos.y ? neutral_element : zero_element;
+	}
 
-    point_type size() const { return matrix_size; }
+	point_type size() const { return matrix_size; }
 
-    coordinate_type rows() const { return matrix_size[0]; }
+	coordinate_type rows() const { return matrix_size[0]; }
 
-    coordinate_type columns() const { return matrix_size[1]; }
+	coordinate_type columns() const { return matrix_size[1]; }
 
-//    PacketScalar packet(point_type p) const { }
+	//    PacketScalar packet(point_type p) const { }
 
   private:
-    point_type matrix_size;
-    T neutral_element;
-    T zero_element;
+	point_type matrix_size;
+	T neutral_element;
+	T zero_element;
 };
 
 template <typename E>
@@ -912,65 +912,59 @@ class MatrixExpression {
 
 	MatrixTranspose<E> transpose() const { return MatrixTranspose<E>(static_cast<const E&>(*this)); }
 
-    SubMatrix<E> sub(point_type start, point_type size) const {
-        return SubMatrix<E>(static_cast<const E&>(*this), start, size);
-    }
+	SubMatrix<E> sub(point_type start, point_type size) const { return SubMatrix<E>(static_cast<const E&>(*this), start, size); }
 
-    utils::Vector<Matrix<T>, 2> LUDecomposition() {
-        using ct = coordinate_type;
-        assert_eq(rows(), columns());
-        Matrix<T> L(size());
-        Matrix<T> U(size());
+	utils::Vector<Matrix<T>, 2> LUDecomposition() {
+		using ct = coordinate_type;
+		assert_eq(rows(), columns());
+		Matrix<T> L(size());
+		Matrix<T> U(size());
 
-         ct n = rows();
+		ct n = rows();
 
-        for(ct i = 0; i < n; ++i) {
-            for(ct j = 0; j < n; ++j) {
-                if(j < i) {
-                    L[{j, i}] = 0;
-                }
-                else {
-                    L[{j, i}] = (*this)[{j, i}];
-                    for(ct k = 0; k < i; ++k) {
-                        L[{j, i}] -= L[{j, k}] * U[{k, i}];
-                    }
-                }
-            }
-            for(ct j = 0; j < n; ++j) {
-                if(j < i) {
-                    U[{i, j}] = 0;
-                }
-                else if(j == i) {
-                    U[{i, j}] = 1;
-                }
-                else {
-                    U[{i, j}] = (*this)[{i, j}] / L[{i, i}];
-                    for(ct k = 0; k < i; ++k) {
-                       U[{i, j}] -= L[{i, k}] * U[{k, j}] / L[{i, i}];
-                   }
-                }
-            }
-        }
+		for(ct i = 0; i < n; ++i) {
+			for(ct j = 0; j < n; ++j) {
+				if(j < i) {
+					L[{j, i}] = 0;
+				} else {
+					L[{j, i}] = (*this)[{j, i}];
+					for(ct k = 0; k < i; ++k) {
+						L[{j, i}] -= L[{j, k}] * U[{k, i}];
+					}
+				}
+			}
+			for(ct j = 0; j < n; ++j) {
+				if(j < i) {
+					U[{i, j}] = 0;
+				} else if(j == i) {
+					U[{i, j}] = 1;
+				} else {
+					U[{i, j}] = (*this)[{i, j}] / L[{i, i}];
+					for(ct k = 0; k < i; ++k) {
+						U[{i, j}] -= L[{i, k}] * U[{k, j}] / L[{i, i}];
+					}
+				}
+			}
+		}
 
-        return utils::Vector<Matrix<T>, 2>(L, U);
-    }
+		return utils::Vector<Matrix<T>, 2>(L, U);
+	}
 
-    T determinant() {
-        assert_eq(rows(), columns());
-        using ct = coordinate_type;
-        utils::Vector<Matrix<T>, 2> lu = LUDecomposition();
-        T det = 1; // TODO: find a better way to do that
+	T determinant() {
+		assert_eq(rows(), columns());
+		using ct = coordinate_type;
+		utils::Vector<Matrix<T>, 2> lu = LUDecomposition();
+		T det = 1; // TODO: find a better way to do that
 
-        const ct n = lu[0].rows();
+		const ct n = lu[0].rows();
 
-        for(ct i = 0; i < n; ++i) {
-            det *= lu[0][{i, i}] * lu[1][{i, i}];
-        }
+		for(ct i = 0; i < n; ++i) {
+			det *= lu[0][{i, i}] * lu[1][{i, i}];
+		}
 
 
-
-        return det;
-    }
+		return det;
+	}
 
 	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
 
@@ -1299,8 +1293,8 @@ void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& 
 		assert_le(r.start, r.end);
 
 
-		cblas_dgemm(CblasRowMajor, tlhs, trhs, r.end.x - r.start.x, r.end.y - r.start.y, lhs.columns(), 1.0, &lhs[{r.start.x, 0}],
-		            lhs.columns(), &rhs[{0, r.start.y}], rhs.columns(), 0.0, &result[{r.start.x, r.start.y}], rhs.columns());
+		cblas_dgemm(CblasRowMajor, tlhs, trhs, r.end.x - r.start.x, r.end.y - r.start.y, lhs.columns(), 1.0, &lhs[{r.start.x, 0}], lhs.columns(),
+		            &rhs[{0, r.start.y}], rhs.columns(), 0.0, &result[{r.start.x, r.start.y}], rhs.columns());
 	};
 
 	auto multiplication_rec = prec(
@@ -1376,24 +1370,24 @@ void matrix_multiplication_peigen(Matrix<T>& result, const Matrix<T>& lhs, const
 // -- default matrix * matrix multiplication
 template <typename T>
 void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
-    matrix_multiplication_peigen(result,lhs, rhs);
+	matrix_multiplication_peigen(result, lhs, rhs);
 }
 
 template <>
 void matrix_multiplication(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
-    matrix_multiplication_pbblas(result,lhs, rhs, false, false);
+	matrix_multiplication_pbblas(result, lhs, rhs, false, false);
 }
 
 void matrix_multiplication(Matrix<double>& result, const MatrixTranspose<Matrix<double>>& lhs, const Matrix<double>& rhs) {
-    matrix_multiplication_pbblas(result,lhs, rhs, true, false);
+	matrix_multiplication_pbblas(result, lhs, rhs, true, false);
 }
 
 void matrix_multiplication(Matrix<double>& result, const Matrix<double>& lhs, const MatrixTranspose<Matrix<double>>& rhs) {
-    matrix_multiplication_pbblas(result,lhs, rhs, false, true);
+	matrix_multiplication_pbblas(result, lhs, rhs, false, true);
 }
 
 void matrix_multiplication(Matrix<double>& result, const MatrixTranspose<Matrix<double>>& lhs, const MatrixTranspose<Matrix<double>>& rhs) {
-    matrix_multiplication_pbblas(result,lhs, rhs, true, true);
+	matrix_multiplication_pbblas(result, lhs, rhs, true, true);
 }
 
 // -- scalar * matrix multiplication
