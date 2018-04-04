@@ -15,6 +15,8 @@ Provides the "Matrix" data type for the AllScale api.
 | Option                  | Values          |
 | ----------------------- | --------------- |
 | -DCMAKE_BUILD_TYPE      | Release / Debug |
+| -DBUILD_BENCHMARKS      | ON / OFF        |
+| -DBUILD_EXAMPLES        | ON / OFF        |
 | -DOVERRIDE_ALLSCALE_API | \<path\>        |
 
 If supported, the flag `-march=native` is set.

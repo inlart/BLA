@@ -39,73 +39,77 @@ include_directories(${BLAS_INCLUDE_DIR})
 
 # -- Compilation
 
-# -- Get all benchmark files
-file(GLOB_RECURSE BENCH_SOURCES src/benchmark/*.cc)
+if(BUILD_BENCHMARKS)
+  # -- Get all benchmark files
+  file(GLOB_RECURSE BENCH_SOURCES src/benchmark/*.cc)
 
-# MESSAGE(STATUS "## Adding benchmark targets")
-foreach(BENCH_FILE ${BENCH_SOURCES})
-  get_filename_component(BENCH_FILENAME ${BENCH_FILE} NAME)
-  string(REPLACE ".cc" "" BENCH_FILENAME ${BENCH_FILENAME})
-  set(BENCH_FILENAME bench_${BENCH_FILENAME})
+  # MESSAGE(STATUS "## Adding benchmark targets")
+  foreach(BENCH_FILE ${BENCH_SOURCES})
+    get_filename_component(BENCH_FILENAME ${BENCH_FILE} NAME)
+    string(REPLACE ".cc" "" BENCH_FILENAME ${BENCH_FILENAME})
+    set(BENCH_FILENAME bench_${BENCH_FILENAME})
 
-  # MESSAGE(STATUS ${BENCH_FILENAME})
+    # MESSAGE(STATUS ${BENCH_FILENAME})
 
-  # -- Add Executable
-  add_executable(${BENCH_FILENAME} ${BENCH_FILE})
+    # -- Add Executable
+    add_executable(${BENCH_FILENAME} ${BENCH_FILE})
 
-  # -- Default Includes
-  target_include_directories(${BENCH_FILENAME} PUBLIC include)
-  target_include_directories(${BENCH_FILENAME} PUBLIC ${BENCHMARK_INCLUDES})
+    # -- Default Includes
+    target_include_directories(${BENCH_FILENAME} PUBLIC include)
+    target_include_directories(${BENCH_FILENAME} PUBLIC ${BENCHMARK_INCLUDES})
 
-  # -- Default Libraries
-  target_link_libraries(${BENCH_FILENAME} Eigen3::Eigen)
+    # -- Default Libraries
+    target_link_libraries(${BENCH_FILENAME} Eigen3::Eigen)
 
-  # -- AllScale Definitions
-  if(${BENCH_FILENAME} MATCHES "(.*)allscale(.*)")
-    # MESSAGE(STATUS "AllScale Benchmark detected")
+    # -- AllScale Definitions
+    if(${BENCH_FILENAME} MATCHES "(.*)allscale(.*)")
+      # MESSAGE(STATUS "AllScale Benchmark detected")
 
-    target_compile_definitions(${BENCH_FILENAME} PRIVATE EIGEN_DONT_PARALLELIZE=1)
-    target_include_directories(${BENCH_FILENAME} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
+      target_compile_definitions(${BENCH_FILENAME} PRIVATE EIGEN_DONT_PARALLELIZE=1)
+      target_include_directories(${BENCH_FILENAME} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
-    target_link_libraries(${BENCH_FILENAME} ${CMAKE_THREAD_LIBS_INIT})
-    target_link_libraries(${BENCH_FILENAME} ${Vc_LIBRARIES})
-    target_link_libraries(${BENCH_FILENAME} ${BLAS_LIBRARIES})
+      target_link_libraries(${BENCH_FILENAME} ${CMAKE_THREAD_LIBS_INIT})
+      target_link_libraries(${BENCH_FILENAME} ${Vc_LIBRARIES})
+      target_link_libraries(${BENCH_FILENAME} ${BLAS_LIBRARIES})
 
-  endif(${BENCH_FILENAME} MATCHES "(.*)allscale(.*)")
-endforeach(BENCH_FILE ${BENCH_SOURCES})
+    endif(${BENCH_FILENAME} MATCHES "(.*)allscale(.*)")
+  endforeach(BENCH_FILE ${BENCH_SOURCES})
+endif()
 
-# -- Get all example files
-file(GLOB_RECURSE EXAMPLE_SOURCES src/examples/*.cc)
+if(BUILD_EXAMPLES)
+  # -- Get all example files
+  file(GLOB_RECURSE EXAMPLE_SOURCES src/examples/*.cc)
 
-# MESSAGE(STATUS "## Adding benchmark targets")
-foreach(EXAMPLE_FILE ${EXAMPLE_SOURCES})
-  get_filename_component(EXAMPLE_FILENAME ${EXAMPLE_FILE} NAME)
-  string(REPLACE ".cc" "" EXAMPLE_FILENAME ${EXAMPLE_FILENAME})
-  set(EXAMPLE_FILENAME example_${EXAMPLE_FILENAME})
+  # MESSAGE(STATUS "## Adding benchmark targets")
+  foreach(EXAMPLE_FILE ${EXAMPLE_SOURCES})
+    get_filename_component(EXAMPLE_FILENAME ${EXAMPLE_FILE} NAME)
+    string(REPLACE ".cc" "" EXAMPLE_FILENAME ${EXAMPLE_FILENAME})
+    set(EXAMPLE_FILENAME example_${EXAMPLE_FILENAME})
 
-  MESSAGE(STATUS ${EXAMPLE_FILENAME})
+    MESSAGE(STATUS ${EXAMPLE_FILENAME})
 
-  # -- Add Executable
-  add_executable(${EXAMPLE_FILENAME} ${EXAMPLE_FILE})
+    # -- Add Executable
+    add_executable(${EXAMPLE_FILENAME} ${EXAMPLE_FILE})
 
-  # -- Default Includes
-  target_include_directories(${EXAMPLE_FILENAME} PUBLIC include)
-  target_include_directories(${EXAMPLE_FILENAME} PUBLIC ${EXAMPLEMARK_INCLUDES})
+    # -- Default Includes
+    target_include_directories(${EXAMPLE_FILENAME} PUBLIC include)
+    target_include_directories(${EXAMPLE_FILENAME} PUBLIC ${EXAMPLEMARK_INCLUDES})
 
-  # -- Default Libraries
-  target_link_libraries(${EXAMPLE_FILENAME} Eigen3::Eigen)
+    # -- Default Libraries
+    target_link_libraries(${EXAMPLE_FILENAME} Eigen3::Eigen)
 
-  # -- AllScale Definitions
-    # MESSAGE(STATUS "AllScale Benchmark detected")
+    # -- AllScale Definitions
+      # MESSAGE(STATUS "AllScale Benchmark detected")
 
-  target_compile_definitions(${EXAMPLE_FILENAME} PRIVATE EIGEN_DONT_PARALLELIZE=1)
-  target_include_directories(${EXAMPLE_FILENAME} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
+    target_compile_definitions(${EXAMPLE_FILENAME} PRIVATE EIGEN_DONT_PARALLELIZE=1)
+    target_include_directories(${EXAMPLE_FILENAME} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
-  target_link_libraries(${EXAMPLE_FILENAME} ${CMAKE_THREAD_LIBS_INIT})
-  target_link_libraries(${EXAMPLE_FILENAME} ${Vc_LIBRARIES})
-  target_link_libraries(${EXAMPLE_FILENAME} ${BLAS_LIBRARIES})
+    target_link_libraries(${EXAMPLE_FILENAME} ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries(${EXAMPLE_FILENAME} ${Vc_LIBRARIES})
+    target_link_libraries(${EXAMPLE_FILENAME} ${BLAS_LIBRARIES})
 
-endforeach(EXAMPLE_FILE ${EXAMPLE_SOURCES})
+  endforeach(EXAMPLE_FILE ${EXAMPLE_SOURCES})
+endif()
 
 # -- Testing
 add_executable(matrix_test src/test/user/data/matrix.cc)
