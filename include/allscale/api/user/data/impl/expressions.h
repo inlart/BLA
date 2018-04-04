@@ -477,6 +477,13 @@ class MatrixExpression {
 	using T = scalar_type_t<E>;
 	using PacketScalar = typename Vc::Vector<T>;
 
+	/*
+	 * abstract class due to object slicing
+	 */
+  protected:
+	MatrixExpression() = default;
+
+  public:
 	T operator[](const point_type& pos) const { return static_cast<const E&>(*this)[pos]; }
 
 	T at(const point_type& pos) const {
