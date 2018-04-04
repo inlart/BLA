@@ -916,9 +916,60 @@ class MatrixExpression {
         return SubMatrix<E>(static_cast<const E&>(*this), start, size);
     }
 
+    utils::Vector<Matrix<T>, 2> LUDecomposition() {
+        using ct = coordinate_type;
+        assert_eq(rows(), columns());
+        Matrix<T> L(size());
+        Matrix<T> U(size());
+
+         ct n = rows();
+
+        for(ct i = 0; i < n; ++i) {
+            for(ct j = 0; j < n; ++j) {
+                if(j < i) {
+                    L[{j, i}] = 0;
+                }
+                else {
+                    L[{j, i}] = (*this)[{j, i}];
+                    for(ct k = 0; k < i; ++k) {
+                        L[{j, i}] -= L[{j, k}] * U[{k, i}];
+                    }
+                }
+            }
+            for(ct j = 0; j < n; ++j) {
+                if(j < i) {
+                    U[{i, j}] = 0;
+                }
+                else if(j == i) {
+                    U[{i, j}] = 1;
+                }
+                else {
+                    U[{i, j}] = (*this)[{i, j}] / L[{i, i}];
+                    for(ct k = 0; k < i; ++k) {
+                       U[{i, j}] -= L[{i, k}] * U[{k, j}] / L[{i, i}];
+                   }
+                }
+            }
+        }
+
+        return utils::Vector<Matrix<T>, 2>(L, U);
+    }
+
     T determinant() {
-        assert_fail();
-        return T{};
+        assert_eq(rows(), columns());
+        using ct = coordinate_type;
+        utils::Vector<Matrix<T>, 2> lu = LUDecomposition();
+        T det = 1; // TODO: find a better way to do that
+
+        const ct n = lu[0].rows();
+
+        for(ct i = 0; i < n; ++i) {
+            det *= lu[0][{i, i}] * lu[1][{i, i}];
+        }
+
+
+
+        return det;
     }
 
 	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }

@@ -441,7 +441,7 @@ TEST(Operation, Multiple) {
     }
 }
 
-TEST(Operation, DISABLED_Determinant) {
+TEST(Operation, Determinant) {
     Matrix<double> m1({2, 2});
 
     std::random_device rd;
@@ -451,16 +451,16 @@ TEST(Operation, DISABLED_Determinant) {
     auto g = [&]() { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.random(g);
-        ASSERT_EQ(m1.determinant(), (m1[{0, 0}] * m1[{1, 1}] - m1[{0, 1}] * m1[{1, 0}]));
+        ASSERT_TRUE(std::abs(m1.determinant() - (m1[{0, 0}] * m1[{1, 1}] - m1[{0, 1}] * m1[{1, 0}])) < 0.0001);
     }
 }
 
-TEST(Operation, DISABLED_DeterminantEigen) {
+TEST(Operation, DeterminantEigen) {
     Matrix<double> m1({41, 41});
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dis(-1, 1);
+    std::uniform_real_distribution<double> dis(0, 1);
 
     auto g = [&]() { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
@@ -468,9 +468,24 @@ TEST(Operation, DISABLED_DeterminantEigen) {
 
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = m1.toEigenMatrix();
 
-        double det_diff = m1.determinant() - m1e.determinant();
-        if(det_diff < 0) det_diff = -det_diff;
-        ASSERT_TRUE(det_diff < 0.1);
+        ASSERT_TRUE(std::abs(m1.determinant() - m1e.determinant()) < 0.001);
+    }
+}
+
+TEST(Operation, LUDecomposition) {
+    Matrix<double> m1({10, 10});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&]() { return dis(gen); };
+    for(int i = 0; i < 1; ++i) {
+        m1.random(g);
+
+        auto lu = m1.LUDecomposition();
+
+        ASSERT_TRUE(isAlmostEqual(m1, eval(lu[0] * lu[1])));
     }
 }
 
