@@ -922,6 +922,13 @@ struct LUD {
 		}
 	}
 
+	LUD(const LUD<T>&) = delete;
+	LUD(LUD<T>&&) = default;
+
+	LUD<T>& operator=(const LUD<T>&) = delete;
+	LUD<T>& operator=(LUD<T>&&) = default;
+
+
 	const Matrix<T>& lower() { return L; }
 
 	const Matrix<T>& upper() { return U; }
