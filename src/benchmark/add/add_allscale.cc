@@ -7,6 +7,7 @@
 // own
 #include "bench_result.h"
 #include "timer.h"
+#include "utility.h"
 
 using Matrix = allscale::api::user::data::Matrix<double>;
 

@@ -8,6 +8,19 @@ namespace allscale {
 namespace api {
 namespace user {
 namespace data {
+namespace impl {
+
+template <typename E1, typename E2>
+bool isAlmostEqual(const MatrixExpression<E1>& a, const MatrixExpression<E2>& b, scalar_type_t<E1> epsilon = 0.001) {
+	if(a.size()[0] != b.size()[0] || a.size()[1] != b.size()[1]) { return false; }
+	for(coordinate_type i = 0; i < a.rows(); ++i) {
+		for(coordinate_type j = 0; j < a.columns(); ++j) {
+			scalar_type_t<E1> diff = (a[{i, j}] - b[{i, j}]);
+			if(diff * diff > epsilon) { return false; }
+		}
+	}
+	return true;
+}
 
 TEST(Matrix, Access) {
 	Matrix<double> m({2, 2});
@@ -682,6 +695,7 @@ TEST(Simplify, IdentityMatrix) {
 	ASSERT_TRUE((std::is_same<std::decay_t<decltype(m3)>, std::decay_t<decltype(simplify(m3 * m4))>>::value));
 }
 
+} // end namespace impl
 } // end namespace data
 } // end namespace user
 } // end namespace api
