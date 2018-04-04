@@ -482,6 +482,8 @@ class MatrixExpression {
 	 */
   protected:
 	MatrixExpression() = default;
+	MatrixExpression(const MatrixExpression&) = default;
+	MatrixExpression& operator=(const MatrixExpression&) = default;
 
   public:
 	T operator[](const point_type& pos) const { return static_cast<const E&>(*this)[pos]; }
