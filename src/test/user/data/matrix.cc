@@ -485,7 +485,7 @@ TEST(Operation, LUDecomposition) {
 
 		auto lu = m1.LUDecomposition();
 
-		ASSERT_TRUE(isAlmostEqual(m1, eval(lu[0] * lu[1])));
+		ASSERT_TRUE(isAlmostEqual(m1, eval(lu.lower() * lu.upper())));
 	}
 }
 

@@ -888,6 +888,49 @@ class IdentityMatrix : public MatrixExpression<IdentityMatrix<T>> {
 	T zero_element;
 };
 
+template <typename T>
+struct LUD {
+	LUD(const Matrix<T>& A) : L(A.size()), U(A.size()) {
+		using ct = coordinate_type;
+		assert_eq(A.rows(), A.columns());
+
+		ct n = A.rows();
+
+		for(ct i = 0; i < n; ++i) {
+			for(ct j = 0; j < n; ++j) {
+				if(j < i) {
+					L[{j, i}] = 0;
+				} else {
+					L[{j, i}] = A[{j, i}];
+					for(ct k = 0; k < i; ++k) {
+						L[{j, i}] -= L[{j, k}] * U[{k, i}];
+					}
+				}
+			}
+			for(ct j = 0; j < n; ++j) {
+				if(j < i) {
+					U[{i, j}] = 0;
+				} else if(j == i) {
+					U[{i, j}] = 1;
+				} else {
+					U[{i, j}] = A[{i, j}] / L[{i, i}];
+					for(ct k = 0; k < i; ++k) {
+						U[{i, j}] -= L[{i, k}] * U[{k, j}] / L[{i, i}];
+					}
+				}
+			}
+		}
+	}
+
+	const Matrix<T>& lower() { return L; }
+
+	const Matrix<T>& upper() { return U; }
+
+  private:
+	Matrix<T> L;
+	Matrix<T> U;
+};
+
 template <typename E>
 class MatrixExpression {
   public:
@@ -914,52 +957,18 @@ class MatrixExpression {
 
 	SubMatrix<E> sub(point_type start, point_type size) const { return SubMatrix<E>(static_cast<const E&>(*this), start, size); }
 
-	utils::Vector<Matrix<T>, 2> LUDecomposition() {
-		using ct = coordinate_type;
-		assert_eq(rows(), columns());
-		Matrix<T> L(size());
-		Matrix<T> U(size());
-
-		ct n = rows();
-
-		for(ct i = 0; i < n; ++i) {
-			for(ct j = 0; j < n; ++j) {
-				if(j < i) {
-					L[{j, i}] = 0;
-				} else {
-					L[{j, i}] = (*this)[{j, i}];
-					for(ct k = 0; k < i; ++k) {
-						L[{j, i}] -= L[{j, k}] * U[{k, i}];
-					}
-				}
-			}
-			for(ct j = 0; j < n; ++j) {
-				if(j < i) {
-					U[{i, j}] = 0;
-				} else if(j == i) {
-					U[{i, j}] = 1;
-				} else {
-					U[{i, j}] = (*this)[{i, j}] / L[{i, i}];
-					for(ct k = 0; k < i; ++k) {
-						U[{i, j}] -= L[{i, k}] * U[{k, j}] / L[{i, i}];
-					}
-				}
-			}
-		}
-
-		return utils::Vector<Matrix<T>, 2>(L, U);
-	}
+	LUD<T> LUDecomposition() { return LUD<T>(*this); }
 
 	T determinant() {
 		assert_eq(rows(), columns());
 		using ct = coordinate_type;
-		utils::Vector<Matrix<T>, 2> lu = LUDecomposition();
+		auto lu = LUDecomposition();
 		T det = 1; // TODO: find a better way to do that
 
-		const ct n = lu[0].rows();
+		const ct n = lu.lower().rows();
 
 		for(ct i = 0; i < n; ++i) {
-			det *= lu[0][{i, i}] * lu[1][{i, i}];
+			det *= lu.lower()[{i, i}] * lu.upper()[{i, i}];
 		}
 
 
