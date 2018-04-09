@@ -498,7 +498,26 @@ TEST(Operation, LUDecomposition) {
 
 		auto lu = m1.LUDecomposition();
 
-		ASSERT_TRUE(isAlmostEqual(m1, eval(lu.lower() * lu.upper())));
+		ASSERT_TRUE(isAlmostEqual(m1, (lu.lower() * lu.upper()).eval()));
+	}
+}
+
+TEST(Operation, DISABLED_QRDecomposition) {
+	Matrix<double> m1({10, 10});
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 1; ++i) {
+		m1.random(g);
+
+		auto qr = m1.QRDecomposition();
+
+		ASSERT_TRUE(isAlmostEqual(qr.getQ() * qr.getQ(), IdentityMatrix<double>(m1.size())));
+
+		ASSERT_TRUE(isAlmostEqual(m1, (qr.getQ() * qr.getR()).eval()));
 	}
 }
 

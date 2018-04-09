@@ -130,13 +130,12 @@ class MatrixMultiplication : public MatrixExpression<MatrixMultiplication<E1, E2
 
 		tmp = std::make_shared<Matrix<T>>(size());
 
-		matrix_multiplication(*tmp, eval(lhs), eval(rhs));
+		matrix_multiplication(*tmp, lhs.eval(), rhs.eval());
 	}
 
   private:
 	Exp1 lhs;
 	Exp2 rhs;
-	// TODO: make unique
 	mutable std::shared_ptr<Matrix<T>> tmp; // contains a temporary matrix
 };
 
@@ -457,7 +456,7 @@ struct LUD {
 	LUD<T>& operator=(LUD<T>&&) = default;
 
 
-	const Matrix<T>& lower() { return L; }
+	const Matrix<T>& lower() const { return L; }
 
 	const Matrix<T>& upper() { return U; }
 
@@ -465,6 +464,49 @@ struct LUD {
 	Matrix<T> L;
 	Matrix<T> U;
 };
+
+template <typename T>
+struct QRD {
+	QRD(const Matrix<T>& A) : Q(point_type{A.rows(), A.rows()}), R(A.size()) {
+		using ct = coordinate_type;
+		// TODO: implement
+		assert_fail();
+	}
+
+	QRD(const QRD<T>&) = delete;
+	QRD(QRD<T>&&) = default;
+
+	QRD<T>& operator=(const QRD<T>&) = delete;
+	QRD<T>& operator=(QRD<T>&&) = default;
+
+	const Matrix<T>& getQ() const { return Q; }
+	const Matrix<T>& getR() const { return R; }
+
+  private:
+	Matrix<T> Q;
+	Matrix<T> R;
+};
+
+template <typename T>
+struct SVD {
+	SVD(const Matrix<T>& A) : U(point_type{A.rows(), A.rows()}), E(A.size()), V(point_type{A.columns(), A.columns()}) {
+		using ct = coordinate_type;
+		// TODO: implement
+		assert_fail();
+	}
+
+	SVD(const SVD<T>&) = delete;
+	SVD(SVD<T>&&) = default;
+
+	SVD<T>& operator=(const SVD<T>&) = delete;
+	SVD<T>& operator=(SVD<T>&&) = default;
+
+  private:
+	Matrix<T> U;
+	Matrix<T> E;
+	Matrix<T> V;
+};
+
 
 template <typename E>
 class MatrixExpression {
@@ -502,6 +544,8 @@ class MatrixExpression {
 	SubMatrix<E> sub(point_type start, point_type size) const { return SubMatrix<E>(static_cast<const E&>(*this), start, size); }
 
 	LUD<T> LUDecomposition() { return LUD<T>(*this); }
+
+	QRD<T> QRDecomposition() { return QRD<T>(*this); }
 
 	T determinant() {
 		assert_eq(rows(), columns());
@@ -583,6 +627,7 @@ template <typename E1, typename E2>
 auto simplify(MatrixMultiplication<E1, E2> e) {
 	MatrixMultiplication<std::decay_t<decltype(simplify(std::declval<E1>()))>, std::decay_t<decltype(simplify(std::declval<E2>()))>> e_simple(
 	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
+	e_simple.evaluate();
 	return e_simple;
 }
 

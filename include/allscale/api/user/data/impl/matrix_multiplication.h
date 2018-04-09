@@ -416,6 +416,12 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
 }
 
 // -- default matrix * matrix multiplication
+template <typename T, typename E>
+void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E>& lhs, const MatrixExpression<E>& rhs) {
+	assert_fail();
+	matrix_multiplication(result, lhs.eval(), rhs.eval());
+}
+
 template <typename T>
 void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
 	matrix_multiplication_peigen(result, lhs, rhs);
