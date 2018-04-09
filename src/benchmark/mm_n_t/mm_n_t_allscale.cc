@@ -28,16 +28,15 @@ BenchResult bench_allscale(int n) {
 	b.random(g);
 	Eigen::MatrixXd a_eigen = a.toEigenMatrix();
 	Eigen::MatrixXd b_eigen = b.toEigenMatrix();
-	Matrix res_eigen = (a_eigen * b_eigen).eval();
+	Matrix res_eigen = (a_eigen * b_eigen.transpose()).eval();
 	auto first_elem_square_sums = 0.0; // to try and avoid optimiser pitfals
 
 	for(int i = 0; i < NUMBER_BENCHMARK_RUNS; ++i) {
 		{
 			Timer t;
-			allscale::api::user::data::impl::matrix_multiplication_pblas(mult, a, b);
+			mult = a * b.transpose();
 			res.addMeasurement(t.elapsed());
 		}
-
 		first_elem_square_sums += mult[{0, 0}] * mult[{0, 0}];
 		if(!isAlmostEqual(mult, res_eigen, 0.001)) {
 			std::cerr << "Matrix multiplication check failed" << std::endl;

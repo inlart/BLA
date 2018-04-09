@@ -34,7 +34,7 @@ BenchResult bench_allscale(int n) {
 	for(int i = 0; i < NUMBER_BENCHMARK_RUNS; ++i) {
 		{
 			Timer t;
-			matrix_multiplication_blas(mult, a, b);
+			allscale::api::user::data::impl::matrix_multiplication_blas(mult, a, b);
 			res.addMeasurement(t.elapsed());
 		}
 		first_elem_square_sums += mult[{0, 0}] * mult[{0, 0}];

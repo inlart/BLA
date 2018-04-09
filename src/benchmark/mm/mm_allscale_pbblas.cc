@@ -34,7 +34,7 @@ BenchResult bench_allscale(int n) {
 	for(int i = 0; i < NUMBER_BENCHMARK_RUNS; ++i) {
 		{
 			Timer t;
-			matrix_multiplication_pbblas(mult, a, b, false, false);
+			allscale::api::user::data::impl::matrix_multiplication_pbblas<false, false>(mult, a, b);
 			res.addMeasurement(t.elapsed());
 		}
 

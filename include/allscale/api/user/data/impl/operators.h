@@ -1,3 +1,5 @@
+#pragma once
+
 #include "expressions.h"
 #include "forward.h"
 
@@ -87,7 +89,7 @@ bool operator!=(const MatrixExpression<E1>& a, const MatrixExpression<E2>& b) {
 
 // -- print a matrix expression
 template <typename E>
-std::ostream& operator<<(std::ostream& os, MatrixExpression<E> const& m) {
+std::ostream& operator<<(std::ostream& os, const MatrixExpression<E>& m) {
 	for(coordinate_type i = 0; i < m.rows(); ++i) {
 		for(coordinate_type j = 0; j < m.columns(); ++j) {
 			os << m[{i, j}] << " ";
