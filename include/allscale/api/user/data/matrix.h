@@ -2,6 +2,7 @@
 
 #include "impl/expressions.h"
 #include "impl/matrix_multiplication.h"
+#include "impl/operators.h"
 #include "impl/traits.h"
 
 namespace allscale {

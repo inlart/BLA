@@ -1,6 +1,6 @@
 # Matrices for AllScale
 
-Provides the "Matrix" data type for the AllScale api.
+Provides the `Matrix` data type for the AllScale api.
 
 ## Dependencies
 
@@ -24,12 +24,25 @@ CMake creates executables for all files in `src/benchmark` with a `.cc` file ext
 Filenames that contain `allscale` may use the AllScale API.
 To parallelize Eigen algorithms the compiler has to support OpenMP.
 
-## The Matrix Type
+## Preprocessor directives
+
+Support for the following preprocessor directives:
+
+* `ALLSCALE_NO_FAST_MATH` - if defined, associativity for `double` and `float` will not be assumed.
+
+## Header Files
 
 ### api/include/data/matrix.h
 
-This is the main implementation file, it provides the Matrix class,
-which is built on top of the Grid container.
+This is the main header file, it provides the Matrix class,
+which is built on top of the AllScale Grid container.
+It includes the following header files which are contained in the subfolder `impl`:
+
+* `expressions.h` - expressions that represent matrix operations
+* `operators.h` - operator definitions for MatrixExpressions
+* `forward.h` - forward declaration for expressions and traits
+* `matrix_multiplication.h` - contains different variations of matrix-matrix multiplications
+* `traits.h` - type traits
 
 ## Supported Operations
 
