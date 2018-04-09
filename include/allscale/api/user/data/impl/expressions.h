@@ -106,16 +106,8 @@ class MatrixMultiplication : public MatrixExpression<MatrixMultiplication<E1, E2
 	MatrixMultiplication(Exp1 u, Exp2 v) : lhs(u), rhs(v), tmp(nullptr) { assert_eq(lhs.columns(), rhs.rows()); }
 
 	T operator[](const point_type& pos) const {
-		if(tmp != nullptr) return (*tmp)[pos];
-
-		// compute
-		T val{};
-
-		for(int k = 0; k < lhs.columns(); ++k) {
-			val += lhs[{pos.x, k}] * rhs[{k, pos.y}];
-		}
-
-		return val;
+		evaluate();
+		return (*tmp)[pos];
 	}
 
 	point_type size() const { return {rows(), columns()}; }
@@ -591,7 +583,6 @@ template <typename E1, typename E2>
 auto simplify(MatrixMultiplication<E1, E2> e) {
 	MatrixMultiplication<std::decay_t<decltype(simplify(std::declval<E1>()))>, std::decay_t<decltype(simplify(std::declval<E2>()))>> e_simple(
 	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
-	e_simple.evaluate(); // TODO: do this here?
 	return e_simple;
 }
 
