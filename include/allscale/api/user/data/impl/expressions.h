@@ -358,6 +358,9 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
 	PacketScalar packet(point_type p) const { return PacketScalar(&operator[](p)); }
 
+	const Matrix<T>& eval() const { return *this; }
+	Matrix<T>& eval() { return *this; }
+
   private:
 	data::Grid<T, 2> m_data;
 };
@@ -526,23 +529,17 @@ class MatrixExpression {
 
 	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
 
+	Matrix<T> eval() const {
+		Matrix<T> tmp(size());
+
+		evaluate(*this, tmp);
+
+		return tmp;
+	}
+
 	operator E&() { return static_cast<E&>(*this); }
 	operator const E&() const { return static_cast<const E&>(*this); }
 };
-
-template <typename E>
-Matrix<scalar_type_t<E>> eval(const MatrixExpression<E>& me) {
-	Matrix<scalar_type_t<E>> tmp(me.size());
-
-	evaluate(me, tmp);
-
-	return tmp;
-}
-
-template <typename T>
-const Matrix<T>& eval(const MatrixExpression<Matrix<T>>& me) {
-	return me;
-}
 
 // -- evaluate a matrix expression using vectorization
 template <typename E>
@@ -651,7 +648,6 @@ expression_member_t<E> simplify(MatrixTranspose<MatrixTranspose<E>> e) {
 	return e.getExpression().getExpression();
 }
 
-// What we really simplify
 template <typename E>
 expression_member_t<E> simplify(MatrixNegation<MatrixNegation<E>> e) {
 	return e.getExpression().getExpression();
