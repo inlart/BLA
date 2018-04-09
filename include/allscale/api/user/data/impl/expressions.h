@@ -130,7 +130,7 @@ class MatrixMultiplication : public MatrixExpression<MatrixMultiplication<E1, E2
 
 		tmp = std::make_shared<Matrix<T>>(size());
 
-		matrix_multiplication(*tmp, lhs.eval(), rhs.eval());
+		matrix_multiplication(*tmp, lhs, rhs);
 	}
 
   private:

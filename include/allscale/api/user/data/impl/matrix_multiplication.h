@@ -416,9 +416,8 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
 }
 
 // -- default matrix * matrix multiplication
-template <typename T, typename E>
-void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E>& lhs, const MatrixExpression<E>& rhs) {
-	assert_fail();
+template <typename T, typename E1, typename E2>
+void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const MatrixExpression<E2>& rhs) {
 	matrix_multiplication(result, lhs.eval(), rhs.eval());
 }
 
