@@ -292,7 +292,9 @@ void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& l
 // -- parallel block matrix * matrix multiplication using BLAS level 3 function calls
 template <bool transLHS, bool transRHS>
 void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
-	assert(lhs.columns() == rhs.rows());
+	assert_eq((transLHS ? lhs.rows() : lhs.columns()), (transRHS ? rhs.columns() : rhs.rows()));
+
+	const auto k = transLHS ? lhs.rows() : lhs.columns();
 
 	const CBLAS_TRANSPOSE tlhs = transLHS ? CblasTrans : CblasNoTrans;
 	const CBLAS_TRANSPOSE trhs = transRHS ? CblasTrans : CblasNoTrans;
@@ -303,9 +305,8 @@ void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& 
 		const point_type l_start = transLHS ? point_type{0, r.start.x} : point_type{r.start.x, 0};
 		const point_type r_start = transRHS ? point_type{r.start.y, 0} : point_type{0, r.start.y};
 
-
-		cblas_dgemm(CblasRowMajor, tlhs, trhs, r.end.x - r.start.x, r.end.y - r.start.y, lhs.columns(), 1.0, &lhs[l_start], lhs.columns(), &rhs[r_start],
-		            rhs.columns(), 0.0, &result[{r.start.x, r.start.y}], rhs.columns());
+		cblas_dgemm(CblasRowMajor, tlhs, trhs, r.end.x - r.start.x, r.end.y - r.start.y, k, 1.0, &lhs[l_start], lhs.columns(), &rhs[r_start], rhs.columns(),
+		            0.0, &result[{r.start.x, r.start.y}], result.columns());
 	};
 
 	auto multiplication_rec = prec(

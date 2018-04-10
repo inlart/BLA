@@ -57,6 +57,10 @@ struct scalar_type<MatrixSubtraction<E1, E2>>
     : public detail::set_type<decltype(std::declval<typename scalar_type<E1>::type>() - std::declval<typename scalar_type<E2>::type>())> {};
 
 template <typename E1, typename E2>
+struct scalar_type<ElementMatrixMultiplication<E1, E2>>
+    : public detail::set_type<decltype(std::declval<typename scalar_type<E1>::type>() * std::declval<typename scalar_type<E2>::type>())> {};
+
+template <typename E1, typename E2>
 struct scalar_type<MatrixMultiplication<E1, E2>>
     : public detail::set_type<decltype(std::declval<typename scalar_type<E1>::type>() * std::declval<typename scalar_type<E2>::type>())> {};
 
@@ -106,6 +110,11 @@ struct vectorizable<MatrixAddition<E1, E2>>
 template <typename E1, typename E2>
 struct vectorizable<MatrixSubtraction<E1, E2>>
     : public detail::and_value<vectorizable<E1>::value, vectorizable<E2>::value, std::is_arithmetic<scalar_type_t<MatrixSubtraction<E1, E2>>>::value> {};
+
+template <typename E1, typename E2>
+struct vectorizable<ElementMatrixMultiplication<E1, E2>>
+    : public detail::and_value<vectorizable<E1>::value, vectorizable<E2>::value,
+                               std::is_arithmetic<scalar_type_t<ElementMatrixMultiplication<E1, E2>>>::value> {};
 
 template <typename E>
 struct vectorizable<MatrixNegation<E>> : public vectorizable<E> {};

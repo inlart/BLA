@@ -272,6 +272,27 @@ TEST(Operation, AssignSubtraction) {
 	}
 }
 
+TEST(Operation, ElementMultiplication) {
+	Matrix<double> m1({31, 47});
+	Matrix<double> m2(m1.size());
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 20; ++i) {
+		m1.random(g);
+		m2.random(g);
+		Matrix<double> m3(m1.product(m2));
+
+		for(coordinate_type i = 0; i < m1.rows(); ++i) {
+			for(coordinate_type j = 0; j < m1.rows(); ++j) {
+				ASSERT_EQ((m3[{i, j}]), (m1[{i, j}] * m2[{i, j}]));
+			}
+		}
+	}
+}
+
 TEST(Operation, Negation) {
 	Matrix<double> m({100, 99});
 	m.zero();
@@ -502,8 +523,8 @@ TEST(Operation, LUDecomposition) {
 	}
 }
 
-TEST(Operation, DISABLED_QRDecomposition) {
-	Matrix<double> m1({10, 10});
+TEST(Operation, QRDecomposition) {
+	Matrix<double> m1({10, 5});
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -515,7 +536,7 @@ TEST(Operation, DISABLED_QRDecomposition) {
 
 		auto qr = m1.QRDecomposition();
 
-		ASSERT_TRUE(isAlmostEqual(qr.getQ() * qr.getQ(), IdentityMatrix<double>(m1.size())));
+		ASSERT_TRUE(isAlmostEqual(qr.getQ() * qr.getQ().transpose(), IdentityMatrix<double>(point_type{m1.rows(), m1.rows()})));
 
 		ASSERT_TRUE(isAlmostEqual(m1, (qr.getQ() * qr.getR()).eval()));
 	}

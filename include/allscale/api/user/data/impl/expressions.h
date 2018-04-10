@@ -7,6 +7,7 @@
 #include <Eigen/Dense>
 #include <Vc/Vc>
 #include <allscale/api/user/data/grid.h>
+#include <functional>
 
 namespace allscale {
 namespace api {
@@ -84,6 +85,36 @@ class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
 	coordinate_type columns() const { return lhs.columns(); }
 
 	PacketScalar packet(point_type p) const { return lhs.packet(p) - rhs.packet(p); }
+
+	Exp1 getLeftExpression() const { return lhs; }
+
+	Exp2 getRightExpression() const { return rhs; }
+
+  private:
+	Exp1 lhs;
+	Exp2 rhs;
+};
+
+template <typename E1, typename E2>
+class ElementMatrixMultiplication : public MatrixExpression<ElementMatrixMultiplication<E1, E2>> {
+	using typename MatrixExpression<ElementMatrixMultiplication<E1, E2>>::T;
+	using typename MatrixExpression<ElementMatrixMultiplication<E1, E2>>::PacketScalar;
+
+	using Exp1 = expression_member_t<E1>;
+	using Exp2 = expression_member_t<E2>;
+
+  public:
+	ElementMatrixMultiplication(Exp1 u, Exp2 v) : lhs(u), rhs(v) { assert_eq(lhs.size(), rhs.size()); }
+
+	T operator[](const point_type& pos) const { return lhs[pos] * rhs[pos]; }
+
+	point_type size() const { return lhs.size(); }
+
+	coordinate_type rows() const { return lhs.rows(); }
+
+	coordinate_type columns() const { return lhs.columns(); }
+
+	PacketScalar packet(point_type p) const { return lhs.packet(p) * rhs.packet(p); }
 
 	Exp1 getLeftExpression() const { return lhs; }
 
@@ -467,10 +498,51 @@ struct LUD {
 
 template <typename T>
 struct QRD {
-	QRD(const Matrix<T>& A) : Q(point_type{A.rows(), A.rows()}), R(A.size()) {
+	QRD(const Matrix<T>& A) : Q(point_type{A.rows(), A.rows()}), R(A) {
 		using ct = coordinate_type;
-		// TODO: implement
-		assert_fail();
+
+		// Householder QR Decomposition
+		T mag, alpha;
+		Matrix<T> u({A.rows(), 1});
+		Matrix<T> v({A.rows(), 1});
+
+		Matrix<T> P(point_type{A.rows(), A.rows()});
+		Matrix<T> I(IdentityMatrix<T>(point_type{A.rows(), A.rows()})); // TODO: fix
+
+		Q.identity();
+
+		for(ct i = 0; i < A.columns(); ++i) {
+			u.zero();
+			v.zero();
+
+			mag = 0;
+			for(ct j = i; j < A.rows(); ++j) {
+				u[{j, 0}] = R[{j, i}];
+				mag += u[{j, 0}] * u[{j, 0}];
+			}
+			mag = std::sqrt(mag);
+
+			alpha = u[{i, 0}] < 0 ? mag : -mag;
+
+			mag = 0.0;
+			for(ct j = i; j < A.rows(); ++j) {
+				v[{j, 0}] = j == i ? u[{j, 0}] + alpha : u[{j, 0}];
+
+				mag += v[{j, 0}] * v[{j, 0}];
+			}
+			mag = sqrt(mag);
+
+			if(mag < 1E-10) continue;
+
+			for(ct j = i; j < A.rows(); ++j) {
+				v[{j, 0}] *= (1 / mag); // TODO: /=
+			}
+
+			P = I - (v * v.transpose()) * 2.0;
+
+			R = P * R;
+			Q = Q * P;
+		}
 	}
 
 	QRD(const QRD<T>&) = delete;
@@ -539,6 +611,11 @@ class MatrixExpression {
 
 	bool isSquare() const { return rows() == columns(); }
 
+	template <typename E2>
+	ElementMatrixMultiplication<E, E2> product(const MatrixExpression<E2>& e) {
+		return ElementMatrixMultiplication<E, E2>(static_cast<const E&>(*this), e);
+	}
+
 	MatrixTranspose<E> transpose() const { return MatrixTranspose<E>(static_cast<const E&>(*this)); }
 
 	SubMatrix<E> sub(point_type start, point_type size) const { return SubMatrix<E>(static_cast<const E&>(*this), start, size); }
@@ -546,6 +623,20 @@ class MatrixExpression {
 	LUD<T> LUDecomposition() { return LUD<T>(*this); }
 
 	QRD<T> QRDecomposition() { return QRD<T>(*this); }
+
+	template <typename Reducer>
+	T reduce(T init, Reducer f) {
+		using ct = coordinate_type;
+		T result = init;
+		// TODO: use preduce
+		for(ct i = 0; i < rows(); ++i) {
+			for(ct j = 0; j < columns(); ++j) {
+				result = f(result, (*this)[{i, j}]);
+			}
+		}
+
+		return result;
+	}
 
 	T determinant() {
 		assert_eq(rows(), columns());
@@ -650,6 +741,12 @@ auto simplify(MatrixAddition<E1, E2> e) {
 template <typename E1, typename E2>
 auto simplify(MatrixSubtraction<E1, E2> e) {
 	return MatrixSubtraction<std::decay_t<decltype(simplify(simplify(std::declval<E1>())))>, std::decay_t<decltype(simplify(std::declval<E2>()))>>(
+	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
+}
+
+template <typename E1, typename E2>
+auto simplify(ElementMatrixMultiplication<E1, E2> e) {
+	return ElementMatrixMultiplication<std::decay_t<decltype(simplify(simplify(std::declval<E1>())))>, std::decay_t<decltype(simplify(std::declval<E2>()))>>(
 	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
 }
 

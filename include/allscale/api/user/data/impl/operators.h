@@ -32,6 +32,14 @@ Matrix<T>& operator*=(Matrix<T>& u, const MatrixExpression<E>& v) {
 	return u;
 }
 
+template <typename T>
+Matrix<T>& operator*=(Matrix<T>& u, const T& v) {
+	// no aliasing because the result is written in a temporary matrix
+	algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
+
+	return u;
+}
+
 
 // -- matrix matrix addition
 template <typename E1, typename E2>

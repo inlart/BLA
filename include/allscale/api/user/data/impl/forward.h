@@ -26,6 +26,12 @@ template <typename E1, typename E2>
 class MatrixSubtraction;
 
 /*
+ * Represents the element wise multiplication of MatrixExpressions E1 and E2
+ */
+template <typename E1, typename E2>
+class ElementMatrixMultiplication;
+
+/*
  * Represents the multiplication of MatrixExpressions E1 and E2
  */
 template <typename E1, typename E2>
