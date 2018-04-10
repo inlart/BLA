@@ -618,6 +618,8 @@ class MatrixExpression {
 
 	SubMatrix<E> sub(point_type start, point_type size) const { return SubMatrix<E>(static_cast<const E&>(*this), start, size); }
 
+	T norm() { return std::sqrt(product(*this).reduce(0, std::plus<T>{})); }
+
 	LUD<T> LUDecomposition() { return LUD<T>(*this); }
 
 	QRD<T> QRDecomposition() { return QRD<T>(*this); }

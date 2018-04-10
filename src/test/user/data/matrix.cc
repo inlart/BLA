@@ -60,6 +60,14 @@ TEST(Matrix, Eye) {
 	}
 }
 
+TEST(Matrix, Norm) {
+	const point_type s{256, 256};
+	Matrix<double> m(s);
+	m.identity();
+
+	ASSERT_LT(std::abs(m.norm() - 16.), 1E-12);
+}
+
 TEST(Matrix, CustomTypes) {
 	struct A;
 	struct B;
