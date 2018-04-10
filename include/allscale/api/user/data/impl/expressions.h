@@ -295,8 +295,6 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 		evaluate(mat, *this);
 	}
 
-	Matrix(const T& value) { fill(value); }
-
 	template <typename Derived>
 	Matrix(const Eigen::MatrixBase<Derived>& matrix) : m_data({matrix.rows(), matrix.cols()}) {
 		algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = matrix(p.x, p.y); });
