@@ -323,6 +323,51 @@ TEST(Operation, Multiplication) {
 	}
 }
 
+TEST(Operation, MultiplicationNoTransposeTranspose) {
+	Matrix<double> m1({145, 43});
+	Matrix<double> m2({59, m1.columns()});
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 4; ++i) {
+		m1.random(g);
+		m2.random(g);
+		ASSERT_TRUE(isAlmostEqual(m1 * m2.transpose(), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix().transpose()).eval())));
+	}
+}
+
+TEST(Operation, MultiplicationTransposeNoTranspose) {
+	Matrix<double> m1({145, 43});
+	Matrix<double> m2({m1.rows(), 59});
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 4; ++i) {
+		m1.random(g);
+		m2.random(g);
+		ASSERT_TRUE(isAlmostEqual(m1.transpose() * m2, Matrix<double>((m1.toEigenMatrix().transpose() * m2.toEigenMatrix()).eval())));
+	}
+}
+
+TEST(Operation, MultiplicationTransposeTranspose) {
+	Matrix<double> m1({145, 43});
+	Matrix<double> m2({59, m1.rows()});
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 4; ++i) {
+		m1.random(g);
+		m2.random(g);
+		ASSERT_TRUE(isAlmostEqual(m1.transpose() * m2.transpose(), Matrix<double>((m1.toEigenMatrix().transpose() * m2.toEigenMatrix().transpose()).eval())));
+	}
+}
+
 TEST(Operation, AssignMultiplication) {
 	Matrix<double> m1({123, 76});
 	Matrix<double> m2({m1.columns(), m1.columns()});
