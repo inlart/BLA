@@ -281,9 +281,6 @@ template <typename T>
 class Matrix : public MatrixExpression<Matrix<T>> {
 	using map_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
 	using cmap_type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
-	using map_stride_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<Eigen::Dynamic>>;
-	using cmap_stride_type =
-	    Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>, Eigen::Unaligned, Eigen::OuterStride<Eigen::Dynamic>>;
 
 	using typename MatrixExpression<Matrix<T>>::PacketScalar;
 
@@ -300,7 +297,7 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 		algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = matrix(p.x, p.y); });
 	}
 
-	Matrix(const Matrix& mat) : m_data(mat.size()) { evaluate(mat, *this); }
+	Matrix(const Matrix& mat) : MatrixExpression<Matrix<T>>(), m_data(mat.size()) { evaluate(mat, *this); }
 
 	Matrix(Matrix&&) = default;
 
@@ -564,7 +561,6 @@ struct QRD {
 template <typename T>
 struct SVD {
 	SVD(const Matrix<T>& A) : U(point_type{A.rows(), A.rows()}), E(A.size()), V(point_type{A.columns(), A.columns()}) {
-		using ct = coordinate_type;
 		// TODO: implement
 		assert_fail();
 	}
