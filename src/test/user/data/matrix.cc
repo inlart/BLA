@@ -32,6 +32,34 @@ TEST(Matrix, Access) {
 	}
 }
 
+TEST(Matrix, Identity) {
+	const coordinate_type s = 57;
+	Matrix<double> m({s, s});
+	m.identity();
+	for(coordinate_type i = 0; i < s; ++i) {
+		for(coordinate_type j = 0; j < s; ++j) {
+			if(i == j)
+				ASSERT_EQ(1.0, (m[{i, j}]));
+			else
+				ASSERT_EQ(0.0, (m[{i, j}]));
+		}
+	}
+}
+
+TEST(Matrix, Eye) {
+	const point_type s{57, 68};
+	Matrix<double> m(s);
+	m.eye();
+	for(coordinate_type i = 0; i < s.x; ++i) {
+		for(coordinate_type j = 0; j < s.y; ++j) {
+			if(i == j)
+				ASSERT_EQ(1.0, (m[{i, j}]));
+			else
+				ASSERT_EQ(0.0, (m[{i, j}]));
+		}
+	}
+}
+
 TEST(Matrix, CustomTypes) {
 	struct A;
 	struct B;

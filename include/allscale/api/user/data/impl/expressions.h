@@ -352,9 +352,13 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
 	void zero() { fill(0); }
 
+	void eye() {
+		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = p[0] == p[1] ? 1. : 0.; });
+	}
+
 	void identity() {
 		assert_eq(rows(), columns());
-		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = p[0] == p[1] ? 1. : 0.; });
+		eye();
 	}
 
 	template <typename Generator>
@@ -535,7 +539,7 @@ struct QRD {
 			if(mag < 1E-10) continue;
 
 			for(ct j = i; j < A.rows(); ++j) {
-				v[{j, 0}] *= (1 / mag); // TODO: /=
+				v[{j, 0}] /= mag;
 			}
 
 			P = I - (v * v.transpose()) * 2.0;
