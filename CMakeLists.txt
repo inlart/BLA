@@ -10,7 +10,9 @@ find_package(Boost REQUIRED)
 find_package(OpenBLAS REQUIRED)
 find_package(Vc REQUIRED)
 find_package(GTest REQUIRED)
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(Eigen3 REQUIRED)
+
+message(STATUS "Eigen: " ${EIGEN3_VERSION})
 
 set(THEADS_PREFER_PTHEAD_FLAG on)
 find_package(Threads REQUIRED)
@@ -36,7 +38,7 @@ endif()
 include_directories(${GTEST_INCLUDE_DIRS})
 include_directories(${Vc_INCLUDE_DIR})
 include_directories(${OpenBLAS_INCLUDE_DIRS})
-include_directories(${EIGEN3_INCLUDE_DIRS})
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 # -- Compilation
 
