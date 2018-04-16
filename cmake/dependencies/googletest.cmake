@@ -15,16 +15,15 @@ ExternalProject_Get_Property(googletest source_dir binary_dir)
 # workaround https://itk.org/Bug/view.php?id=15052
 file(MAKE_DIRECTORY ${source_dir}/googletest/include)
 
-# TODO: check
-# if(BUILD_SHARED_LIBS)
-# 	set(_prefix ${CMAKE_SHARED_LIBRARY_PREFIX})
-# 	set(_suffix ${CMAKE_SHARED_LIBRARY_SUFFIX})
-# 	set(_linking SHARED)
-# else()
+if(BUILD_SHARED_LIBS)
+	set(_prefix ${CMAKE_SHARED_LIBRARY_PREFIX})
+	set(_suffix ${CMAKE_SHARED_LIBRARY_SUFFIX})
+	set(_linking SHARED)
+else()
 	set(_prefix ${CMAKE_STATIC_LIBRARY_PREFIX})
 	set(_suffix ${CMAKE_STATIC_LIBRARY_SUFFIX})
 	set(_linking STATIC)
-# endif()
+endif()
 
 if(MSVC)
 	set(GTEST_LIBRARY_PATH ${binary_dir}/googlemock/gtest/$(Configuration))

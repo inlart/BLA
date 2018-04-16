@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(allscale_matrix LANGUAGES CXX)
+project(allscale_matrix LANGUAGES CXX C)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
