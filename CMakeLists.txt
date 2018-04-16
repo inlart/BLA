@@ -9,13 +9,12 @@ include(allscale)
 # -- Dependency Settings
 include(dependencies/pthread)
 include(dependencies/googletest)
+include(dependencies/vc)
 
 find_package(Boost REQUIRED)
 find_package(OpenBLAS REQUIRED)
-find_package(Vc REQUIRED)
+#find_package(Vc REQUIRED)
 find_package(Eigen3 REQUIRED)
-
-message(STATUS "Eigen: " ${EIGEN3_VERSION})
 
 # -- The include folder for benchmarks
 set(BENCHMARK_INCLUDES "src/benchmark/include")
@@ -69,10 +68,10 @@ if(BUILD_BENCHMARKS)
       target_include_directories(${BENCH_FILENAME} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
       target_link_libraries(${BENCH_FILENAME} ${CMAKE_THREAD_LIBS_INIT})
-      target_link_libraries(${BENCH_FILENAME} ${Vc_LIBRARIES})
+      target_link_libraries(${BENCH_FILENAME} Vc)
       target_link_libraries(${BENCH_FILENAME} ${OpenBLAS_LIBRARIES})
 
-    endif(${BENCH_FILENAME} MATCHES "(.*)allscale(.*)")
+    endif()
   endforeach(BENCH_FILE ${BENCH_SOURCES})
 endif()
 
@@ -102,7 +101,7 @@ if(BUILD_EXAMPLES)
     target_include_directories(${EXAMPLE_FILENAME} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
     target_link_libraries(${EXAMPLE_FILENAME} ${CMAKE_THREAD_LIBS_INIT})
-    target_link_libraries(${EXAMPLE_FILENAME} ${Vc_LIBRARIES})
+    target_link_libraries(${EXAMPLE_FILENAME} Vc)
     target_link_libraries(${EXAMPLE_FILENAME} ${OpenBLAS_LIBRARIES})
 
   endforeach(EXAMPLE_FILE ${EXAMPLE_SOURCES})
@@ -121,5 +120,5 @@ message(STATUS ${gtest})
 target_link_libraries(matrix_test ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(matrix_test gtest)
 target_link_libraries(matrix_test gtest_main)
-target_link_libraries(matrix_test ${Vc_LIBRARIES})
+target_link_libraries(matrix_test Vc)
 target_link_libraries(matrix_test ${OpenBLAS_LIBRARIES})
