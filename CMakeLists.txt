@@ -10,11 +10,12 @@ include(allscale)
 include(dependencies/pthread)
 include(dependencies/googletest)
 include(dependencies/vc)
+include(dependencies/eigen3)
 
 find_package(Boost REQUIRED)
 find_package(OpenBLAS REQUIRED)
 #find_package(Vc REQUIRED)
-find_package(Eigen3 REQUIRED)
+#find_package(Eigen3 REQUIRED)
 
 # -- The include folder for benchmarks
 set(BENCHMARK_INCLUDES "src/benchmark/include")
@@ -85,7 +86,7 @@ if(BUILD_EXAMPLES)
     string(REPLACE ".cc" "" EXAMPLE_FILENAME ${EXAMPLE_FILENAME})
     set(EXAMPLE_FILENAME example_${EXAMPLE_FILENAME})
 
-    MESSAGE(STATUS ${EXAMPLE_FILENAME})
+    #MESSAGE(STATUS ${EXAMPLE_FILENAME})
 
     # -- Add Executable
     add_executable(${EXAMPLE_FILENAME} ${EXAMPLE_FILE})
@@ -113,8 +114,6 @@ add_executable(matrix_test src/test/user/data/matrix.cc)
 # -- Test Flags
 target_include_directories(matrix_test PUBLIC include)
 target_include_directories(matrix_test PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
-
-message(STATUS ${gtest})
 
 # -- Test Libraries
 target_link_libraries(matrix_test ${CMAKE_THREAD_LIBS_INIT})
