@@ -1,170 +1,106 @@
-#.rst:
-# FindOpenBLAS
-# -------------
+#COPYRIGHT
 #
-# Find the OpenBLAS library
+#All contributions by the University of California:
+#Copyright (c) 2014, 2015, The Regents of the University of California (Regents)
+#All rights reserved.
 #
-# Using OpenBLAS:
+#All other contributions:
+#Copyright (c) 2014, 2015, the respective contributors
+#All rights reserved.
 #
-# ::
+#Caffe uses a shared copyright model: each contributor holds copyright over
+#their contributions to Caffe. The project versioning records all such
+#contribution and copyright details. If a contributor wants to further mark
+#their specific copyright on a particular contribution, they should indicate
+#their copyright solely in the commit message of the change when it is
+#committed.
 #
-#   find_package(OpenBLAS REQUIRED)
-#   include_directories(${OpenBLAS_INCLUDE_DIRS})
-#   add_executable(foo foo.cc)
-#   target_link_libraries(foo ${OpenBLAS_LIBRARIES})
-#   -- OR --
-#   target_link_libraries(foo ${OpenBLAS_PARALLEL_LIBRARIES})
+#LICENSE
 #
-# This module sets the following variables:
+#Redistribution and use in source and binary forms, with or without
+#modification, are permitted provided that the following conditions are met:
 #
-# ::
+#1. Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#2. Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
 #
-#   OpenBLAS_FOUND - set to true if the library is found
-#   OpenBLAS_INCLUDE_DIRS - list of required include directories
-#   OpenBLAS_LIBRARIES - list of libraries to be linked
-#   OpenBLAS_HAS_PARALLEL_LIBRARIES - determine if there are parallel libraries compiled
-#   OpenBLAS_PARALLEL_LIBRARIES - list of libraries for parallel implementations
-#   OpenBLAS_VERSION_MAJOR - major version number
-#   OpenBLAS_VERSION_MINOR - minor version number
-#   OpenBLAS_VERSION_PATCH - patch version number
-#   OpenBLAS_VERSION_STRING - version number as a string (ex: "0.2.18")
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+#ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+#WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+#DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+#ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+#(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+#ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+#(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+#SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#CONTRIBUTION AGREEMENT
+#
+#By contributing to the BVLC/caffe repository through pull-request, comment,
+#or otherwise, the contributor releases their content to the
+#license and copyright terms herein.
 
-#=============================================================================
-# Copyright 2016 Hans J. Johnson <hans-johnson@uiowa.edu>
-#
-# Distributed under the OSI-approved BSD License (the "License")
-#
-# This software is distributed WITHOUT ANY WARRANTY; without even the
-# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-#=============================================================================
-#
-set(OpenBLAS_HAS_PARALLEL_LIBRARIES FALSE)
-
-set(OpenBLAS_SEARCH_PATHS
-  ${OpenBLAS_DIR}
-  $ENV{OpenBLAS_DIR}
-  $ENV{CMAKE_PREFIX_PATH}
-  ${CMAKE_PREFIX_PATH}
-  /usr
-  /usr/local
-  /usr/local/opt/openblas  ## Mac Homebrew install path
-  /opt/OpenBLAS
+SET(Open_BLAS_INCLUDE_SEARCH_PATHS
+  $ENV{OpenBLAS_HOME}
+  $ENV{OpenBLAS_HOME}/include
+  /opt/OpenBLAS/include
+  /usr/local/include/openblas
+  /usr/include/openblas
+  /usr/local/include/openblas-base
+  /usr/include/openblas-base
+  /usr/local/include
+  /usr/include
 )
 
-set(CMAKE_PREFIX_PATH ${OpenBLAS_SEARCH_PATHS})
-list(REMOVE_DUPLICATES CMAKE_PREFIX_PATH)
+SET(Open_BLAS_LIB_SEARCH_PATHS
+        $ENV{OpenBLAS}cd
+        $ENV{OpenBLAS}/lib
+        $ENV{OpenBLAS_HOME}
+        $ENV{OpenBLAS_HOME}/lib
+        /opt/OpenBLAS/lib
+        /usr/local/lib64
+        /usr/local/lib
+        /lib/openblas-base
+        /lib64/
+        /lib/
+        /usr/lib/openblas-base
+        /usr/lib64
+        /usr/lib
+ )
 
-## First try to find OpenBLAS with NO_MODULE,
-## As of 20160706 version 0.2.18 there is limited cmake support for OpenBLAS
-## that is not as complete as this version, if found, use it
-## to identify the OpenBLAS_VERSION_STRING and improve searching.
-find_package(OpenBLAS NO_MODULE QUIET)
-if(OpenBLAS_VERSION)
-  set(OpenBLAS_VERSION_STRING ${OpenBLAS_VERSION})
-  unset(OpenBLAS_VERSION) # Use cmake conventional naming
-endif()
-##################################################################################################
-### First search for headers
-find_path(OpenBLAS_CBLAS_INCLUDE_DIR
-             NAMES cblas.h
-             PATHS ${OpenBLAS_SEARCH_PATHS}
-             PATH_SUFFIXES include include/openblas)
-find_path(OpenBLAS_LAPACKE_INCLUDE_DIR
-             NAMES lapacke.h
-             PATHS ${OpenBLAS_SEARCH_PATHS}
-             PATH_SUFFIXES include)
+FIND_PATH(OpenBLAS_INCLUDE_DIR NAMES cblas.h PATHS ${Open_BLAS_INCLUDE_SEARCH_PATHS} NO_DEFAULT_PATH)
+FIND_LIBRARY(OpenBLAS_LIB NAMES openblas PATHS ${Open_BLAS_LIB_SEARCH_PATHS}  NO_DEFAULT_PATH)
 
-##################################################################################################
-### Second, search for libraries
-set(PATH_SUFFIXES_LIST
-  lib64
-  lib
+SET(OpenBLAS_FOUND ON)
+
+#    Check include files
+IF(NOT OpenBLAS_INCLUDE_DIR)
+    SET(OpenBLAS_FOUND OFF)
+    MESSAGE(STATUS "Could not find OpenBLAS include. Turning OpenBLAS_FOUND off")
+ENDIF()
+
+#    Check libraries
+IF(NOT OpenBLAS_LIB)
+    SET(OpenBLAS_FOUND OFF)
+    MESSAGE(STATUS "Could not find OpenBLAS lib. Turning OpenBLAS_FOUND off")
+ENDIF()
+
+IF (OpenBLAS_FOUND)
+  IF (NOT OpenBLAS_FIND_QUIETLY)
+    MESSAGE(STATUS "Found OpenBLAS libraries: ${OpenBLAS_LIB}")
+    MESSAGE(STATUS "Found OpenBLAS include: ${OpenBLAS_INCLUDE_DIR}")
+  ENDIF (NOT OpenBLAS_FIND_QUIETLY)
+ELSE (OpenBLAS_FOUND)
+  IF (OpenBLAS_FIND_REQUIRED)
+    MESSAGE(FATAL_ERROR "Could not find OpenBLAS")
+  ENDIF (OpenBLAS_FIND_REQUIRED)
+ENDIF (OpenBLAS_FOUND)
+
+MARK_AS_ADVANCED(
+    OpenBLAS_INCLUDE_DIR
+    OpenBLAS_LIB
+    OpenBLAS
 )
-find_library(OpenBLAS_LIB
-                 NAMES openblas
-                 PATHS ${OpenBLAS_SEARCH_PATHS}
-                 PATH_SUFFIXES ${PATH_SUFFIXES_LIST})
-
-if(EXISTS ${OpenBLAS_LIB})
-   get_filename_component(OpenBLAS_LIB_DIR i${OpenBLAS_LIB} DIRECTORY)
-endif()
-## Find the named parallel version of openblas
-set(OpenBLAS_SEARCH_VERSIONS ${OpenBLAS_VERSION_STRING} 0.2.19 0.2.18 0.2.17 0.2.16)
-list(REMOVE_DUPLICATES OpenBLAS_SEARCH_VERSIONS)
-foreach(checkVersion ${OpenBLAS_SEARCH_VERSIONS})
-     find_library(OpenBLAS_PARALLEL_LIB
-                 NAMES openblasp-r${checkVersion}
-                 PATHS ${OpenBLAS_LIB_DIR} ${OpenBLAS_SEARCH_PATHS}
-                 PATH_SUFFIXES ${PATH_SUFFIXES_LIST}
-      )
-      if(EXISTS ${OpenBLAS_PARALLEL_LIB})
-         if(NOT OpenBLAS_VERSION_STRING)
-            set(OpenBLAS_VERSION_STRING ${checkVersion})
-         endif()
-         set(OpenBLAS_HAS_PARALLEL_LIBRARIES ON)
-         break()
-      endif()
-endforeach()
-
-# ------------------------------------------------------------------------
-#  Extract version information
-# ------------------------------------------------------------------------
-
-# WARNING: We may not be able to determine the version of some OpenBLAS
-set(OpenBLAS_VERSION_MAJOR 0)
-set(OpenBLAS_VERSION_MINOR 0)
-set(OpenBLAS_VERSION_PATCH 0)
-if(OpenBLAS_VERSION_STRING)
-  string(REGEX REPLACE "([0-9]+).([0-9]+).([0-9]+)" "\\1" OpenBLAS_VERSION_MAJOR "${OpenBLAS_VERSION_STRING}")
-  string(REGEX REPLACE "([0-9]+).([0-9]+).([0-9]+)" "\\2" OpenBLAS_VERSION_MINOR "${OpenBLAS_VERSION_STRING}")
-  string(REGEX REPLACE "([0-9]+).([0-9]+).([0-9]+)" "\\3" OpenBLAS_VERSION_PATCH "${OpenBLAS_VERSION_STRING}")
-endif()
-
-#======================
-# Checks 'REQUIRED', 'QUIET' and versions.
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(OpenBLAS FOUND_VAR OpenBLAS_FOUND
-  REQUIRED_VARS
-                OpenBLAS_CBLAS_INCLUDE_DIR
-                OpenBLAS_LAPACKE_INCLUDE_DIR
-                OpenBLAS_LIB
-  VERSION_VAR OpenBLAS_VERSION_STRING
-)
-
-if (OpenBLAS_FOUND)
-  set(OpenBLAS_INCLUDE_DIRS ${OpenBLAS_CBLAS_INCLUDE_DIR} ${OpenBLAS_CBLAS_INCLUDE_DIR})
-  list(REMOVE_DUPLICATES OpenBLAS_INCLUDE_DIRS)
-  if("${CMAKE_C_COMPILER_ID}" MATCHES ".*Clang.*" OR
-     "${CMAKE_C_COMPILER_ID}" MATCHES ".*GNU.*" OR
-     "${CMAKE_C_COMPILER_ID}" MATCHES ".*Intel.*"
-      ) #NOT MSVC
-    set(MATH_LIB m)
-  endif()
-  list(APPEND OpenBLAS_LIBRARIES ${OpenBLAS_LIB} ${MATH_LIB})
-  if(OpenBLAS_HAS_PARALLEL_LIBRARIES)
-    list(APPEND OpenBLAS_PARALLEL_LIBRARIES ${OpenBLAS_PARALLEL_LIB})
-  endif()
-endif()
-
-mark_as_advanced(
-  OpenBLAS_FOUND
-  OpenBLAS_INCLUDE_DIRS
-  OpenBLAS_LIBRARIES
-  OpenBLAS_HAS_PARALLEL_LIBRARIES
-  OpenBLAS_PARALLEL_LIBRARIES
-  OpenBLAS_VERSION_MAJOR
-  OpenBLAS_VERSION_MINOR
-  OpenBLAS_VERSION_PATCH
-  OpenBLAS_VERSION_STRING
-)
-
-## For debugging
-message(STATUS "OpenBLAS_FOUND                  :${OpenBLAS_FOUND}:  - set to true if the library is found")
-message(STATUS "OpenBLAS_INCLUDE_DIRS           :${OpenBLAS_INCLUDE_DIRS}: - list of required include directories")
-message(STATUS "OpenBLAS_LIBRARIES              :${OpenBLAS_LIBRARIES}: - list of libraries to be linked")
-message(STATUS "OpenBLAS_HAS_PARALLEL_LIBRARIES :${OpenBLAS_HAS_PARALLEL_LIBRARIES}: - determine if there are parallel libraries compiled")
-message(STATUS "OpenBLAS_PARALLEL_LIBRARIES     :${OpenBLAS_PARALLEL_LIBRARIES}: - list of libraries for parallel implementations")
-message(STATUS "OpenBLAS_VERSION_MAJOR          :${OpenBLAS_VERSION_MAJOR}: - major version number")
-message(STATUS "OpenBLAS_VERSION_MINOR          :${OpenBLAS_VERSION_MINOR}: - minor version number")
-message(STATUS "OpenBLAS_VERSION_PATCH          :${OpenBLAS_VERSION_PATCH}: - patch version number")
-message(STATUS "OpenBLAS_VERSION_STRING         :${OpenBLAS_VERSION_STRING}: - version number as a string")
