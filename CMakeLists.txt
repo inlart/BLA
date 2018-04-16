@@ -6,16 +6,16 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 include(defaults)
 include(allscale)
 
+# -- Dependency Settings
+include(dependencies/pthread)
+include(dependencies/googletest)
+
 find_package(Boost REQUIRED)
 find_package(OpenBLAS REQUIRED)
 find_package(Vc REQUIRED)
-find_package(GTest REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 message(STATUS "Eigen: " ${EIGEN3_VERSION})
-
-set(THEADS_PREFER_PTHEAD_FLAG on)
-find_package(Threads REQUIRED)
 
 # -- The include folder for benchmarks
 set(BENCHMARK_INCLUDES "src/benchmark/include")
@@ -115,7 +115,11 @@ add_executable(matrix_test src/test/user/data/matrix.cc)
 target_include_directories(matrix_test PUBLIC include)
 target_include_directories(matrix_test PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
+message(STATUS ${gtest})
+
 # -- Test Libraries
-target_link_libraries(matrix_test ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(matrix_test ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(matrix_test gtest)
+target_link_libraries(matrix_test gtest_main)
 target_link_libraries(matrix_test ${Vc_LIBRARIES})
 target_link_libraries(matrix_test ${OpenBLAS_LIBRARIES})
