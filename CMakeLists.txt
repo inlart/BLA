@@ -36,6 +36,7 @@ endif()
 include_directories(${GTEST_INCLUDE_DIRS})
 include_directories(${Vc_INCLUDE_DIR})
 include_directories(${OpenBLAS_INCLUDE_DIRS})
+include_directories(${EIGEN3_INCLUDE_DIRS})
 
 # -- Compilation
 
@@ -57,9 +58,6 @@ if(BUILD_BENCHMARKS)
     # -- Default Includes
     target_include_directories(${BENCH_FILENAME} PUBLIC include)
     target_include_directories(${BENCH_FILENAME} PUBLIC ${BENCHMARK_INCLUDES})
-
-    # -- Default Libraries
-    target_link_libraries(${BENCH_FILENAME} Eigen3::Eigen)
 
     # -- AllScale Definitions
     if(${BENCH_FILENAME} MATCHES "(.*)allscale(.*)")
@@ -95,9 +93,6 @@ if(BUILD_EXAMPLES)
     target_include_directories(${EXAMPLE_FILENAME} PUBLIC include)
     target_include_directories(${EXAMPLE_FILENAME} PUBLIC ${EXAMPLEMARK_INCLUDES})
 
-    # -- Default Libraries
-    target_link_libraries(${EXAMPLE_FILENAME} Eigen3::Eigen)
-
     # -- AllScale Definitions
       # MESSAGE(STATUS "AllScale Benchmark detected")
 
@@ -119,7 +114,6 @@ target_include_directories(matrix_test PUBLIC include)
 target_include_directories(matrix_test PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
 # -- Test Libraries
-target_link_libraries(matrix_test Eigen3::Eigen)
 target_link_libraries(matrix_test ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(matrix_test ${Vc_LIBRARIES})
 target_link_libraries(matrix_test ${OpenBLAS_LIBRARIES})
