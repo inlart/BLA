@@ -28,8 +28,6 @@ if(NOT Vc_FOUND)
   include(dependencies/vc)
 endif()
 
-message(STATUS "Vc: ${Vc_LIBRARIES}")
-
 find_package(Eigen3)
 if(NOT Eigen3_FOUND)
   message(STATUS "Adding Eigen3 as third party dependency")
@@ -78,7 +76,7 @@ endif()
 add_executable(matrix_test src/test/user/data/matrix.cc)
 
 # -- Test Flags
-target_include_directories(matrix_test PUBLIC include)
+target_include_directories(matrix_test PUBLIC "include")
 target_include_directories(matrix_test PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
 # -- Test Libraries
