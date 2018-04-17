@@ -3,32 +3,50 @@ project(allscale_matrix LANGUAGES CXX C)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
+# -- contains dependencies for third party libs
+set(ALLSCALE_MATRIX_DEPENDENCIES)
+
 include(defaults)
 include(allscale)
+include(add_module)
 
 # -- Dependency Settings
 include(dependencies/pthread)
-include(dependencies/googletest)
-include(dependencies/vc)
-include(dependencies/eigen3)
+
+find_package(GTest)
+if(NOT GTest_FOUND)
+  message(STATUS "Adding googletest as third party dependency")
+  include(dependencies/googletest)
+endif()
+
+
+find_package(Vc)
+if(NOT Vc_FOUND)
+  message(STATUS "Adding Vc as third party dependency")
+  include(dependencies/vc)
+endif()
+
+message(STATUS "Vc: ${Vc_LIBRARIES}")
+
+find_package(Eigen3)
+if(NOT Eigen3_FOUND)
+  message(STATUS "Adding Eigen3 as third party dependency")
+  include(dependencies/eigen3)
+endif()
 
 find_package(Boost REQUIRED)
 find_package(OpenBLAS REQUIRED)
-#find_package(Vc REQUIRED)
-#find_package(Eigen3 REQUIRED)
-
-# -- The include folder for benchmarks
-set(BENCHMARK_INCLUDES "src/benchmark/include")
 
 include(FindOpenMP)
 if(OPENMP_FOUND)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-else(OPENMP_FOUND)
+else()
   message(WARNING "OpenMP could not be found.")
-endif(OPENMP_FOUND)
+endif()
 
+# -- Check if -march=native is available
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
 if(COMPILER_SUPPORTS_MARCH_NATIVE)
@@ -41,71 +59,12 @@ include_directories(${OpenBLAS_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 # -- Compilation
-
 if(BUILD_BENCHMARKS)
-  # -- Get all benchmark files
-  file(GLOB_RECURSE BENCH_SOURCES src/benchmark/*.cc)
-
-  # MESSAGE(STATUS "## Adding benchmark targets")
-  foreach(BENCH_FILE ${BENCH_SOURCES})
-    get_filename_component(BENCH_FILENAME ${BENCH_FILE} NAME)
-    string(REPLACE ".cc" "" BENCH_FILENAME ${BENCH_FILENAME})
-    set(BENCH_FILENAME bench_${BENCH_FILENAME})
-
-    # MESSAGE(STATUS ${BENCH_FILENAME})
-
-    # -- Add Executable
-    add_executable(${BENCH_FILENAME} ${BENCH_FILE})
-
-    # -- Default Includes
-    target_include_directories(${BENCH_FILENAME} PUBLIC include)
-    target_include_directories(${BENCH_FILENAME} PUBLIC ${BENCHMARK_INCLUDES})
-
-    # -- AllScale Definitions
-    if(${BENCH_FILENAME} MATCHES "(.*)allscale(.*)")
-      # MESSAGE(STATUS "AllScale Benchmark detected")
-
-      target_compile_definitions(${BENCH_FILENAME} PRIVATE EIGEN_DONT_PARALLELIZE=1)
-      target_include_directories(${BENCH_FILENAME} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
-
-      target_link_libraries(${BENCH_FILENAME} ${CMAKE_THREAD_LIBS_INIT})
-      target_link_libraries(${BENCH_FILENAME} Vc)
-      target_link_libraries(${BENCH_FILENAME} ${OpenBLAS_LIBRARIES})
-
-    endif()
-  endforeach(BENCH_FILE ${BENCH_SOURCES})
+  add_module_executable_folder("src/benchmark/" ".cc" "benchmark_" "src/benchmark/include;include" OFF ${ALLSCALE_MATRIX_DEPENDENCIES})
 endif()
 
 if(BUILD_EXAMPLES)
-  # -- Get all example files
-  file(GLOB_RECURSE EXAMPLE_SOURCES src/examples/*.cc)
-
-  # MESSAGE(STATUS "## Adding benchmark targets")
-  foreach(EXAMPLE_FILE ${EXAMPLE_SOURCES})
-    get_filename_component(EXAMPLE_FILENAME ${EXAMPLE_FILE} NAME)
-    string(REPLACE ".cc" "" EXAMPLE_FILENAME ${EXAMPLE_FILENAME})
-    set(EXAMPLE_FILENAME example_${EXAMPLE_FILENAME})
-
-    #MESSAGE(STATUS ${EXAMPLE_FILENAME})
-
-    # -- Add Executable
-    add_executable(${EXAMPLE_FILENAME} ${EXAMPLE_FILE})
-
-    # -- Default Includes
-    target_include_directories(${EXAMPLE_FILENAME} PUBLIC include)
-    target_include_directories(${EXAMPLE_FILENAME} PUBLIC ${EXAMPLEMARK_INCLUDES})
-
-    # -- AllScale Definitions
-      # MESSAGE(STATUS "AllScale Benchmark detected")
-
-    target_compile_definitions(${EXAMPLE_FILENAME} PRIVATE EIGEN_DONT_PARALLELIZE=1)
-    target_include_directories(${EXAMPLE_FILENAME} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
-
-    target_link_libraries(${EXAMPLE_FILENAME} ${CMAKE_THREAD_LIBS_INIT})
-    target_link_libraries(${EXAMPLE_FILENAME} Vc)
-    target_link_libraries(${EXAMPLE_FILENAME} ${OpenBLAS_LIBRARIES})
-
-  endforeach(EXAMPLE_FILE ${EXAMPLE_SOURCES})
+  add_module_executable_folder("src/examples/" ".cc" "example_" "include" ON ${ALLSCALE_MATRIX_DEPENDENCIES})
 endif()
 
 # -- Testing
@@ -117,7 +76,7 @@ target_include_directories(matrix_test PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
 
 # -- Test Libraries
 target_link_libraries(matrix_test ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(matrix_test gtest)
-target_link_libraries(matrix_test gtest_main)
-target_link_libraries(matrix_test Vc)
+target_link_libraries(matrix_test ${GTEST_LIBRARIES})
+target_link_libraries(matrix_test ${GTEST_MAIN_LIBRARIES})
+target_link_libraries(matrix_test ${Vc_LIBRARIES})
 target_link_libraries(matrix_test ${OpenBLAS_LIBRARIES})

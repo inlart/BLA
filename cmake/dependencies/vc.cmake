@@ -34,3 +34,5 @@ add_dependencies(Vc VectorClasses)
 
 set(Vc_LIBRARIES ${install_dir}/lib)
 set(Vc_INCLUDE_DIR ${install_dir}/include)
+
+set(ALLSCALE_MATRIX_DEPENDENCIES Vc ${ALLSCALE_MATRIX_DEPENDENCIES})

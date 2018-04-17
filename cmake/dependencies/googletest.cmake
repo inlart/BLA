@@ -50,3 +50,8 @@ add_library(gtest_main ${_linking} IMPORTED)
 set(gtest_main ${_prefix}gtest_main${_suffix})
 set_target_properties(gtest_main PROPERTIES IMPORTED_LOCATION ${GTEST_LIBRARY_PATH}/${gtest_main})
 add_dependencies(gtest_main googletest)
+
+set(GTEST_LIBRARIES gtest)
+set(GTEST_MAIN_LIBRARIES gtest_main)
+set(ALLSCALE_MATRIX_DEPENDENCIES gtest ${ALLSCALE_MATRIX_DEPENDENCIES})
+set(ALLSCALE_MATRIX_DEPENDENCIES gtest_main ${ALLSCALE_MATRIX_DEPENDENCIES})

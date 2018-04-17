@@ -12,3 +12,5 @@ ExternalProject_Add(Eigen3
 ExternalProject_Get_Property(Eigen3 source_dir binary_dir)
 
 set(EIGEN3_INCLUDE_DIR ${source_dir})
+
+set(ALLSCALE_MATRIX_DEPENDENCIES Eigen3 ${ALLSCALE_MATRIX_DEPENDENCIES})
