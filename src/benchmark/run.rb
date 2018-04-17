@@ -25,7 +25,7 @@ puts "NREP: #{num_executions}"
 
 inputs = [128, 256, 512, 1024, 2048, 4096]
 
-extensions = Dir["#{bin_folder}/bench_*"]
+extensions = Dir["#{bin_folder}/benchmark_*"]
 extensions.map! { |item| File.basename item}
 extensions.sort!
 
