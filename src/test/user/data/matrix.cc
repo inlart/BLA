@@ -68,6 +68,34 @@ TEST(Matrix, Norm) {
 	ASSERT_LT(std::abs(m.norm() - 16.), 1E-12);
 }
 
+TEST(Matrix, CustomTypeInit) {
+	struct A;
+	struct B;
+
+
+	struct A {
+		A() : value(0) {}
+		A(int x) : value(x) {} // needed to call the eye method - will be called with x = 0 and x = 1
+
+
+		int operator+(const B&) const { return 1; }
+		double operator-(const B&) const { return 0.1337; }
+
+	  private:
+		double value;
+	};
+
+	struct B {
+		double operator+(const A&) const { return 0.1337; }
+		int operator-(const A&) const { return 1; }
+	};
+
+	Matrix<A> m1({55, 58});
+	Matrix<B> m2({55, 58});
+
+	m1.eye();
+}
+
 TEST(Matrix, CustomTypes) {
 	struct A;
 	struct B;

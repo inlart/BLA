@@ -8,23 +8,44 @@ macro(add_module_executable_folder folder extension prefix includes always_allsc
         string(REPLACE "${extension}" "" filename ${filename})
         set(filename ${prefix}${filename})
 
-        # -- Add Executable
-        add_executable(${filename} ${file})
 
-        # -- Dependencies
-        add_dependencies(${filename} ${dependencies})
+        set(uses_gmp FALSE)
+        if(${filename} MATCHES "(.*)gmp(.*)")
+            set(uses_gmp TRUE)
+        endif()
 
-        # -- Default Includes
-        target_include_directories(${filename} PUBLIC ${includes})
+        message(STATUS "uses filename: ${filename}")
+        message(STATUS "uses gmp: ${uses_gmp}")
+        if((NOT uses_gmp)  OR GMPXX_FOUND)
+            # -- Add Executable
+            add_executable(${filename} ${file})
 
-        # -- AllScale Definitions
-        if((${filename} MATCHES "(.*)allscale(.*)") OR ${always_allscale})
-            target_compile_definitions(${filename} PRIVATE EIGEN_DONT_PARALLELIZE=1)
-            target_include_directories(${filename} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
+            # -- Dependencies
+            add_dependencies(${filename} ${dependencies})
 
-            target_link_libraries(${filename} ${CMAKE_THREAD_LIBS_INIT})
-            target_link_libraries(${filename} ${Vc_LIBRARIES})
-            target_link_libraries(${filename} ${OpenBLAS_LIBRARIES})
+            # -- Default Includes
+            target_include_directories(${filename} PUBLIC ${includes})
+
+            # -- AllScale Definitions
+            if((${filename} MATCHES "(.*)allscale(.*)") OR ${always_allscale})
+                target_compile_definitions(${filename} PRIVATE EIGEN_DONT_PARALLELIZE=1)
+                target_include_directories(${filename} PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
+
+                target_link_libraries(${filename} ${CMAKE_THREAD_LIBS_INIT})
+                target_link_libraries(${filename} ${Vc_LIBRARIES})
+                target_link_libraries(${filename} ${OpenBLAS_LIBRARIES})
+            endif()
+
+            # -- GMP
+            if(uses_gmp)
+                target_include_directories(${filename} PUBLIC ${GMPXX_INCLUDE_DIR})
+                target_include_directories(${filename} PUBLIC ${GMP_INCLUDE_DIR})
+
+                target_link_libraries(${filename} ${GMPXX_LIBRARIES})
+                target_link_libraries(${filename} ${GMP_LIBRARIES})
+            endif()
+        else()
+            message(WARNING "${filename} uses gmp but gmp was not found")
         endif()
     endforeach()
 endmacro()

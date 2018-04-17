@@ -345,10 +345,10 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = value; });
 	}
 
-	void zero() { fill(0); }
+	void zero() { fill(static_cast<T>(0)); }
 
 	void eye() {
-		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = p[0] == p[1] ? 1. : 0.; });
+		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = p[0] == p[1] ? static_cast<T>(1) : static_cast<T>(0); });
 	}
 
 	void identity() {
@@ -422,12 +422,11 @@ class IdentityMatrix : public MatrixExpression<IdentityMatrix<T>> {
 	//    using typename MatrixExpression<IdentityMatrix<E>>::PacketScalar;
 
   public:
-	IdentityMatrix(point_type matrix_size, const T& neutral_element = 1, const T& zero_element = 0)
-	    : matrix_size(matrix_size), neutral_element(neutral_element), zero_element(zero_element) {}
+	IdentityMatrix(point_type matrix_size) : matrix_size(matrix_size) {}
 
 	T operator[](const point_type& pos) const {
 		assert_lt(pos, matrix_size);
-		return pos.x == pos.y ? neutral_element : zero_element;
+		return pos.x == pos.y ? static_cast<T>(1) : static_cast<T>(0);
 	}
 
 	point_type size() const { return matrix_size; }
@@ -456,7 +455,7 @@ struct LUD {
 		for(ct i = 0; i < n; ++i) {
 			for(ct j = 0; j < n; ++j) {
 				if(j < i) {
-					L[{j, i}] = 0;
+					L[{j, i}] = static_cast<T>(0);
 				} else {
 					L[{j, i}] = A[{j, i}];
 					for(ct k = 0; k < i; ++k) {
@@ -466,9 +465,9 @@ struct LUD {
 			}
 			for(ct j = 0; j < n; ++j) {
 				if(j < i) {
-					U[{i, j}] = 0;
+					U[{i, j}] = static_cast<T>(0);
 				} else if(j == i) {
-					U[{i, j}] = 1;
+					U[{i, j}] = static_cast<T>(1);
 				} else {
 					U[{i, j}] = A[{i, j}] / L[{i, i}];
 					for(ct k = 0; k < i; ++k) {
@@ -529,7 +528,7 @@ struct QRD {
 
 				mag += v[{j, 0}] * v[{j, 0}];
 			}
-			mag = sqrt(mag);
+			mag = std::sqrt(mag);
 
 			if(mag < 1E-10) continue;
 
@@ -642,7 +641,7 @@ class MatrixExpression {
 		assert_eq(rows(), columns());
 		using ct = coordinate_type;
 		auto lu = LUDecomposition();
-		T det = 1; // TODO: find a better way to do that
+		T det = static_cast<T>(1); // TODO: find a better way to do that
 
 		const ct n = lu.lower().rows();
 
@@ -695,12 +694,12 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expressi
 }
 
 // -- evaluate a matrix expression by simply copying each value
-template <typename E>
-std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
+template <typename E, typename T>
+std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, Matrix<T>& dst) {
 	assert_eq(expression.size(), dst.size());
 	expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
-	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
+	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = static_cast<scalar_type_t<E>>(expr[pos]); });
 }
 
 

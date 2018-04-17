@@ -34,11 +34,15 @@ if(NOT Eigen3_FOUND)
   include(dependencies/eigen3)
 endif()
 
-find_package(OpenBLAS REQUIRED)
+find_package(OpenBLAS)
 if(NOT OpenBLAS_FOUND)
   message(STATUS "Adding OpenBLAS as third party dependency")
   include(dependencies/openblas)
 endif()
+
+find_package(GMPXX)
+
+message(STATUS "GMPXX found: ${GMPXX_FOUND}")
 
 include(FindOpenMP)
 if(OPENMP_FOUND)
@@ -55,8 +59,6 @@ CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_SUPPORTS_MARCH_NATIVE)
 if(COMPILER_SUPPORTS_MARCH_NATIVE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif()
-
-message(STATUS "test ${OpenBLAS_LIBRARIES}")
 
 include_directories(${GTEST_INCLUDE_DIRS})
 include_directories(${Vc_INCLUDE_DIR})
