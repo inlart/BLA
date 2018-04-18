@@ -98,6 +98,10 @@ struct is_associative;
 template <typename T>
 struct type_consistent_multiplication;
 
+template <typename Functor, typename T1, typename T2>
+struct operation_result;
+
+
 struct RowRange;
 
 struct BlockRange;

@@ -699,7 +699,7 @@ std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& express
 	assert_eq(expression.size(), dst.size());
 	expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
-	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = static_cast<scalar_type_t<E>>(expr[pos]); });
+	algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 
 

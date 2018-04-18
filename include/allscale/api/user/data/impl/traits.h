@@ -2,7 +2,7 @@
 
 #include "forward.h"
 
-#include <utility>
+#include <functional>
 
 namespace allscale {
 namespace api {
@@ -33,6 +33,12 @@ struct and_value<A, B...> {
 } // end namespace detail
 
 
+template <typename Functor, typename T1, typename T2>
+struct operation_result : public detail::set_type<decltype(std::declval<Functor>()(std::declval<T1>(), std::declval<T2>()))> {};
+
+template <typename Functor, typename T1, typename T2>
+using operation_result_t = typename operation_result<Functor, T1, T2>::type;
+
 template <typename Expr>
 struct scalar_type;
 
@@ -50,19 +56,19 @@ struct scalar_type<MatrixExpression<Expr>> : public detail::set_type<typename sc
 
 template <typename E1, typename E2>
 struct scalar_type<MatrixAddition<E1, E2>>
-    : public detail::set_type<decltype(std::declval<typename scalar_type<E1>::type>() + std::declval<typename scalar_type<E2>::type>())> {};
+    : public detail::set_type<operation_result_t<std::plus<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>> {};
 
 template <typename E1, typename E2>
 struct scalar_type<MatrixSubtraction<E1, E2>>
-    : public detail::set_type<decltype(std::declval<typename scalar_type<E1>::type>() - std::declval<typename scalar_type<E2>::type>())> {};
+    : public detail::set_type<operation_result_t<std::minus<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>> {};
 
 template <typename E1, typename E2>
 struct scalar_type<ElementMatrixMultiplication<E1, E2>>
-    : public detail::set_type<decltype(std::declval<typename scalar_type<E1>::type>() * std::declval<typename scalar_type<E2>::type>())> {};
+    : public detail::set_type<operation_result_t<std::multiplies<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>> {};
 
 template <typename E1, typename E2>
 struct scalar_type<MatrixMultiplication<E1, E2>>
-    : public detail::set_type<decltype(std::declval<typename scalar_type<E1>::type>() * std::declval<typename scalar_type<E2>::type>())> {};
+    : public detail::set_type<operation_result_t<std::multiplies<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>> {};
 
 template <typename E>
 struct scalar_type<MatrixNegation<E>> : public detail::set_type<typename scalar_type<E>::type> {};
@@ -71,10 +77,10 @@ template <typename E>
 struct scalar_type<MatrixTranspose<E>> : public detail::set_type<typename scalar_type<E>::type> {};
 
 template <typename E, typename U>
-struct scalar_type<MatrixScalarMultiplication<E, U>> : public detail::set_type<decltype(std::declval<typename scalar_type<E>::type>() * std::declval<U>())> {};
+struct scalar_type<MatrixScalarMultiplication<E, U>> : public detail::set_type<operation_result_t<std::multiplies<>, typename scalar_type<E>::type, U>> {};
 
 template <typename E, typename U>
-struct scalar_type<ScalarMatrixMultiplication<E, U>> : public detail::set_type<decltype(std::declval<U>() * std::declval<typename scalar_type<E>::type>())> {};
+struct scalar_type<ScalarMatrixMultiplication<E, U>> : public detail::set_type<operation_result_t<std::multiplies<>, U, typename scalar_type<E>::type>> {};
 
 template <typename T>
 struct scalar_type<Matrix<T>> : public detail::set_type<T> {};
@@ -186,9 +192,8 @@ struct is_associative<float> : public std::true_type {};
 template <typename T>
 constexpr bool is_associative_v = is_associative<T>::value;
 
-
 template <typename T>
-struct type_consistent_multiplication : public std::is_same<T, decltype(std::declval<T>() * std::declval<T>())> {};
+struct type_consistent_multiplication : public std::is_same<T, operation_result_t<std::multiplies<>, T, T>> {};
 
 template <typename T>
 constexpr bool type_consistent_multiplication_v = type_consistent_multiplication<T>::value;
