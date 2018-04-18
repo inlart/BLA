@@ -612,6 +612,16 @@ class MatrixExpression {
 
 	bool isSquare() const { return rows() == columns(); }
 
+	SubMatrix<E> row(coordinate_type r) const {
+		assert_lt(r, rows());
+		return sub({r, 0}, {1, columns()});
+	}
+
+	SubMatrix<E> column(coordinate_type c) const {
+		assert_lt(c, columns());
+		return sub({0, c}, {rows(), 1});
+	}
+
 	template <typename E2>
 	ElementMatrixMultiplication<E, E2> product(const MatrixExpression<E2>& e) {
 		return ElementMatrixMultiplication<E, E2>(static_cast<const E&>(*this), e);

@@ -259,6 +259,23 @@ TEST(Expression, IdentityMatrix) {
 	ASSERT_EQ(m1, result);
 }
 
+TEST(Expression, MatrixRowColumn) {
+	Matrix<int> m1({37, 31});
+	IdentityMatrix<int> m2(point_type{m1.columns(), m1.columns()});
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(1, 10);
+
+	auto g = [&]() { return dis(gen); };
+
+	for(int i = 0; i < 20; ++i) {
+		m1.random(g);
+
+		ASSERT_EQ(m1.row(15), m1.transpose().column(15).transpose());
+	}
+}
+
 // -- operations
 TEST(Operation, Addition) {
 	Matrix<int> m1({123, 76});
