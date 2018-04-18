@@ -1,6 +1,6 @@
 # Matrices for AllScale
 
-Provides the `Matrix` data type for the AllScale api.
+Provides the `Matrix` data type for the AllScale API.
 
 ## Dependencies
 
@@ -8,7 +8,7 @@ Provides the `Matrix` data type for the AllScale api.
 * Allscale API (<https://github.com/allscale/allscale_api>)
 * Eigen 3.3 (<http://eigen.tuxfamily.org/index.php?title=Main_Page>)
 * Vc 1.3 (<https://github.com/VcDevel/Vc/tree/1.3>)
-* A C BLAS implementation (e.g. <https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide>)
+* OpenBLAS 0.3.0 (<https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide>)
 
 ## CMake Options
 
@@ -28,7 +28,7 @@ To parallelize Eigen algorithms the compiler has to support OpenMP.
 
 Support for the following preprocessor directives:
 
-* `ALLSCALE_NO_FAST_MATH` - if defined, associativity for `double` and `float` will not be assumed.
+* `ALLSCALE_NO_FAST_MATH` - if defined, associativity for `double` and `float` will **not** be assumed.
 
 ## Header Files
 
@@ -44,88 +44,17 @@ It includes the following header files which are contained in the subfolder `imp
 * `matrix_multiplication.h` - contains different variations of matrix-matrix multiplications
 * `traits.h` - type traits
 
-## Supported Operations
-
-Let `t` be a type.
-
-### scalar-matrix multiplication
-
-Let A, B be matrices with elements of type `t` and size `m * n`.
-Let c be an element of type `t`.
-
-> B <- c * A = A * c
->
-> ∀ i < m, j < n
->
-> B<sub>i,j</sub> = c * A<sub>i,j</sub>
-
-Where `B` is returned by the scalar-matrix multiplication.
-
-### matrix-matrix multiplication
-
-Let A, B, C be matrices with elements of type `t` and sizes `m * k`, `k * n` and `m * n` respectively.
-
-> C <- A * B
->
-> ∀ i < m, j < n
->
-> C<sub>i,j</sub> = ∑(x < k)  A<sub>i,x</sub> * B<sub>x,j</sub>
-
-Where `C` is returned by the matrix-matrix multiplication.
-
-### matrix-matrix addition
-
-Let A, B, C be matrices with elements of type `t` and size `m * n`.
-
-> C <- A + B
->
-> ∀ i < m, j < n
->
-> C<sub>i,j</sub> = A<sub>i,j</sub> + B<sub>i,j</sub>
-
-Where `C` is returned by the matrix-matrix addition.
-
-### matrix-matrix subtraction
-
-Let A, B, C be matrices with elements of type `t` and size `m * n`.
-
-> C <- A - B
->
-> ∀ i < m, j < n
->
-> C<sub>i,j</sub> = A<sub>i,j</sub> - B<sub>i,j</sub>
-
-Where `C` is returned by the matrix-matrix subtraction.
-
-### matrix negation
-
-Let A, B be matrices with elements of type `t` and size `m * n`.
-
-> B <- -A
->
-> ∀ i < m, j < n
->
-> B<sub>i,j</sub> = -A<sub>i,j</sub>
-
-Where `B` is returned by the matrix negation.
-
-### transpose
-
-Let A, B be matrices with elements of type `t` and sizes `m * n`, `n * m` respectively.
-
-> B <- A.transpose()
->
-> ∀ i < m, j < n
->
-> B<sub>j,i</sub> = A<sub>i,j</sub>
-
-Where `B` is returned by the matrix transpose.
-
 ## Test for the Matrix Type
 
 ### src/test/user/data/matrix.cc
 
-Test for the Matrix data type.
+This file contains tests for:
+
+* `Matrix` - General matrix tests
+* `Utility` - Matrix helper functions tests
+* `Expression` - MatrixExpression tests
+* `Operation` - Matrix operations tests
+* `Simplify` - MatrixExpression simplification tests
 
 ## Benchmarking
 
@@ -140,3 +69,27 @@ Contains matrix addition benchmarks
 ### src/benchmark/x/
 
 Contains multiple operations benchmarks
+
+### src/benchmark/mm_n_t/
+
+Contains matrix multiplication benchmarks where the right matrix is transposed
+
+### src/benchmark/mm_t_n/
+
+Contains matrix multiplication benchmarks where the left matrix is transposed
+
+### src/benchmark/mm_t_t/
+
+Contains matrix multiplication benchmarks where both matrices are transposed
+
+### src/benchmark/simplify_scalarmultiplication/
+
+Contains scalar matrix multiplication simplification benchmarks
+
+### src/benchmark/simplify_transpose/
+
+Contains transpose simplification benchmarks
+
+### src/benchmark/transpose/
+
+Contains transpose benchmarks
