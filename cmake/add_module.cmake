@@ -14,8 +14,6 @@ macro(add_module_executable_folder folder extension prefix includes always_allsc
             set(uses_gmp TRUE)
         endif()
 
-        message(STATUS "uses filename: ${filename}")
-        message(STATUS "uses gmp: ${uses_gmp}")
         if((NOT uses_gmp)  OR GMPXX_FOUND)
             # -- Add Executable
             add_executable(${filename} ${file})
