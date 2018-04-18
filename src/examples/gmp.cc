@@ -12,11 +12,29 @@ namespace user {
 namespace data {
 namespace impl {
 
+template <typename T>
+struct operation_result<std::plus<>, T, data_type> : public detail::set_type<data_type> {};
+
+template <typename T>
+struct operation_result<std::plus<>, data_type, T> : public detail::set_type<data_type> {};
+
 template <>
 struct operation_result<std::plus<>, data_type, data_type> : public detail::set_type<data_type> {};
 
+template <typename T>
+struct operation_result<std::minus<>, T, data_type> : public detail::set_type<data_type> {};
+
+template <typename T>
+struct operation_result<std::minus<>, data_type, T> : public detail::set_type<data_type> {};
+
 template <>
 struct operation_result<std::minus<>, data_type, data_type> : public detail::set_type<data_type> {};
+
+template <typename T>
+struct operation_result<std::multiplies<>, T, data_type> : public detail::set_type<data_type> {};
+
+template <typename T>
+struct operation_result<std::multiplies<>, data_type, T> : public detail::set_type<data_type> {};
 
 template <>
 struct operation_result<std::multiplies<>, data_type, data_type> : public detail::set_type<data_type> {};
@@ -41,7 +59,7 @@ int main() {
 
 	m4.fill(7_mpf);
 
-	Matrix<data_type> result = 3_mpf * m3 + m1 * m2 + m4;
+	Matrix<data_type> result = 3 * m3 + m1 * m2 + m4;
 
 	return EXIT_SUCCESS;
 }
