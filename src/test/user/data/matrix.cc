@@ -651,6 +651,26 @@ TEST(Operation, QRDecomposition) {
 	}
 }
 
+TEST(Operation, DISABLED_SVDecomposition) {
+	Matrix<double> m1({10, 5});
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<double> dis(-1, 1);
+
+	auto g = [&]() { return dis(gen); };
+	for(int i = 0; i < 1; ++i) {
+		m1.random(g);
+
+		auto sv = m1.SVDecomposition();
+
+		ASSERT_TRUE(isAlmostEqual(sv.getU() * sv.getU().transpose(), IdentityMatrix<double>(point_type{sv.getU().rows(), sv.getU().rows()})));
+		ASSERT_TRUE(isAlmostEqual(sv.getV().transpose() * sv.getV(), IdentityMatrix<double>(point_type{sv.getV().columns(), sv.getV().columns()})));
+
+		ASSERT_TRUE(isAlmostEqual(m1, (sv.getU() * sv.getS() * sv.getV()).eval()));
+	}
+}
+
 // -- simplify matrix expressions
 TEST(Simplify, Transpose) {
 	Matrix<int> m1({55, 58});
