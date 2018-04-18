@@ -559,7 +559,7 @@ struct QRD {
 
 template <typename T>
 struct SVD {
-	SVD(const Matrix<T>& A) : U(point_type{A.rows(), A.rows()}), E(A.size()), V(point_type{A.columns(), A.columns()}) {
+	SVD(const Matrix<T>& A) : U(point_type{A.rows(), A.rows()}), S(A.size()), V(point_type{A.columns(), A.columns()}) {
 		// TODO: implement
 		assert_fail();
 	}
@@ -570,9 +570,13 @@ struct SVD {
 	SVD<T>& operator=(const SVD<T>&) = delete;
 	SVD<T>& operator=(SVD<T>&&) = default;
 
+	const Matrix<T>& getU() { return U; }
+	const Matrix<T>& getS() { return S; }
+	const Matrix<T>& getV() { return V; }
+
   private:
 	Matrix<T> U;
-	Matrix<T> E;
+	Matrix<T> S;
 	Matrix<T> V;
 };
 
@@ -589,7 +593,7 @@ class MatrixExpression {
   protected:
 	MatrixExpression() = default;
 	MatrixExpression(const MatrixExpression&) = default;
-	MatrixExpression& operator=(const MatrixExpression&) = default;
+	MatrixExpression& operator=(const MatrixExpression&) = delete;
 
   public:
 	T operator[](const point_type& pos) const { return static_cast<const E&>(*this)[pos]; }
@@ -622,6 +626,8 @@ class MatrixExpression {
 	LUD<T> LUDecomposition() { return LUD<T>(*this); }
 
 	QRD<T> QRDecomposition() { return QRD<T>(*this); }
+
+	SVD<T> SVDecomposition() { return SVD<T>(*this); }
 
 	template <typename Reducer>
 	T reduce(T init, Reducer f) {
