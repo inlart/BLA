@@ -77,6 +77,8 @@ endif()
 # -- Testing
 add_executable(matrix_test src/test/user/data/matrix.cc)
 
+add_dependencies(matrix_test ${ALLSCALE_MATRIX_DEPENDENCIES})
+
 # -- Test Flags
 target_include_directories(matrix_test PUBLIC "include")
 target_include_directories(matrix_test PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
