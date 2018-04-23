@@ -276,6 +276,32 @@ TEST(Expression, MatrixRowColumn) {
 	}
 }
 
+TEST(Expression, MatrixRow) {
+	const coordinate_type c = 31;
+	IdentityMatrix<int> m(point_type{c, c});
+
+	for(int i = 0; i < c; ++i) {
+		SubMatrix<IdentityMatrix<int>> r = m.row(i);
+		for(int j = 0; j < c; ++j) {
+			int val = i == j ? 1 : 0;
+			ASSERT_EQ(val, (r[{0, j}]));
+		}
+	}
+}
+
+TEST(Expression, MatrixColumn) {
+	const coordinate_type c = 31;
+	IdentityMatrix<int> m(point_type{c, c});
+
+	for(int i = 0; i < c; ++i) {
+		SubMatrix<IdentityMatrix<int>> r = m.column(i);
+		for(int j = 0; j < c; ++j) {
+			int val = i == j ? 1 : 0;
+			ASSERT_EQ(val, (r[{j, 0}]));
+		}
+	}
+}
+
 // -- operations
 TEST(Operation, Addition) {
 	Matrix<int> m1({123, 76});
