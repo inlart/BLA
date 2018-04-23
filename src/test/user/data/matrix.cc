@@ -1,8 +1,10 @@
 #include <Vc/Vc>
 #include <Vc/cpuid.h>
 #include <allscale/api/user/data/matrix.h>
+#include <complex>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <type_traits>
 
 namespace allscale {
 namespace api {
@@ -10,13 +12,27 @@ namespace user {
 namespace data {
 namespace impl {
 
-template <typename E1, typename E2>
-bool isAlmostEqual(const MatrixExpression<E1>& a, const MatrixExpression<E2>& b, scalar_type_t<E1> epsilon = 0.001) {
+template <typename E1, typename E2, typename T = double>
+std::enable_if_t<!std::is_same<scalar_type_t<E1>, std::complex<double>>::value, bool> isAlmostEqual(const MatrixExpression<E1>& a,
+                                                                                                    const MatrixExpression<E2>& b, T epsilon = 0.001) {
 	if(a.size()[0] != b.size()[0] || a.size()[1] != b.size()[1]) { return false; }
 	for(coordinate_type i = 0; i < a.rows(); ++i) {
 		for(coordinate_type j = 0; j < a.columns(); ++j) {
 			scalar_type_t<E1> diff = (a[{i, j}] - b[{i, j}]);
 			if(diff * diff > epsilon) { return false; }
+		}
+	}
+	return true;
+}
+
+template <typename E1, typename E2, typename T = double>
+std::enable_if_t<std::is_same<scalar_type_t<E1>, std::complex<double>>::value, bool> isAlmostEqual(const MatrixExpression<E1>& a, const MatrixExpression<E2>& b,
+                                                                                                   T epsilon = 0.001) {
+	if(a.size()[0] != b.size()[0] || a.size()[1] != b.size()[1]) { return false; }
+	for(coordinate_type i = 0; i < a.rows(); ++i) {
+		for(coordinate_type j = 0; j < a.columns(); ++j) {
+			scalar_type_t<E1> diff = (a[{i, j}] - b[{i, j}]);
+			if(diff.real() * diff.real() > epsilon || diff.imag() * diff.imag() > epsilon) { return false; }
 		}
 	}
 	return true;
@@ -134,6 +150,19 @@ TEST(Matrix, CustomTypes) {
 
 	m4 = m1 - m2;
 	ASSERT_TRUE(isAlmostEqual(m4, test_d));
+}
+
+TEST(Matrix, Complex) {
+	using type = std::complex<double>;
+
+	Matrix<type> a({137, 239});
+	Matrix<type> b({a.columns(), a.columns()});
+
+	b.identity();
+
+	algorithm::pfor(a.size(), [&](const auto& pos) { a[pos] = type(pos.x, pos.y); });
+
+	ASSERT_TRUE(isAlmostEqual(a, Matrix<type>(a * b)));
 }
 
 // -- utility
