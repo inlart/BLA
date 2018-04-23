@@ -15,6 +15,9 @@ class Latex
         @@api_colors.store(api, @@colors[@@colors_count])
         puts
         @@colors_count += 1
+        if @@colors_count >= @@colors.length then
+            @@colors_count = 0
+        end
     end
 
     def self.print_pgfplot(name, ylabel, data)
