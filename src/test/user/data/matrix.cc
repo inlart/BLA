@@ -92,6 +92,20 @@ TEST(Matrix, Max) {
 	ASSERT_EQ(m.max(), 1.);
 }
 
+TEST(Matrix, Initializer) {
+	const point_type s{4, 4};
+
+	Matrix<int> m(s);
+
+	m << 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16;
+
+	for(coordinate_type i = 0; i < m.rows(); ++i) {
+		for(coordinate_type j = 0; j < m.columns(); ++j) {
+			ASSERT_EQ((m[{i, j}]), (i * m.rows() + j + 1));
+		}
+	}
+}
+
 TEST(Matrix, Min) {
 	const point_type s{256, 256};
 	Matrix<double> m(s);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "expressions.h"
 #include "forward.h"
 
@@ -114,6 +116,46 @@ std::ostream& operator<<(std::ostream& os, const MatrixExpression<E>& m) {
 	}
 	return os;
 }
+
+template <typename T>
+class MatrixInitializer {
+  public:
+	MatrixInitializer(Matrix<T>& m, const T& val) : matrix(m), pos({0, 0}) {
+		matrix[{0, 0}] = val;
+		increasePos();
+	}
+
+	~MatrixInitializer() { assert_eq(pos, (point_type{matrix.rows(), 0})); }
+
+	template <typename T2>
+	MatrixInitializer& operator,(const T2& val) {
+		assert_lt(pos, matrix.size());
+		matrix[pos] = static_cast<T>(val);
+
+		increasePos();
+
+		return *this;
+	}
+
+  private:
+	void increasePos() {
+		pos.y++;
+		if(pos.y == matrix.columns()) {
+			pos.y = 0;
+			pos.x++;
+		}
+	}
+
+  private:
+	Matrix<T>& matrix;
+	point_type pos;
+};
+
+template <typename T1, typename T2>
+MatrixInitializer<T1> operator<<(Matrix<T1>& m, const T2& val) {
+	return MatrixInitializer<T1>(m, static_cast<T1>(val));
+}
+
 
 } // end namespace impl
 } // end namespace data
