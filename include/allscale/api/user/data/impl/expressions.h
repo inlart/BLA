@@ -420,8 +420,6 @@ class SubMatrix : public MatrixExpression<SubMatrix<E>> {
 
 template <typename T>
 class IdentityMatrix : public MatrixExpression<IdentityMatrix<T>> {
-	//    using typename MatrixExpression<IdentityMatrix<E>>::PacketScalar;
-
   public:
 	IdentityMatrix(point_type matrix_size) : matrix_size(matrix_size) {}
 
@@ -436,12 +434,8 @@ class IdentityMatrix : public MatrixExpression<IdentityMatrix<T>> {
 
 	coordinate_type columns() const { return matrix_size[1]; }
 
-	//    PacketScalar packet(point_type p) const { }
-
   private:
 	point_type matrix_size;
-	T neutral_element;
-	T zero_element;
 };
 
 
