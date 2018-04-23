@@ -84,6 +84,22 @@ TEST(Matrix, Norm) {
 	ASSERT_LT(std::abs(m.norm() - 16.), 1E-12);
 }
 
+TEST(Matrix, Max) {
+	const point_type s{256, 256};
+	Matrix<double> m(s);
+	m.identity();
+
+	ASSERT_EQ(m.max(), 1.);
+}
+
+TEST(Matrix, Min) {
+	const point_type s{256, 256};
+	Matrix<double> m(s);
+	m.identity();
+
+	ASSERT_EQ(m.min(), 0.);
+}
+
 TEST(Matrix, CustomTypeInit) {
 	struct A;
 	struct B;

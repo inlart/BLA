@@ -6,6 +6,7 @@
 
 #include <Eigen/Dense>
 #include <Vc/Vc>
+#include <algorithm>
 #include <allscale/api/user/data/grid.h>
 #include <functional>
 
@@ -651,6 +652,36 @@ class MatrixExpression {
 		}
 
 		return result;
+	}
+
+	template <typename Reducer>
+	T reduce(Reducer f) {
+		using ct = coordinate_type;
+
+		T result{};
+		bool first = true;
+
+		// TODO: use preduce
+		for(ct i = 0; i < rows(); ++i) {
+			for(ct j = 0; j < columns(); ++j) {
+				if(first) {
+					first = false;
+					result = (*this)[{i, j}];
+					continue;
+				}
+				result = f(result, (*this)[{i, j}]);
+			}
+		}
+
+		return result;
+	}
+
+	T max() {
+		return reduce([](T a, T b) { return std::max(a, b); });
+	}
+
+	T min() {
+		return reduce([](T a, T b) { return std::min(a, b); });
 	}
 
 	T determinant() {
