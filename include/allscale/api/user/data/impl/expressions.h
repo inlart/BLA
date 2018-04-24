@@ -2,6 +2,7 @@
 
 #include "decomposition.h"
 #include "traits.h"
+#include "types.h"
 
 #include "forward.h"
 
@@ -17,24 +18,136 @@ namespace user {
 namespace data {
 namespace impl {
 
-using point_type = GridPoint<2>;
-using triple_type = GridPoint<3>;
+template <typename E>
+class MatrixExpression {
+  public:
+	using T = scalar_type_t<E>;
+	using PacketScalar = typename Vc::Vector<T>;
 
-struct RowRange {
-	coordinate_type start;
-	coordinate_type end;
-};
+	/*
+	 * abstract class due to object slicing
+	 */
+  protected:
+	MatrixExpression() = default;
+	MatrixExpression(const MatrixExpression&) = default;
+	MatrixExpression& operator=(const MatrixExpression&) = delete;
 
-struct BlockRange {
-	point_type start;
-	point_type end;
+  public:
+	T operator[](const point_type& pos) const { return static_cast<const E&>(*this)[pos]; }
 
-	point_type range() const { return end - start; }
-
-	coordinate_type area() const {
-		auto x = range();
-		return x.x * x.y;
+	T at(const point_type& pos) const {
+		assert_lt(pos, size());
+		assert_ge(pos, (point_type{0, 0}));
+		return static_cast<const E&>(*this)[pos];
 	}
+
+	point_type size() const { return static_cast<const E&>(*this).size(); }
+
+	coordinate_type rows() const { return static_cast<const E&>(*this).rows(); }
+
+	coordinate_type columns() const { return static_cast<const E&>(*this).columns(); }
+
+	bool isSquare() const { return rows() == columns(); }
+
+	SubMatrix<E> row(coordinate_type r) const {
+		assert_lt(r, rows());
+		return sub({{r, 0}, {1, columns()}});
+	}
+
+	SubMatrix<E> column(coordinate_type c) const {
+		assert_lt(c, columns());
+		return sub({{0, c}, {rows(), 1}});
+	}
+
+	template <typename E2>
+	ElementMatrixMultiplication<E, E2> product(const MatrixExpression<E2>& e) {
+		return ElementMatrixMultiplication<E, E2>(static_cast<const E&>(*this), e);
+	}
+
+	MatrixTranspose<E> transpose() const { return MatrixTranspose<E>(static_cast<const E&>(*this)); }
+
+	SubMatrix<E> sub(BlockRange block_range) const { return SubMatrix<E>(static_cast<const E&>(*this), block_range); }
+
+	T norm() { return std::sqrt(product(*this).reduce(0, std::plus<T>{})); }
+
+	LUD<T> LUDecomposition() { return LUD<T>(*this); }
+
+	QRD<T> QRDecomposition() { return QRD<T>(*this); }
+
+	SVD<T> SVDecomposition() { return SVD<T>(*this); }
+
+	template <typename Reducer>
+	T reduce(T init, Reducer f) {
+		using ct = coordinate_type;
+		T result = init;
+		// TODO: use preduce
+		for(ct i = 0; i < rows(); ++i) {
+			for(ct j = 0; j < columns(); ++j) {
+				result = f(result, (*this)[{i, j}]);
+			}
+		}
+
+		return result;
+	}
+
+	template <typename Reducer>
+	T reduce(Reducer f) {
+		using ct = coordinate_type;
+
+		T result{};
+		bool first = true;
+
+		// TODO: use preduce
+		for(ct i = 0; i < rows(); ++i) {
+			for(ct j = 0; j < columns(); ++j) {
+				if(first) {
+					first = false;
+					result = (*this)[{i, j}];
+					continue;
+				}
+				result = f(result, (*this)[{i, j}]);
+			}
+		}
+
+		return result;
+	}
+
+	T max() {
+		return reduce([](T a, T b) { return std::max(a, b); });
+	}
+
+	T min() {
+		return reduce([](T a, T b) { return std::min(a, b); });
+	}
+
+	T determinant() {
+		assert_eq(rows(), columns());
+		using ct = coordinate_type;
+		auto lu = LUDecomposition();
+		T det = static_cast<T>(1); // TODO: find a better way to do that
+
+		const ct n = lu.lower().rows();
+
+		for(ct i = 0; i < n; ++i) {
+			det *= lu.lower()[{i, i}] * lu.upper()[{i, i}];
+		}
+
+
+		return det;
+	}
+
+	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
+
+	Matrix<T> eval() const {
+		Matrix<T> tmp(size());
+
+		evaluate(*this, tmp);
+
+		return tmp;
+	}
+
+	operator E&() { return static_cast<E&>(*this); }
+	operator const E&() const { return static_cast<const E&>(*this); }
 };
 
 template <typename E1, typename E2>
@@ -169,13 +282,16 @@ class MatrixMultiplication : public MatrixExpression<MatrixMultiplication<E1, E2
   private:
 	Exp1 lhs;
 	Exp2 rhs;
-	mutable std::shared_ptr<Matrix<T>> tmp; // contains a temporary matrix
+
+	/*
+	 * temporary matrix that is only evaluated if needed
+	 */
+	mutable std::shared_ptr<Matrix<T>> tmp;
 };
 
 template <typename E>
 class MatrixTranspose : public MatrixExpression<MatrixTranspose<E>> {
 	using typename MatrixExpression<MatrixTranspose<E>>::T;
-	using typename MatrixExpression<MatrixTranspose<E>>::PacketScalar;
 
 	using Exp = expression_member_t<E>;
 
@@ -191,8 +307,6 @@ class MatrixTranspose : public MatrixExpression<MatrixTranspose<E>> {
 	coordinate_type columns() const { return expression.rows(); }
 
 	Exp getExpression() const { return expression; }
-
-	//  PacketScalar packet(point_type p) const { assert_falsereturn expression.packet(p); }
 
   private:
 	Exp expression;
@@ -360,15 +474,14 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
 	template <typename Generator>
 	void random(Generator gen) {
-		// we do not use pfor here, rand() is not made for it
 		for(coordinate_type i = 0; i < rows(); ++i) {
 			for(coordinate_type j = 0; j < columns(); ++j) {
-				m_data[{i, j}] = gen();
+				point_type pos{i, j};
+				m_data[pos] = gen(pos);
 			}
 		}
 	}
 
-	// Eigen matrices are stored column major by default
 	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> toEigenMatrix() {
 		Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> result(rows(), columns());
 		algorithm::pfor(size(), [&](const point_type& p) { result(p.x, p.y) = m_data[p]; });
@@ -391,32 +504,30 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 template <typename E>
 class SubMatrix : public MatrixExpression<SubMatrix<E>> {
 	using typename MatrixExpression<SubMatrix<E>>::T;
-	using typename MatrixExpression<SubMatrix<E>>::PacketScalar;
 
 	using Exp = expression_member_t<E>;
 
   public:
-	SubMatrix(Exp v, point_type sub_start, point_type sub_size) : expression(v), sub_start(sub_start), sub_size(sub_size) {
-		assert_le(sub_start + sub_size, expression.size());
+	SubMatrix(Exp v, BlockRange block_range) : expression(v), block_range(block_range) {
+		assert_ge(block_range.start, (point_type{0, 0}));
+		assert_ge(block_range.size, (point_type{0, 0}));
+		assert_le(block_range.start + block_range.size, expression.size());
 	}
 
-	T operator[](const point_type& pos) const { return expression[pos + sub_start]; }
+	T operator[](const point_type& pos) const { return expression[pos + block_range.start]; }
 
-	point_type size() const { return sub_size; }
-	coordinate_type rows() const { return sub_size[0]; }
+	point_type size() const { return block_range.size; }
+	coordinate_type rows() const { return block_range.size[0]; }
 
-	coordinate_type columns() const { return sub_size[1]; }
-
-	//    PacketScalar packet(point_type p) const { }
+	coordinate_type columns() const { return block_range.size[1]; }
 
 	Exp getExpression() const { return expression; }
 
-	point_type getStart() const { return sub_start; }
+	BlockRange getBlockRange() const { return block_range; }
 
   private:
 	Exp expression;
-	point_type sub_start;
-	point_type sub_size;
+	BlockRange block_range;
 };
 
 template <typename T>
@@ -437,138 +548,6 @@ class IdentityMatrix : public MatrixExpression<IdentityMatrix<T>> {
 
   private:
 	point_type matrix_size;
-};
-
-template <typename E>
-class MatrixExpression {
-  public:
-	using T = scalar_type_t<E>;
-	using PacketScalar = typename Vc::Vector<T>;
-
-	/*
-	 * abstract class due to object slicing
-	 */
-  protected:
-	MatrixExpression() = default;
-	MatrixExpression(const MatrixExpression&) = default;
-	MatrixExpression& operator=(const MatrixExpression&) = delete;
-
-  public:
-	T operator[](const point_type& pos) const { return static_cast<const E&>(*this)[pos]; }
-
-	T at(const point_type& pos) const {
-		assert_lt(pos, size());
-		assert_ge(pos, (point_type{0, 0}));
-		return static_cast<const E&>(*this)[pos];
-	}
-
-	point_type size() const { return static_cast<const E&>(*this).size(); }
-
-	coordinate_type rows() const { return static_cast<const E&>(*this).rows(); }
-
-	coordinate_type columns() const { return static_cast<const E&>(*this).columns(); }
-
-	bool isSquare() const { return rows() == columns(); }
-
-	SubMatrix<E> row(coordinate_type r) const {
-		assert_lt(r, rows());
-		return sub({r, 0}, {1, columns()});
-	}
-
-	SubMatrix<E> column(coordinate_type c) const {
-		assert_lt(c, columns());
-		return sub({0, c}, {rows(), 1});
-	}
-
-	template <typename E2>
-	ElementMatrixMultiplication<E, E2> product(const MatrixExpression<E2>& e) {
-		return ElementMatrixMultiplication<E, E2>(static_cast<const E&>(*this), e);
-	}
-
-	MatrixTranspose<E> transpose() const { return MatrixTranspose<E>(static_cast<const E&>(*this)); }
-
-	SubMatrix<E> sub(point_type start, point_type size) const { return SubMatrix<E>(static_cast<const E&>(*this), start, size); }
-
-	T norm() { return std::sqrt(product(*this).reduce(0, std::plus<T>{})); }
-
-	LUD<T> LUDecomposition() { return LUD<T>(*this); }
-
-	QRD<T> QRDecomposition() { return QRD<T>(*this); }
-
-	SVD<T> SVDecomposition() { return SVD<T>(*this); }
-
-	template <typename Reducer>
-	T reduce(T init, Reducer f) {
-		using ct = coordinate_type;
-		T result = init;
-		// TODO: use preduce
-		for(ct i = 0; i < rows(); ++i) {
-			for(ct j = 0; j < columns(); ++j) {
-				result = f(result, (*this)[{i, j}]);
-			}
-		}
-
-		return result;
-	}
-
-	template <typename Reducer>
-	T reduce(Reducer f) {
-		using ct = coordinate_type;
-
-		T result{};
-		bool first = true;
-
-		// TODO: use preduce
-		for(ct i = 0; i < rows(); ++i) {
-			for(ct j = 0; j < columns(); ++j) {
-				if(first) {
-					first = false;
-					result = (*this)[{i, j}];
-					continue;
-				}
-				result = f(result, (*this)[{i, j}]);
-			}
-		}
-
-		return result;
-	}
-
-	T max() {
-		return reduce([](T a, T b) { return std::max(a, b); });
-	}
-
-	T min() {
-		return reduce([](T a, T b) { return std::min(a, b); });
-	}
-
-	T determinant() {
-		assert_eq(rows(), columns());
-		using ct = coordinate_type;
-		auto lu = LUDecomposition();
-		T det = static_cast<T>(1); // TODO: find a better way to do that
-
-		const ct n = lu.lower().rows();
-
-		for(ct i = 0; i < n; ++i) {
-			det *= lu.lower()[{i, i}] * lu.upper()[{i, i}];
-		}
-
-
-		return det;
-	}
-
-	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
-
-	Matrix<T> eval() const {
-		Matrix<T> tmp(size());
-
-		evaluate(*this, tmp);
-
-		return tmp;
-	}
-
-	operator E&() { return static_cast<E&>(*this); }
-	operator const E&() const { return static_cast<const E&>(*this); }
 };
 
 // -- evaluate a matrix expression using vectorization
@@ -675,7 +654,7 @@ auto simplify(ScalarMatrixMultiplication<E, U> e) {
 
 template <typename E>
 auto simplify(SubMatrix<E> e) {
-	return SubMatrix<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getStart(), e.size());
+	return SubMatrix<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
 }
 
 // What we really simplify

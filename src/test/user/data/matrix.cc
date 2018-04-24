@@ -1,5 +1,4 @@
 #include <Vc/Vc>
-#include <Vc/cpuid.h>
 #include <allscale/api/user/data/matrix.h>
 #include <complex>
 #include <gtest/gtest.h>
@@ -114,6 +113,20 @@ TEST(Matrix, Min) {
 	ASSERT_EQ(m.min(), 0.);
 }
 
+TEST(Matrix, Generator) {
+	const point_type s{4, 4};
+	Matrix<int> m1(s);
+	Matrix<int> m2(s);
+
+	m1 << 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15;
+
+	auto g = [s](const auto& pos) { return pos.x * s.x + pos.y; };
+
+	m2.random(g);
+
+	ASSERT_EQ(m1, m2);
+}
+
 TEST(Matrix, CustomTypeInit) {
 	struct A;
 	struct B;
@@ -214,7 +227,7 @@ TEST(Utility, Random) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	m.random(g);
 	for(int i = 0; i < 2; ++i) {
 		for(int j = 0; j < 2; ++j) {
@@ -248,7 +261,7 @@ TEST(Utility, EigenMap) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -290,10 +303,10 @@ TEST(Expression, SubMatrix) {
 
 	algorithm::pfor(m1.size(), [&](const auto& p) { m1[p] = p.y % nh + nh * (p.x % nh); });
 
-	Matrix<int> s1 = m1.sub({0, 0}, {nh, nh});
-	Matrix<int> s2 = m1.sub({0, nh}, {nh, nh});
-	Matrix<int> s3 = m1.sub({nh, 0}, {nh, nh});
-	Matrix<int> s4 = m1.sub({nh, nh}, {nh, nh});
+	Matrix<int> s1 = m1.sub({{0, 0}, {nh, nh}});
+	Matrix<int> s2 = m1.sub({{0, nh}, {nh, nh}});
+	Matrix<int> s3 = m1.sub({{nh, 0}, {nh, nh}});
+	Matrix<int> s4 = m1.sub({{nh, nh}, {nh, nh}});
 
 	ASSERT_EQ(s1, s2);
 	ASSERT_EQ(s2, s3);
@@ -326,7 +339,7 @@ TEST(Expression, MatrixRowColumn) {
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(1, 10);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
@@ -369,7 +382,7 @@ TEST(Operation, Addition) {
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(1, 10);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
@@ -385,7 +398,7 @@ TEST(Operation, AssignAddition) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -407,7 +420,7 @@ TEST(Operation, Subtraction) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -423,7 +436,7 @@ TEST(Operation, AssignSubtraction) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -445,7 +458,7 @@ TEST(Operation, ElementMultiplication) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -467,7 +480,7 @@ TEST(Operation, Negation) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
 		m.random(g);
 		ASSERT_TRUE(isAlmostEqual(-m, Matrix<double>(-(m.toEigenMatrix()))));
@@ -481,7 +494,7 @@ TEST(Operation, Multiplication) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -496,7 +509,7 @@ TEST(Operation, MultiplicationNoTransposeTranspose) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -511,7 +524,7 @@ TEST(Operation, MultiplicationTransposeNoTranspose) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -526,7 +539,7 @@ TEST(Operation, MultiplicationTransposeTranspose) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -541,7 +554,7 @@ TEST(Operation, AssignMultiplication) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -563,7 +576,7 @@ TEST(Operation, MultiplicationStrassen) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -578,7 +591,7 @@ TEST(Operation, MultiplicationBLAS) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -598,7 +611,7 @@ TEST(Operation, MultiplicationAllscale) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -616,7 +629,7 @@ TEST(Operation, MultiplicationAllscaleInteger) {
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(1, 10);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -633,7 +646,7 @@ TEST(Operation, ScalarMatrixMultiplication) {
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		ASSERT_EQ(3. * m1, Matrix<int>((3. * m1.toEigenMatrix()).eval()));
@@ -646,7 +659,7 @@ TEST(Operation, MatrixScalarMultiplication) {
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
 		m1.random(g);
 		ASSERT_EQ(m1 * 3., Matrix<int>((m1.toEigenMatrix() * 3.).eval()));
@@ -659,7 +672,7 @@ TEST(Operation, Transpose) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	m1.random(g);
 	Matrix<double> m2 = m1.transpose();
 
@@ -676,7 +689,7 @@ TEST(Operation, Multiple) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
 		m2.random(g);
@@ -693,7 +706,7 @@ TEST(Operation, Determinant) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
 		ASSERT_TRUE(std::abs(m1.determinant() - (m1[{0, 0}] * m1[{1, 1}] - m1[{0, 1}] * m1[{1, 0}])) < 0.0001);
@@ -707,7 +720,7 @@ TEST(Operation, DeterminantEigen) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(0, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
 		m1.random(g);
 
@@ -724,7 +737,7 @@ TEST(Operation, LUDecomposition) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 1; ++i) {
 		m1.random(g);
 
@@ -741,7 +754,7 @@ TEST(Operation, QRDecomposition) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 1; ++i) {
 		m1.random(g);
 
@@ -760,7 +773,7 @@ TEST(Operation, DISABLED_SVDecomposition) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<double> dis(-1, 1);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 1; ++i) {
 		m1.random(g);
 
@@ -784,7 +797,7 @@ TEST(Simplify, Transpose) {
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(1, 10);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 
 	m1.random(g);
 	m2.random(g);
@@ -813,7 +826,7 @@ TEST(Simplify, RecursiveTranspose) {
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(1, 10);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 
 	m1.random(g);
 	m2.random(g);
@@ -911,7 +924,7 @@ TEST(Simplify, Negation) {
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(1, 9);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 
 	m1.random(g);
 	m2.zero();
@@ -942,7 +955,7 @@ TEST(Simplify, IdentityMatrix) {
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dis(1, 9);
 
-	auto g = [&]() { return dis(gen); };
+	auto g = [&](const auto&) { return dis(gen); };
 
 	m1.random(g);
 	m2.random(g);

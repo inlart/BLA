@@ -37,20 +37,20 @@ void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordina
 	coordinate_type m = size / 2;
 	point_type size_m{m, m};
 
-	const Matrix<T> a11 = A.sub({0, 0}, size_m);
-	const Matrix<T> a12 = A.sub({0, m}, size_m);
-	const Matrix<T> a21 = A.sub({m, 0}, size_m);
-	const Matrix<T> a22 = A.sub(size_m, size_m);
+	const Matrix<T> a11 = A.sub({{0, 0}, size_m});
+	const Matrix<T> a12 = A.sub({{0, m}, size_m});
+	const Matrix<T> a21 = A.sub({{m, 0}, size_m});
+	const Matrix<T> a22 = A.sub({size_m, size_m});
 
-	const Matrix<T> b11 = B.sub({0, 0}, size_m);
-	const Matrix<T> b12 = B.sub({0, m}, size_m);
-	const Matrix<T> b21 = B.sub({m, 0}, size_m);
-	const Matrix<T> b22 = B.sub(size_m, size_m);
+	const Matrix<T> b11 = B.sub({{0, 0}, size_m});
+	const Matrix<T> b12 = B.sub({{0, m}, size_m});
+	const Matrix<T> b21 = B.sub({{m, 0}, size_m});
+	const Matrix<T> b22 = B.sub({size_m, size_m});
 
-	Matrix<T> c11 = C.sub({0, 0}, size_m);
-	Matrix<T> c12 = C.sub({0, m}, size_m);
-	Matrix<T> c21 = C.sub({m, 0}, size_m);
-	Matrix<T> c22 = C.sub(size_m, size_m);
+	Matrix<T> c11 = C.sub({{0, 0}, size_m});
+	Matrix<T> c12 = C.sub({{0, m}, size_m});
+	Matrix<T> c21 = C.sub({{m, 0}, size_m});
+	Matrix<T> c22 = C.sub({size_m, size_m});
 
 	Matrix<T> u1(size_m);
 	Matrix<T> u2(size_m);
@@ -300,32 +300,29 @@ void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& 
 	const CBLAS_TRANSPOSE trhs = transRHS ? CblasTrans : CblasNoTrans;
 
 	auto blas_multiplication = [&](const BlockRange& r) {
-		assert_le(r.start, r.end);
+		assert_ge(r.size, (point_type{0, 0}));
 
 		const point_type l_start = transLHS ? point_type{0, r.start.x} : point_type{r.start.x, 0};
 		const point_type r_start = transRHS ? point_type{r.start.y, 0} : point_type{0, r.start.y};
 
-		cblas_dgemm(CblasRowMajor, tlhs, trhs, r.end.x - r.start.x, r.end.y - r.start.y, k, 1.0, &lhs[l_start], lhs.columns(), &rhs[r_start], rhs.columns(),
-		            0.0, &result[{r.start.x, r.start.y}], result.columns());
+		cblas_dgemm(CblasRowMajor, tlhs, trhs, r.size.x, r.size.y, k, 1.0, &lhs[l_start], lhs.columns(), &rhs[r_start], rhs.columns(), 0.0,
+		            &result[{r.start.x, r.start.y}], result.columns());
 	};
 
 	auto multiplication_rec = prec(
 	    // base case test
-	    [&](const BlockRange& r) {
-		    auto block = r.end - r.start;
-		    return block.x * block.y <= 128 * 128;
-		},
+	    [&](const BlockRange& r) { return r.area() <= 128 * 128; },
 	    // base case
 	    blas_multiplication, core::pick(
 	                             // parallel recursive split
 	                             [&](const BlockRange& r, const auto& rec) {
 
-		                             auto mid = r.start + (r.end - r.start) / 2;
+		                             auto mid = r.start + r.size / 2;
 
 		                             BlockRange top_left{r.start, mid};
-		                             BlockRange top_right{{r.start.x, mid.y}, {mid.x, r.end.y}};
-		                             BlockRange bottom_left{{mid.x, r.start.y}, {r.end.x, mid.y}};
-		                             BlockRange bottom_right{mid, r.end};
+		                             BlockRange top_right{{r.start.x, mid.y}, {mid.x, r.start.y + r.size.y}};
+		                             BlockRange bottom_left{{mid.x, r.start.y}, {r.start.x + r.size.x, mid.y}};
+		                             BlockRange bottom_right{mid, r.start + r.size};
 
 		                             return core::parallel(core::parallel(rec(top_left), rec(top_right)), core::parallel(rec(bottom_left), rec(bottom_right)));
 		                         },
@@ -335,11 +332,7 @@ void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& 
 		                             return core::done();
 		                         }));
 
-	BlockRange b;
-	b.start = {0, 0};
-	b.end = {result.rows(), result.columns()};
-
-	multiplication_rec(b).wait();
+	multiplication_rec(BlockRange{{0, 0}, result.size()}).wait();
 }
 
 // -- parallel matrix * matrix multiplication using the Eigen multiplication as base case
