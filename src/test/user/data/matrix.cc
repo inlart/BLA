@@ -782,6 +782,17 @@ TEST(Operation, DISABLED_SVDecomposition) {
 		ASSERT_TRUE(isAlmostEqual(sv.getU() * sv.getU().transpose(), IdentityMatrix<double>(point_type{sv.getU().rows(), sv.getU().rows()})));
 		ASSERT_TRUE(isAlmostEqual(sv.getV().transpose() * sv.getV(), IdentityMatrix<double>(point_type{sv.getV().columns(), sv.getV().columns()})));
 
+		ASSERT_GE(sv.getS().min(), 0);
+
+		algorithm::pfor(sv.getS().size(), [&](const auto& pos) {
+			if(pos.x == pos.y) {
+				ASSERT_GE(sv.getS()[pos], 0);
+			} else {
+				ASSERT_TRUE(std::abs(sv.getS()[pos]) < 10 * std::numeric_limits<double>::epsilon());
+			}
+		});
+
+
 		ASSERT_TRUE(isAlmostEqual(m1, (sv.getU() * sv.getS() * sv.getV()).eval()));
 	}
 }

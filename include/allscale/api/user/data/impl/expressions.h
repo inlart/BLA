@@ -60,7 +60,7 @@ class MatrixExpression {
 	}
 
 	template <typename E2>
-	ElementMatrixMultiplication<E, E2> product(const MatrixExpression<E2>& e) {
+	ElementMatrixMultiplication<E, E2> product(const MatrixExpression<E2>& e) const {
 		return ElementMatrixMultiplication<E, E2>(static_cast<const E&>(*this), e);
 	}
 
@@ -68,16 +68,16 @@ class MatrixExpression {
 
 	SubMatrix<E> sub(BlockRange block_range) const { return SubMatrix<E>(static_cast<const E&>(*this), block_range); }
 
-	T norm() { return std::sqrt(product(*this).reduce(0, std::plus<T>{})); }
+	T norm() const { return std::sqrt(product(*this).reduce(0, std::plus<T>{})); }
 
-	LUD<T> LUDecomposition() { return LUD<T>(*this); }
+	LUD<T> LUDecomposition() const { return LUD<T>(*this); }
 
-	QRD<T> QRDecomposition() { return QRD<T>(*this); }
+	QRD<T> QRDecomposition() const { return QRD<T>(*this); }
 
-	SVD<T> SVDecomposition() { return SVD<T>(*this); }
+	SVD<T> SVDecomposition() const { return SVD<T>(*this); }
 
 	template <typename Reducer>
-	T reduce(T init, Reducer f) {
+	T reduce(T init, Reducer f) const {
 		using ct = coordinate_type;
 		T result = init;
 		// TODO: use preduce
@@ -91,7 +91,7 @@ class MatrixExpression {
 	}
 
 	template <typename Reducer>
-	T reduce(Reducer f) {
+	T reduce(Reducer f) const {
 		using ct = coordinate_type;
 
 		T result{};
@@ -112,15 +112,15 @@ class MatrixExpression {
 		return result;
 	}
 
-	T max() {
+	T max() const {
 		return reduce([](T a, T b) { return std::max(a, b); });
 	}
 
-	T min() {
+	T min() const {
 		return reduce([](T a, T b) { return std::min(a, b); });
 	}
 
-	T determinant() {
+	T determinant() const {
 		assert_eq(rows(), columns());
 		using ct = coordinate_type;
 		auto lu = LUDecomposition();
