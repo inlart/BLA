@@ -2,6 +2,7 @@
 
 #include "expressions.h"
 #include "operators.h"
+#include "types.h"
 
 #include "forward.h"
 
@@ -290,7 +291,7 @@ void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& l
 }
 
 // -- parallel block matrix * matrix multiplication using BLAS level 3 function calls
-template <bool transLHS, bool transRHS>
+template <bool transLHS = false, bool transRHS = false>
 void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
 	assert_eq((transLHS ? lhs.rows() : lhs.columns()), (transRHS ? rhs.columns() : rhs.rows()));
 
@@ -316,13 +317,13 @@ void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& 
 	    blas_multiplication, core::pick(
 	                             // parallel recursive split
 	                             [&](const BlockRange& r, const auto& rec) {
-
 		                             auto mid = r.start + r.size / 2;
 
-		                             BlockRange top_left{r.start, mid};
-		                             BlockRange top_right{{r.start.x, mid.y}, {mid.x, r.start.y + r.size.y}};
-		                             BlockRange bottom_left{{mid.x, r.start.y}, {r.start.x + r.size.x, mid.y}};
-		                             BlockRange bottom_right{mid, r.start + r.size};
+
+		                             BlockRange top_left{r.start, mid - r.start};
+		                             BlockRange top_right{{r.start.x, mid.y}, {mid.x - r.start.x, r.start.y + r.size.y - mid.y}};
+		                             BlockRange bottom_left{{mid.x, r.start.y}, {r.start.x + r.size.x - mid.x, mid.y - r.start.y}};
+		                             BlockRange bottom_right{mid, r.start + r.size - mid};
 
 		                             return core::parallel(core::parallel(rec(top_left), rec(top_right)), core::parallel(rec(bottom_left), rec(bottom_right)));
 		                         },
