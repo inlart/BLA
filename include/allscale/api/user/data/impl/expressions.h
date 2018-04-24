@@ -472,7 +472,7 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 	void zero() { fill(static_cast<T>(0)); }
 
 	void eye() {
-		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = p[0] == p[1] ? static_cast<T>(1) : static_cast<T>(0); });
+		fill([](const auto& pos) { return pos.x == pos.y ? static_cast<T>(1) : static_cast<T>(0); });
 	}
 
 	void identity() {
