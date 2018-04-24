@@ -24,8 +24,8 @@ BenchResult bench_allscale(int n) {
 
 	auto g = [&]() { return dis(gen); };
 
-	a.random(g);
-	b.random(g);
+	a.fill(g);
+	b.fill(g);
 	Eigen::MatrixXd a_eigen = a.toEigenMatrix();
 	Eigen::MatrixXd b_eigen = b.toEigenMatrix();
 	Matrix res_eigen = (a_eigen * b_eigen.transpose()).eval();

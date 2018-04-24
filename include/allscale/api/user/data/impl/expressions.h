@@ -461,6 +461,14 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = value; });
 	}
 
+	void fill(std::function<T(point_type)> f) {
+		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = f(p); });
+	}
+
+	void fill(std::function<T()> f) {
+		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = f(); });
+	}
+
 	void zero() { fill(static_cast<T>(0)); }
 
 	void eye() {
@@ -470,16 +478,6 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 	void identity() {
 		assert_eq(rows(), columns());
 		eye();
-	}
-
-	template <typename Generator>
-	void random(Generator gen) {
-		for(coordinate_type i = 0; i < rows(); ++i) {
-			for(coordinate_type j = 0; j < columns(); ++j) {
-				point_type pos{i, j};
-				m_data[pos] = gen(pos);
-			}
-		}
 	}
 
 	Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> toEigenMatrix() {

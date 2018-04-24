@@ -24,7 +24,7 @@ BenchResult bench_allscale(int n) {
 
 	auto g = [&]() { return dis(gen); };
 
-	a.random(g);
+	a.fill(g);
 	b.identity(); // random(g);
 	Eigen::MatrixXd a_eigen = a.toEigenMatrix();
 	Eigen::MatrixXd b_eigen = b.toEigenMatrix();

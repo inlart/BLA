@@ -23,7 +23,7 @@ BenchResult bench_allscale(int n) {
 
 	auto g = [&]() { return dis(gen); };
 
-	a.random(g);
+	a.fill(g);
 	Eigen::MatrixXd a_eigen = a.toEigenMatrix();
 	Matrix res_eigen = a_eigen.transpose();
 	auto first_elem_square_sums = 0.0; // to try and avoid optimiser pitfals

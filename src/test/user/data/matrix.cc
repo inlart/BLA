@@ -122,7 +122,7 @@ TEST(Matrix, Generator) {
 
 	auto g = [s](const auto& pos) { return pos.x * s.x + pos.y; };
 
-	m2.random(g);
+	m2.fill(g);
 
 	ASSERT_EQ(m1, m2);
 }
@@ -228,7 +228,7 @@ TEST(Utility, Random) {
 	std::uniform_real_distribution<double> dis(-1, 1);
 
 	auto g = [&](const auto&) { return dis(gen); };
-	m.random(g);
+	m.fill(g);
 	for(int i = 0; i < 2; ++i) {
 		for(int j = 0; j < 2; ++j) {
 			ASSERT_LE(-1.0, (m[{i, j}]));
@@ -263,8 +263,8 @@ TEST(Utility, EigenMap) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		auto map1 = m1.getEigenMap();
 		auto map2 = m2.getEigenMap();
 		ASSERT_TRUE(isAlmostEqual(Matrix<double>(map1 * map2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
@@ -342,7 +342,7 @@ TEST(Expression, MatrixRowColumn) {
 	auto g = [&](const auto&) { return dis(gen); };
 
 	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
+		m1.fill(g);
 
 		ASSERT_EQ(m1.row(15), m1.transpose().column(15).transpose());
 	}
@@ -385,8 +385,8 @@ TEST(Operation, Addition) {
 	auto g = [&](const auto&) { return dis(gen); };
 
 	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		ASSERT_EQ(m1 + m2, Matrix<double>(m1.toEigenMatrix() + m2.toEigenMatrix()));
 	}
 }
@@ -400,8 +400,8 @@ TEST(Operation, AssignAddition) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 
 		Eigen::MatrixXd m1e = m1.toEigenMatrix();
 		Eigen::MatrixXd m2e = m2.toEigenMatrix();
@@ -422,8 +422,8 @@ TEST(Operation, Subtraction) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		ASSERT_TRUE(isAlmostEqual(m1 - m2, Matrix<double>(m1.toEigenMatrix() - m2.toEigenMatrix())));
 		ASSERT_TRUE(isAlmostEqual(m1 - m1, m2 - m2));
 	}
@@ -438,8 +438,8 @@ TEST(Operation, AssignSubtraction) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 
 		Eigen::MatrixXd m1e = m1.toEigenMatrix();
 		Eigen::MatrixXd m2e = m2.toEigenMatrix();
@@ -460,8 +460,8 @@ TEST(Operation, ElementMultiplication) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		Matrix<double> m3(m1.product(m2));
 
 		for(coordinate_type i = 0; i < m1.rows(); ++i) {
@@ -482,7 +482,7 @@ TEST(Operation, Negation) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m.random(g);
+		m.fill(g);
 		ASSERT_TRUE(isAlmostEqual(-m, Matrix<double>(-(m.toEigenMatrix()))));
 	}
 }
@@ -496,8 +496,8 @@ TEST(Operation, Multiplication) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		ASSERT_TRUE(isAlmostEqual(m1 * m2, Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
 	}
 }
@@ -511,8 +511,8 @@ TEST(Operation, MultiplicationNoTransposeTranspose) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		ASSERT_TRUE(isAlmostEqual(m1 * m2.transpose(), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix().transpose()).eval())));
 	}
 }
@@ -526,8 +526,8 @@ TEST(Operation, MultiplicationTransposeNoTranspose) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		ASSERT_TRUE(isAlmostEqual(m1.transpose() * m2, Matrix<double>((m1.toEigenMatrix().transpose() * m2.toEigenMatrix()).eval())));
 	}
 }
@@ -541,8 +541,8 @@ TEST(Operation, MultiplicationTransposeTranspose) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		ASSERT_TRUE(isAlmostEqual(m1.transpose() * m2.transpose(), Matrix<double>((m1.toEigenMatrix().transpose() * m2.toEigenMatrix().transpose()).eval())));
 	}
 }
@@ -556,8 +556,8 @@ TEST(Operation, AssignMultiplication) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 
 		Eigen::MatrixXd m1e = m1.toEigenMatrix();
 		Eigen::MatrixXd m2e = m2.toEigenMatrix();
@@ -578,8 +578,8 @@ TEST(Operation, MultiplicationStrassen) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		ASSERT_TRUE(isAlmostEqual(strassen(m1, m2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
 	}
 }
@@ -593,8 +593,8 @@ TEST(Operation, MultiplicationBLAS) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 
 		Matrix<double> res({m1.rows(), m2.columns()});
 
@@ -613,8 +613,8 @@ TEST(Operation, MultiplicationAllscale) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		Matrix<double> m3({m1.rows(), m2.columns()});
 		matrix_multiplication_allscale(m3, m1, m2);
 
@@ -631,8 +631,8 @@ TEST(Operation, MultiplicationAllscaleInteger) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		Matrix<int> m3({m1.rows(), m2.columns()});
 		matrix_multiplication_allscale(m3, m1, m2);
 
@@ -648,7 +648,7 @@ TEST(Operation, ScalarMatrixMultiplication) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
+		m1.fill(g);
 		ASSERT_EQ(3. * m1, Matrix<int>((3. * m1.toEigenMatrix()).eval()));
 	}
 }
@@ -661,7 +661,7 @@ TEST(Operation, MatrixScalarMultiplication) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.random(g);
+		m1.fill(g);
 		ASSERT_EQ(m1 * 3., Matrix<int>((m1.toEigenMatrix() * 3.).eval()));
 	}
 }
@@ -673,7 +673,7 @@ TEST(Operation, Transpose) {
 	std::uniform_real_distribution<double> dis(-1, 1);
 
 	auto g = [&](const auto&) { return dis(gen); };
-	m1.random(g);
+	m1.fill(g);
 	Matrix<double> m2 = m1.transpose();
 
 	ASSERT_EQ(m1.rows(), m2.columns());
@@ -691,8 +691,8 @@ TEST(Operation, Multiple) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
-		m2.random(g);
+		m1.fill(g);
+		m2.fill(g);
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = m1.toEigenMatrix();
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m2e = m2.toEigenMatrix();
 		ASSERT_TRUE(isAlmostEqual(-(m1 + m1) * m2 + m2 - m2 + m2 - m2, Matrix<double>(-(m1e + m1e) * m2e + m2e - m2e + m2e - m2e)));
@@ -708,7 +708,7 @@ TEST(Operation, Determinant) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
+		m1.fill(g);
 		ASSERT_TRUE(std::abs(m1.determinant() - (m1[{0, 0}] * m1[{1, 1}] - m1[{0, 1}] * m1[{1, 0}])) < 0.0001);
 	}
 }
@@ -722,7 +722,7 @@ TEST(Operation, DeterminantEigen) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.random(g);
+		m1.fill(g);
 
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = m1.toEigenMatrix();
 
@@ -739,7 +739,7 @@ TEST(Operation, LUDecomposition) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 1; ++i) {
-		m1.random(g);
+		m1.fill(g);
 
 		auto lu = m1.LUDecomposition();
 
@@ -756,7 +756,7 @@ TEST(Operation, QRDecomposition) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 1; ++i) {
-		m1.random(g);
+		m1.fill(g);
 
 		auto qr = m1.QRDecomposition();
 
@@ -775,7 +775,7 @@ TEST(Operation, DISABLED_SVDecomposition) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 1; ++i) {
-		m1.random(g);
+		m1.fill(g);
 
 		auto sv = m1.SVDecomposition();
 
@@ -799,8 +799,8 @@ TEST(Simplify, Transpose) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 
-	m1.random(g);
-	m2.random(g);
+	m1.fill(g);
+	m2.fill(g);
 	m3.zero();
 	m4.zero();
 
@@ -828,8 +828,8 @@ TEST(Simplify, RecursiveTranspose) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 
-	m1.random(g);
-	m2.random(g);
+	m1.fill(g);
+	m2.fill(g);
 	m3.zero();
 	m4.zero();
 
@@ -926,7 +926,7 @@ TEST(Simplify, Negation) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 
-	m1.random(g);
+	m1.fill(g);
 	m2.zero();
 	m3.zero();
 
@@ -957,8 +957,8 @@ TEST(Simplify, IdentityMatrix) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 
-	m1.random(g);
-	m2.random(g);
+	m1.fill(g);
+	m2.fill(g);
 
 	r1 = simplify(m3 * m1);
 
