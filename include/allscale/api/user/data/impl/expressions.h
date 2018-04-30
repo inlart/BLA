@@ -152,6 +152,8 @@ class MatrixExpression {
 
 template <typename E1, typename E2>
 class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
+	static_assert(is_valid_v<std::plus<>, scalar_type_t<E1>, scalar_type_t<E2>>, "No + implementation for these MatrixExpression types.");
+
 	using typename MatrixExpression<MatrixAddition<E1, E2>>::T;
 	using typename MatrixExpression<MatrixAddition<E1, E2>>::PacketScalar;
 
@@ -182,6 +184,8 @@ class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
 
 template <typename E1, typename E2>
 class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
+	static_assert(is_valid_v<std::minus<>, scalar_type_t<E1>, scalar_type_t<E2>>, "No - implementation for these MatrixExpression types.");
+
 	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::T;
 	using typename MatrixExpression<MatrixSubtraction<E1, E2>>::PacketScalar;
 
@@ -212,6 +216,8 @@ class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
 
 template <typename E1, typename E2>
 class ElementMatrixMultiplication : public MatrixExpression<ElementMatrixMultiplication<E1, E2>> {
+	static_assert(is_valid_v<std::multiplies<>, scalar_type_t<E1>, scalar_type_t<E2>>, "No * implementation for these MatrixExpression types.");
+
 	using typename MatrixExpression<ElementMatrixMultiplication<E1, E2>>::T;
 	using typename MatrixExpression<ElementMatrixMultiplication<E1, E2>>::PacketScalar;
 
@@ -242,6 +248,13 @@ class ElementMatrixMultiplication : public MatrixExpression<ElementMatrixMultipl
 
 template <typename E1, typename E2>
 class MatrixMultiplication : public MatrixExpression<MatrixMultiplication<E1, E2>> {
+	static_assert(is_valid_v<std::multiplies<>, scalar_type_t<E1>, scalar_type_t<E2>>, "No * implementation for these MatrixExpression types.");
+
+	using intermediate_type = operation_result_t<std::multiplies<>, scalar_type_t<E1>, scalar_type_t<E2>>;
+
+	static_assert(is_valid_v<std::plus<>, intermediate_type, intermediate_type> && type_consistent_v<std::plus<>, intermediate_type>,
+	              "No valid + implementation for these MatrixExpression types.");
+
 	using typename MatrixExpression<MatrixMultiplication<E1, E2>>::T;
 	using typename MatrixExpression<MatrixMultiplication<E1, E2>>::PacketScalar;
 
@@ -667,25 +680,25 @@ expression_member_t<E> simplify(MatrixNegation<MatrixNegation<E>> e) {
 }
 
 template <typename E, typename U>
-std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, MatrixScalarMultiplication<E, U>>
+std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, MatrixScalarMultiplication<E, U>>
 simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
 	return MatrixScalarMultiplication<E, U>(e.getExpression().getExpression(), e.getExpression().getScalar() * e.getScalar());
 }
 
 template <typename E, typename U>
-std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, ScalarMatrixMultiplication<E, U>>
+std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, ScalarMatrixMultiplication<E, U>>
 simplify(ScalarMatrixMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
 	return ScalarMatrixMultiplication<E, U>(e.getExpression().getScalar() * e.getScalar(), e.getExpression().getExpression());
 }
 
 template <typename E, typename U>
-std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, ScalarMatrixMultiplication<E, U>>
+std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, ScalarMatrixMultiplication<E, U>>
 simplify(ScalarMatrixMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
 	return ScalarMatrixMultiplication<E, U>(e.getScalar() * e.getExpression().getScalar(), e.getExpression().getExpression());
 }
 
 template <typename E, typename U>
-std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_multiplication_v<U>, MatrixScalarMultiplication<E, U>>
+std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, MatrixScalarMultiplication<E, U>>
 simplify(MatrixScalarMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
 	return MatrixScalarMultiplication<E, U>(e.getExpression().getExpression(), e.getExpression().getScalar() * e.getScalar());
 }

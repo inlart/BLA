@@ -30,6 +30,10 @@ struct and_value<A, B...> {
 	static constexpr bool value = A && and_value<B...>::value;
 };
 
+// C++ 17 feature
+template <class...>
+using void_t = void;
+
 } // end namespace detail
 
 
@@ -67,8 +71,11 @@ struct scalar_type<ElementMatrixMultiplication<E1, E2>>
     : public detail::set_type<operation_result_t<std::multiplies<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>> {};
 
 template <typename E1, typename E2>
-struct scalar_type<MatrixMultiplication<E1, E2>>
-    : public detail::set_type<operation_result_t<std::multiplies<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>> {};
+struct scalar_type<MatrixMultiplication<E1, E2>> {
+	using type = operation_result_t<std::multiplies<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>;
+	static_assert(std::is_same<operation_result_t<std::plus<>, type, type>, type>::value,
+	              "Resulting type of matrix multiplication must yield the same type if added up.");
+};
 
 template <typename E>
 struct scalar_type<MatrixNegation<E>> : public detail::set_type<typename scalar_type<E>::type> {};
@@ -192,11 +199,20 @@ struct is_associative<float> : public std::true_type {};
 template <typename T>
 constexpr bool is_associative_v = is_associative<T>::value;
 
-template <typename T>
-struct type_consistent_multiplication : public std::is_same<T, operation_result_t<std::multiplies<>, T, T>> {};
+template <typename F, typename T>
+struct type_consistent : public std::is_same<T, operation_result_t<F, T, T>> {};
 
-template <typename T>
-constexpr bool type_consistent_multiplication_v = type_consistent_multiplication<T>::value;
+template <typename F, typename T>
+constexpr bool type_consistent_v = type_consistent<F, T>::value;
+
+template <typename F, typename E1, typename E2, class = void>
+struct is_valid : public std::false_type {};
+
+template <typename F, typename E1, typename E2>
+struct is_valid<F, E1, E2, detail::void_t<operation_result_t<F, E1, E2>>> : public std::true_type {};
+
+template <typename F, typename E1, typename E2>
+constexpr bool is_valid_v = is_valid<F, E1, E2>::value;
 
 } // end namespace impl
 } // end namespace data

@@ -95,8 +95,8 @@ struct expression_member;
 template <typename T>
 struct is_associative;
 
-template <typename T>
-struct type_consistent_multiplication;
+template <typename F, typename T>
+struct type_consistent;
 
 template <typename Functor, typename T1, typename T2>
 struct operation_result;
