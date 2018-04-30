@@ -208,8 +208,9 @@ constexpr bool type_consistent_v = type_consistent<F, T>::value;
 template <typename F, typename E1, typename E2, class = void>
 struct is_valid : public std::false_type {};
 
+// TODO: use operation_result_t<F, E1, E2> here
 template <typename F, typename E1, typename E2>
-struct is_valid<F, E1, E2, detail::void_t<operation_result_t<F, E1, E2>>> : public std::true_type {};
+struct is_valid<F, E1, E2, detail::void_t<decltype(std::declval<F>()(std::declval<E1>(), std::declval<E2>()))>> : public std::true_type {};
 
 template <typename F, typename E1, typename E2>
 constexpr bool is_valid_v = is_valid<F, E1, E2>::value;
