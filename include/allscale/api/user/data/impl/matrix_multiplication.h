@@ -291,8 +291,8 @@ void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& l
 }
 
 // -- parallel block matrix * matrix multiplication using BLAS level 3 function calls
-template <bool transLHS = false, bool transRHS = false>
-void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
+template <bool transLHS = false, bool transRHS = false, typename T, typename Func>
+void matrix_multiplication_pbblas(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs, Func f) {
 	assert_eq((transLHS ? lhs.rows() : lhs.columns()), (transRHS ? rhs.columns() : rhs.rows()));
 
 	const auto k = transLHS ? lhs.rows() : lhs.columns();
@@ -306,8 +306,8 @@ void matrix_multiplication_pbblas(Matrix<double>& result, const Matrix<double>& 
 		const point_type l_start = transLHS ? point_type{0, r.start.x} : point_type{r.start.x, 0};
 		const point_type r_start = transRHS ? point_type{r.start.y, 0} : point_type{0, r.start.y};
 
-		cblas_dgemm(CblasRowMajor, tlhs, trhs, r.size.x, r.size.y, k, 1.0, &lhs[l_start], lhs.columns(), &rhs[r_start], rhs.columns(), 0.0,
-		            &result[{r.start.x, r.start.y}], result.columns());
+		f(CblasRowMajor, tlhs, trhs, r.size.x, r.size.y, k, 1.0, &lhs[l_start], lhs.columns(), &rhs[r_start], rhs.columns(), 0.0,
+		  &result[{r.start.x, r.start.y}], result.columns());
 	};
 
 	auto multiplication_rec = prec(
@@ -424,21 +424,40 @@ void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix
 	matrix_multiplication_peigen(result, lhs, rhs);
 }
 
+// -- double
 template <>
 void matrix_multiplication(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
-	matrix_multiplication_pbblas<false, false>(result, lhs, rhs);
+	matrix_multiplication_pbblas<false, false>(result, lhs, rhs, cblas_dgemm);
 }
 
 void matrix_multiplication(Matrix<double>& result, const MatrixTranspose<Matrix<double>>& lhs, const Matrix<double>& rhs) {
-	matrix_multiplication_pbblas<true, false>(result, lhs.getExpression(), rhs);
+	matrix_multiplication_pbblas<true, false>(result, lhs.getExpression(), rhs, cblas_dgemm);
 }
 
 void matrix_multiplication(Matrix<double>& result, const Matrix<double>& lhs, const MatrixTranspose<Matrix<double>>& rhs) {
-	matrix_multiplication_pbblas<false, true>(result, lhs, rhs.getExpression());
+	matrix_multiplication_pbblas<false, true>(result, lhs, rhs.getExpression(), cblas_dgemm);
 }
 
 void matrix_multiplication(Matrix<double>& result, const MatrixTranspose<Matrix<double>>& lhs, const MatrixTranspose<Matrix<double>>& rhs) {
-	matrix_multiplication_pbblas<true, true>(result, lhs.getExpression(), rhs.getExpression());
+	matrix_multiplication_pbblas<true, true>(result, lhs.getExpression(), rhs.getExpression(), cblas_dgemm);
+}
+
+// -- float
+template <>
+void matrix_multiplication(Matrix<float>& result, const Matrix<float>& lhs, const Matrix<float>& rhs) {
+	matrix_multiplication_pbblas<false, false>(result, lhs, rhs, cblas_sgemm);
+}
+
+void matrix_multiplication(Matrix<float>& result, const MatrixTranspose<Matrix<float>>& lhs, const Matrix<float>& rhs) {
+	matrix_multiplication_pbblas<true, false>(result, lhs.getExpression(), rhs, cblas_sgemm);
+}
+
+void matrix_multiplication(Matrix<float>& result, const Matrix<float>& lhs, const MatrixTranspose<Matrix<float>>& rhs) {
+	matrix_multiplication_pbblas<false, true>(result, lhs, rhs.getExpression(), cblas_sgemm);
+}
+
+void matrix_multiplication(Matrix<float>& result, const MatrixTranspose<Matrix<float>>& lhs, const MatrixTranspose<Matrix<float>>& rhs) {
+	matrix_multiplication_pbblas<true, true>(result, lhs.getExpression(), rhs.getExpression(), cblas_sgemm);
 }
 
 } // end namespace impl

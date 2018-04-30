@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <allscale/api/user/data/matrix.h>
+#include <cblas.h>
 
 // own
 #include "bench_result.h"
@@ -34,7 +35,7 @@ BenchResult bench_allscale(int n) {
 	for(int i = 0; i < NUMBER_BENCHMARK_RUNS; ++i) {
 		{
 			Timer t;
-			allscale::api::user::data::impl::matrix_multiplication_pbblas<false, false>(mult, a, b);
+			allscale::api::user::data::impl::matrix_multiplication_pbblas<false, false>(mult, a, b, cblas_dgemm);
 			res.addMeasurement(t.elapsed());
 		}
 

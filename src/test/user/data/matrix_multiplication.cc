@@ -190,6 +190,24 @@ TEST(Operation, MultiplicationAllscaleInteger) {
 	}
 }
 
+TEST(Operation, MultiplicationFloat) {
+	Matrix<float> m1({255, 127});
+	Matrix<float> m2({m1.columns(), 84});
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(1, 10);
+
+	auto g = [&](const auto&) { return dis(gen); };
+	for(int i = 0; i < 4; ++i) {
+		m1.fill(g);
+		m2.fill(g);
+		Matrix<float> m3({m1.rows(), m2.columns()});
+		m3 = m1 * m2;
+
+		ASSERT_EQ(m3, Matrix<float>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval()));
+	}
+}
+
 } // end namespace impl
 } // end namespace data
 } // end namespace user
