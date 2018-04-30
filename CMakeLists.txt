@@ -78,20 +78,3 @@ endif()
 
 
 add_test_folder("src/test/user/data" ".cc" "test_" "include" ON ${ALLSCALE_MATRIX_DEPENDENCIES})
-# # -- Testing
-# add_executable(matrix_test src/test/user/data/matrix.cc)
-
-# add_dependencies(matrix_test ${ALLSCALE_MATRIX_DEPENDENCIES})
-
-# # -- Test Flags
-# target_include_directories(matrix_test PUBLIC "include")
-# target_include_directories(matrix_test PUBLIC ${ALLSCALE_API_INCLUDE_PATH})
-
-# # -- Test Libraries
-# target_link_libraries(matrix_test ${CMAKE_THREAD_LIBS_INIT})
-# target_link_libraries(matrix_test ${GTEST_LIBRARIES})
-# target_link_libraries(matrix_test ${GTEST_MAIN_LIBRARIES})
-# target_link_libraries(matrix_test ${Vc_LIBRARIES})
-# target_link_libraries(matrix_test ${OpenBLAS_LIBRARIES})
-
-# add_test(NAME matrix_test COMMAND matrix_test)
