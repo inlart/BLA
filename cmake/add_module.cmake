@@ -1,4 +1,4 @@
-macro(add_module_executable_folder folder extension prefix includes always_allscale dependencies)
+macro(add_module_executable_folder folder extension prefix postfix includes always_allscale dependencies)
     # -- Get all files
     file(GLOB_RECURSE sources "${folder}/*${extension}")
 
@@ -6,7 +6,7 @@ macro(add_module_executable_folder folder extension prefix includes always_allsc
     foreach(file ${sources})
         get_filename_component(filename ${file} NAME)
         string(REPLACE "${extension}" "" filename ${filename})
-        set(filename ${prefix}${filename})
+        set(filename ${prefix}${filename}${postfix})
 
 
         set(uses_gmp FALSE)
@@ -48,7 +48,7 @@ macro(add_module_executable_folder folder extension prefix includes always_allsc
     endforeach()
 endmacro()
 
-macro(add_test_folder folder extension prefix includes always_allscale dependencies)
+macro(add_test_folder folder extension prefix postfix includes always_allscale dependencies)
     # -- Get all files
     file(GLOB_RECURSE sources "${folder}/*${extension}")
 
@@ -56,7 +56,7 @@ macro(add_test_folder folder extension prefix includes always_allscale dependenc
     foreach(file ${sources})
         get_filename_component(filename ${file} NAME)
         string(REPLACE "${extension}" "" filename ${filename})
-        set(filename ${prefix}${filename})
+        set(filename ${prefix}${filename}${postfix})
 
         # -- Add Executable
         add_executable(${filename} ${file})
