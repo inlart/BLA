@@ -19,12 +19,14 @@ template <typename T>
 struct LUD {
 	LUD(const Matrix<T>& A) : L(A.size()), U(A.size()) {
 		using ct = coordinate_type;
+		using vt = utils::Vector<ct, 1>;
 		assert_eq(A.rows(), A.columns());
 
 		ct n = A.rows();
 
 		for(ct i = 0; i < n; ++i) {
-			for(ct j = 0; j < n; ++j) {
+			algorithm::pfor(point_type{i, 0}, point_type{i + 1, n}, [&](const auto& pos) {
+				int j = pos.y;
 				if(j < i) {
 					L[{j, i}] = static_cast<T>(0);
 				} else {
@@ -33,8 +35,9 @@ struct LUD {
 						L[{j, i}] -= L[{j, k}] * U[{k, i}];
 					}
 				}
-			}
-			for(ct j = 0; j < n; ++j) {
+			});
+			algorithm::pfor(point_type{i, 0}, point_type{i + 1, n}, [&](const auto& pos) {
+				int j = pos.y;
 				if(j < i) {
 					U[{i, j}] = static_cast<T>(0);
 				} else if(j == i) {
@@ -45,7 +48,7 @@ struct LUD {
 						U[{i, j}] -= L[{i, k}] * U[{k, j}] / L[{i, i}];
 					}
 				}
-			}
+			});
 		}
 	}
 

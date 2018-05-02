@@ -38,7 +38,7 @@ std::enable_if_t<std::is_same<scalar_type_t<E1>, std::complex<double>>::value, b
 }
 
 TEST(Operation, LUDecomposition) {
-	Matrix<double> m1({10, 10});
+	Matrix<double> m1({400, 400});
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
