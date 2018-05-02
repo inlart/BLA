@@ -83,6 +83,9 @@ struct scalar_type<MatrixNegation<E>> : public detail::set_type<typename scalar_
 template <typename E>
 struct scalar_type<MatrixTranspose<E>> : public detail::set_type<typename scalar_type<E>::type> {};
 
+template <typename E>
+struct scalar_type<MatrixAbs<E>> : public detail::set_type<typename scalar_type<E>::type> {};
+
 template <typename E, typename U>
 struct scalar_type<MatrixScalarMultiplication<E, U>> : public detail::set_type<operation_result_t<std::multiplies<>, typename scalar_type<E>::type, U>> {};
 
@@ -134,6 +137,9 @@ struct vectorizable<MatrixNegation<E>> : public vectorizable<E> {};
 
 template <typename E>
 struct vectorizable<MatrixTranspose<E>> : public std::false_type {};
+
+template <typename E>
+struct vectorizable<MatrixAbs<E>> : public vectorizable<E> {};
 
 template <typename E, typename U>
 struct vectorizable<MatrixScalarMultiplication<E, U>> : public detail::and_value<vectorizable<E>::value, std::is_same<scalar_type_t<E>, U>::value> {};

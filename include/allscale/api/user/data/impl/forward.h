@@ -50,6 +50,12 @@ template <typename E>
 class MatrixTranspose;
 
 /*
+ * Represents the absolute values of MatrixExpression E
+ */
+template <typename E>
+class MatrixAbs;
+
+/*
  * Represents the multiplication of matrix * scalar
  */
 template <typename E, typename U>

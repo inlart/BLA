@@ -278,6 +278,22 @@ TEST(Expression, IdentityMatrix) {
 	ASSERT_EQ(m1, result);
 }
 
+TEST(Expression, Abs) {
+	Matrix<int> m1({37, 31});
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(-10, -1);
+
+	auto g = [&]() { return dis(gen); };
+
+	m1.fill(g);
+
+	Matrix<int> m2 = m1.abs();
+
+	algorithm::pfor(m1.size(), [&](const auto& pos) { ASSERT_EQ(m1[pos], -m2[pos]); });
+}
+
 TEST(Expression, MatrixRowColumn) {
 	Matrix<int> m1({37, 31});
 	IdentityMatrix<int> m2(point_type{m1.columns(), m1.columns()});

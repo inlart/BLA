@@ -10,6 +10,7 @@
 #include <Vc/Vc>
 #include <algorithm>
 #include <allscale/api/user/data/grid.h>
+#include <cmath>
 #include <functional>
 
 namespace allscale {
@@ -67,6 +68,8 @@ class MatrixExpression {
 	MatrixTranspose<E> transpose() const { return MatrixTranspose<E>(static_cast<const E&>(*this)); }
 
 	SubMatrix<E> sub(BlockRange block_range) const { return SubMatrix<E>(static_cast<const E&>(*this), block_range); }
+
+	MatrixAbs<E> abs() const { return MatrixAbs<E>(static_cast<const E&>(*this)); }
 
 	T norm() const { return std::sqrt(product(*this).reduce(0, std::plus<T>{})); }
 
@@ -343,6 +346,31 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	coordinate_type columns() const { return expression.columns(); }
 
 	PacketScalar packet(point_type p) const { return -expression.packet(p); }
+
+	Exp getExpression() const { return expression; }
+
+  private:
+	Exp expression;
+};
+
+template <typename E>
+class MatrixAbs : public MatrixExpression<MatrixAbs<E>> {
+	using typename MatrixExpression<MatrixAbs<E>>::T;
+	using typename MatrixExpression<MatrixAbs<E>>::PacketScalar;
+
+	using Exp = expression_member_t<E>;
+
+  public:
+	MatrixAbs(Exp e) : expression(e) {}
+	T operator[](const point_type& pos) const { return std::abs(expression[pos]); }
+
+	point_type size() const { return expression.size(); }
+
+	coordinate_type rows() const { return expression.rows(); }
+
+	coordinate_type columns() const { return expression.columns(); }
+
+	PacketScalar packet(point_type p) const { return Vc::abs(expression.packet(p)); }
 
 	Exp getExpression() const { return expression; }
 
@@ -651,6 +679,11 @@ auto simplify(MatrixNegation<E> e) {
 template <typename E>
 auto simplify(MatrixTranspose<E> e) {
 	return MatrixTranspose<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+}
+
+template <typename E>
+auto simplify(MatrixAbs<E> e) {
+	return MatrixAbs<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E, typename U>
