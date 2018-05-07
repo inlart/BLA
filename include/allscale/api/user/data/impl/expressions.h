@@ -22,6 +22,9 @@ namespace impl {
 
 template <typename E>
 class MatrixExpression {
+    static_assert(std::is_same<E, std::decay_t<E>>::value, "A MatrixExpression type may not be const or cv qualified.");
+
+
   public:
 	using T = scalar_type_t<E>;
 	using PacketScalar = typename Vc::Vector<T>;
@@ -51,12 +54,12 @@ class MatrixExpression {
 
 	bool isSquare() const { return rows() == columns(); }
 
-	SubMatrix<E> row(coordinate_type r) const {
+	auto row(coordinate_type r) const {
 		assert_lt(r, rows());
 		return sub({{r, 0}, {1, columns()}});
 	}
 
-	SubMatrix<E> column(coordinate_type c) const {
+	auto column(coordinate_type c) const {
 		assert_lt(c, columns());
 		return sub({{0, c}, {rows(), 1}});
 	}
@@ -68,7 +71,7 @@ class MatrixExpression {
 
 	MatrixTranspose<E> transpose() const { return MatrixTranspose<E>(static_cast<const E&>(*this)); }
 
-	SubMatrix<E> sub(BlockRange block_range) const { return SubMatrix<E>(static_cast<const E&>(*this), block_range); }
+	auto sub(BlockRange block_range) const { return static_cast<const E&>(*this).sub(block_range); }
 
 	MatrixAbs<E> abs() const { return MatrixAbs<E>(static_cast<const E&>(*this)); }
 
@@ -177,6 +180,10 @@ class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
 
 	PacketScalar packet(point_type p) const { return lhs.packet(p) + rhs.packet(p); }
 
+	SubMatrix<MatrixAddition<E1, E2>> sub(BlockRange block_range) const {
+	    return SubMatrix<MatrixAddition<E1, E2>>(*this, block_range);
+	}
+
 	Exp1 getLeftExpression() const { return lhs; }
 
 	Exp2 getRightExpression() const { return rhs; }
@@ -209,6 +216,10 @@ class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
 
 	PacketScalar packet(point_type p) const { return lhs.packet(p) - rhs.packet(p); }
 
+	SubMatrix<MatrixSubtraction<E1, E2>> sub(BlockRange block_range) const {
+        return SubMatrix<MatrixSubtraction<E1, E2>>(*this, block_range);
+    }
+
 	Exp1 getLeftExpression() const { return lhs; }
 
 	Exp2 getRightExpression() const { return rhs; }
@@ -240,6 +251,10 @@ class ElementMatrixMultiplication : public MatrixExpression<ElementMatrixMultipl
 	coordinate_type columns() const { return lhs.columns(); }
 
 	PacketScalar packet(point_type p) const { return lhs.packet(p) * rhs.packet(p); }
+
+	SubMatrix<ElementMatrixMultiplication<E1, E2>> sub(BlockRange block_range) const {
+        return SubMatrix<ElementMatrixMultiplication<E1, E2>>(*this, block_range);
+    }
 
 	Exp1 getLeftExpression() const { return lhs; }
 
@@ -284,6 +299,10 @@ class MatrixMultiplication : public MatrixExpression<MatrixMultiplication<E1, E2
 		return tmp->packet(p);
 	}
 
+	SubMatrix<MatrixMultiplication<E1, E2>> sub(BlockRange block_range) const {
+        return SubMatrix<MatrixMultiplication<E1, E2>>(*this, block_range);
+    }
+
 	Exp1 getLeftExpression() const { return lhs; }
 
 	Exp2 getRightExpression() const { return rhs; }
@@ -323,6 +342,10 @@ class MatrixTranspose : public MatrixExpression<MatrixTranspose<E>> {
 
 	coordinate_type columns() const { return expression.rows(); }
 
+	SubMatrix<MatrixTranspose<E>> sub(BlockRange block_range) const {
+        return SubMatrix<MatrixTranspose<E>>(*this, block_range);
+    }
+
 	Exp getExpression() const { return expression; }
 
   private:
@@ -347,6 +370,10 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 	coordinate_type columns() const { return expression.columns(); }
 
 	PacketScalar packet(point_type p) const { return -expression.packet(p); }
+
+    SubMatrix<MatrixNegation<E>> sub(BlockRange block_range) const {
+        return SubMatrix<MatrixNegation<E>>(*this, block_range);
+    }
 
 	Exp getExpression() const { return expression; }
 
@@ -373,6 +400,10 @@ class MatrixAbs : public MatrixExpression<MatrixAbs<E>> {
 
 	PacketScalar packet(point_type p) const { return Vc::abs(expression.packet(p)); }
 
+    SubMatrix<MatrixAbs<E>> sub(BlockRange block_range) const {
+        return SubMatrix<MatrixAbs<E>>(*this, block_range);
+    }
+
 	Exp getExpression() const { return expression; }
 
   private:
@@ -397,6 +428,10 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 	coordinate_type columns() const { return expression.columns(); }
 
 	PacketScalar packet(point_type p) const { return expression.packet(p) * PacketScalar(scalar); }
+
+    SubMatrix<MatrixScalarMultiplication<E, U>> sub(BlockRange block_range) const {
+        return SubMatrix<MatrixScalarMultiplication<E, U>>(*this, block_range);
+    }
 
 	const U& getScalar() const { return scalar; }
 
@@ -425,6 +460,10 @@ class ScalarMatrixMultiplication : public MatrixExpression<ScalarMatrixMultiplic
 	coordinate_type columns() const { return expression.columns(); }
 
 	PacketScalar packet(point_type p) const { return PacketScalar(scalar) * expression.packet(p); }
+
+    SubMatrix<ScalarMatrixMultiplication<E, U>> sub(BlockRange block_range) const {
+        return SubMatrix<ScalarMatrixMultiplication<E, U>>(*this, block_range);
+    }
 
 	const U& getScalar() const { return scalar; }
 
@@ -488,6 +527,15 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 	inline coordinate_type rows() const { return m_data.size()[0]; }
 
 	inline coordinate_type columns() const { return m_data.size()[1]; }
+
+    SubMatrix<Matrix<T>> sub(BlockRange block_range) const {
+        return SubMatrix<Matrix<T>>(*this, block_range);
+    }
+
+    RefSubMatrix<Matrix<T>> sub(BlockRange block_range) {
+        return RefSubMatrix<Matrix<T>>(*this, block_range);
+    }
+
 
 	map_type eigenSub(const RowRange& r) {
 		assert_le(r.start, r.end);
@@ -561,6 +609,16 @@ class SubMatrix : public MatrixExpression<SubMatrix<E>> {
 
 	coordinate_type columns() const { return block_range.size[1]; }
 
+    SubMatrix<E> sub(BlockRange block_range) const {
+        assert_ge(block_range.start, (point_type{0, 0}));
+        assert_le(block_range.start + block_range + size, this->block_range.size);
+
+        BlockRange new_range;
+        new_range.start = this->block_range.start + block_range.start;
+        new_range.size = block_range.size;
+        return SubMatrix<E>(*this, new_range);
+    }
+
 	Exp getExpression() const { return expression; }
 
 	BlockRange getBlockRange() const { return block_range; }
@@ -568,6 +626,47 @@ class SubMatrix : public MatrixExpression<SubMatrix<E>> {
   private:
 	Exp expression;
 	BlockRange block_range;
+};
+
+template <typename E>
+class RefSubMatrix : public MatrixExpression<RefSubMatrix<E>> {
+    using typename MatrixExpression<RefSubMatrix<E>>::T;
+
+    using Exp = detail::remove_cvref_t<expression_member_t<E>>;
+
+  public:
+    RefSubMatrix(Exp& v, BlockRange block_range) : expression(v), block_range(block_range) {
+        assert_ge(block_range.start, (point_type{0, 0}));
+        assert_ge(block_range.size, (point_type{0, 0}));
+        assert_le(block_range.start + block_range.size, expression.size());
+    }
+
+    const T& operator[](const point_type& pos) const { return expression[pos + block_range.start]; }
+
+    T& operator[](const point_type& pos) { return expression[pos + block_range.start]; }
+
+    point_type size() const { return block_range.size; }
+    coordinate_type rows() const { return block_range.size[0]; }
+
+    coordinate_type columns() const { return block_range.size[1]; }
+
+    RefSubMatrix<Matrix<T>> sub(BlockRange block_range) const {
+        assert_ge(block_range.start, (point_type{0, 0}));
+        assert_le(block_range.start + block_range + size, this->block_range.size);
+
+        BlockRange new_range;
+        new_range.start = this->block_range.start + block_range.start;
+        new_range.size = block_range.size;
+        return RefSubMatrix<Matrix<T>>(*this, new_range);
+    }
+
+    Exp& getExpression() const { return expression; }
+
+    BlockRange getBlockRange() const { return block_range; }
+
+  private:
+    Exp& expression;
+    BlockRange block_range;
 };
 
 template <typename T>
@@ -585,6 +684,10 @@ class IdentityMatrix : public MatrixExpression<IdentityMatrix<T>> {
 	coordinate_type rows() const { return matrix_size[0]; }
 
 	coordinate_type columns() const { return matrix_size[1]; }
+
+    SubMatrix<IdentityMatrix<T>> sub(BlockRange block_range) const {
+        return SubMatrix<IdentityMatrix<T>>(*this, block_range);
+    }
 
   private:
 	point_type matrix_size;
@@ -628,7 +731,12 @@ std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& express
 
 template <typename T>
 const Matrix<T>& simplify(const Matrix<T>& m) {
-	return m;
+    return m;
+}
+
+template <typename T>
+Matrix<T>& simplify(Matrix<T>& m) {
+    return m;
 }
 
 template <typename T>
@@ -638,7 +746,7 @@ IdentityMatrix<T> simplify(IdentityMatrix<T> m) {
 
 template <typename E1, typename E2>
 auto simplify(MatrixMultiplication<E1, E2> e) {
-	MatrixMultiplication<std::decay_t<decltype(simplify(std::declval<E1>()))>, std::decay_t<decltype(simplify(std::declval<E2>()))>> e_simple(
+	MatrixMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<E1>()))>, detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>> e_simple(
 	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
 	e_simple.evaluate();
 	return e_simple;
@@ -656,50 +764,55 @@ auto simplify(const MatrixExpression<E>& e) {
 
 template <typename E1, typename E2>
 auto simplify(MatrixAddition<E1, E2> e) {
-	return MatrixAddition<std::decay_t<decltype(simplify(simplify(std::declval<E1>())))>, std::decay_t<decltype(simplify(std::declval<E2>()))>>(
+	return MatrixAddition<detail::remove_cvref_t<decltype(simplify(simplify(std::declval<E1>())))>, detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>(
 	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
 }
 
 template <typename E1, typename E2>
 auto simplify(MatrixSubtraction<E1, E2> e) {
-	return MatrixSubtraction<std::decay_t<decltype(simplify(simplify(std::declval<E1>())))>, std::decay_t<decltype(simplify(std::declval<E2>()))>>(
+	return MatrixSubtraction<detail::remove_cvref_t<decltype(simplify(simplify(std::declval<E1>())))>, detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>(
 	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
 }
 
 template <typename E1, typename E2>
 auto simplify(ElementMatrixMultiplication<E1, E2> e) {
-	return ElementMatrixMultiplication<std::decay_t<decltype(simplify(simplify(std::declval<E1>())))>, std::decay_t<decltype(simplify(std::declval<E2>()))>>(
+	return ElementMatrixMultiplication<detail::remove_cvref_t<decltype(simplify(simplify(std::declval<E1>())))>, detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>(
 	    simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
 }
 
 template <typename E>
 auto simplify(MatrixNegation<E> e) {
-	return MatrixNegation<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+	return MatrixNegation<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E>
 auto simplify(MatrixTranspose<E> e) {
-	return MatrixTranspose<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+	return MatrixTranspose<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E>
 auto simplify(MatrixAbs<E> e) {
-	return MatrixAbs<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+	return MatrixAbs<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E, typename U>
 auto simplify(MatrixScalarMultiplication<E, U> e) {
-	return MatrixScalarMultiplication<std::decay_t<decltype(simplify(std::declval<E>()))>, U>(simplify(e.getExpression()), e.getScalar());
+	return MatrixScalarMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>, U>(simplify(e.getExpression()), e.getScalar());
 }
 
 template <typename E, typename U>
 auto simplify(ScalarMatrixMultiplication<E, U> e) {
-	return ScalarMatrixMultiplication<std::decay_t<decltype(simplify(std::declval<E>()))>, U>(e.getScalar(), simplify(e.getExpression()));
+	return ScalarMatrixMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>, U>(e.getScalar(), simplify(e.getExpression()));
 }
 
 template <typename E>
 auto simplify(SubMatrix<E> e) {
-	return SubMatrix<std::decay_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
+    return SubMatrix<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
+}
+
+template <typename E>
+auto simplify(RefSubMatrix<E> e) {
+    return RefSubMatrix<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
 }
 
 // What we really simplify

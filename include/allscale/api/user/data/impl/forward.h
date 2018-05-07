@@ -77,10 +77,16 @@ template <typename T = double>
 class Matrix;
 
 /*
- * Represents a part of a Matrix
+ * Represents a part of a MatrixExpression
  */
 template <typename E>
 class SubMatrix;
+
+/*
+ * Represents a part of a Matrix
+ */
+template <typename T>
+class RefSubMatrix;
 
 /*
  * Represents an identity matrix

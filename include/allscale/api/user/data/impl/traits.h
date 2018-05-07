@@ -34,6 +34,13 @@ struct and_value<A, B...> {
 template <class...>
 using void_t = void;
 
+// C++ 20 feature
+template <typename T>
+struct remove_cvref : public set_type<std::remove_cv_t<std::remove_reference_t<T>>> {};
+
+template <typename T>
+using remove_cvref_t = typename remove_cvref<T>::type;
+
 } // end namespace detail
 
 
@@ -101,6 +108,9 @@ struct scalar_type<IdentityMatrix<T>> : public detail::set_type<T> {};
 template <typename E>
 struct scalar_type<SubMatrix<E>> : public detail::set_type<typename scalar_type<E>::type> {};
 
+template <typename E>
+struct scalar_type<RefSubMatrix<E>> : public detail::set_type<typename scalar_type<E>::type> {};
+
 template <typename Expr>
 using scalar_type_t = typename scalar_type<Expr>::type;
 
@@ -161,15 +171,6 @@ constexpr bool vectorizable_v = vectorizable<Expr>::value;
 
 template <typename E>
 struct expression_member : public detail::set_type<const E> {};
-
-template <typename E>
-struct expression_member<const E> : public expression_member<E> {};
-
-template <typename E>
-struct expression_member<volatile E> : public expression_member<E> {};
-
-template <typename E>
-struct expression_member<const volatile E> : public expression_member<E> {};
 
 template <typename T>
 struct expression_member<Matrix<T>> : public detail::set_type<const Matrix<T>&> {};

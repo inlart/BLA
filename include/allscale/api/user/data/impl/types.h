@@ -22,6 +22,7 @@ struct RowRange {
 };
 
 struct BlockRange {
+	BlockRange() : start({0, 0}), size({0, 0}) {}
 	BlockRange(point_type start, point_type size) : start(start), size(size) {}
 
 	point_type start;
