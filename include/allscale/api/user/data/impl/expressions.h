@@ -660,6 +660,29 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<E>> {
         return RefSubMatrix<Matrix<T>>(*this, new_range);
     }
 
+    void fill(const T& value) {
+        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = value; });
+    }
+
+    void fill(std::function<T(point_type)> f) {
+        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(p); });
+    }
+
+    void fill(std::function<T()> f) {
+        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(); });
+    }
+
+    void zero() { fill(static_cast<T>(0)); }
+
+    void eye() {
+        fill([](const auto& pos) { return pos.x == pos.y ? static_cast<T>(1) : static_cast<T>(0); });
+    }
+
+    void identity() {
+        assert_eq(rows(), columns());
+        eye();
+    }
+
     Exp& getExpression() const { return expression; }
 
     BlockRange getBlockRange() const { return block_range; }

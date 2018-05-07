@@ -264,6 +264,36 @@ TEST(Expression, SubMatrix) {
 	ASSERT_NE(s4, s1);
 }
 
+TEST(Expression, RefSubMatrix) {
+    const int n = 8;
+    const int nh = n / 2;
+    Matrix<int> m1({n, n});
+
+    m1.fill(5);
+
+    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], 5); });
+
+    m1.sub({{0, 0}, {nh, nh}}).fill(1);
+    m1.sub({{0, nh}, {nh, nh}}).fill(2);
+    m1.sub({{nh, 0}, {nh, nh}}).fill(3);
+    m1.sub({{nh, nh}, {nh, nh}}).fill(4);
+
+    algorithm::pfor(m1.size(), [&](const auto& p) {
+        if(p.x < nh && p.y < nh) {
+            ASSERT_EQ(m1[p], 1);
+        }
+        else if(p.x < nh && p.y >= nh) {
+            ASSERT_EQ(m1[p], 2);
+        }
+        else if(p.x >= nh && p.y < nh) {
+            ASSERT_EQ(m1[p], 3);
+        }
+        else {
+            ASSERT_EQ(m1[p], 4);
+        }
+    });
+}
+
 TEST(Expression, IdentityMatrix) {
 	Matrix<int> m1({37, 31});
 	IdentityMatrix<int> m2(point_type{m1.columns(), m1.columns()});
