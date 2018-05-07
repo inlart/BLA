@@ -10,6 +10,7 @@
 #include <Vc/Vc>
 #include <algorithm>
 #include <allscale/api/user/data/grid.h>
+#include <allscale/utils/assert.h>
 #include <cmath>
 #include <functional>
 

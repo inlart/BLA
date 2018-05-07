@@ -6,6 +6,7 @@
 #include "forward.h"
 
 #include <allscale/api/user/data/grid.h>
+#include <allscale/utils/assert.h>
 
 namespace allscale {
 namespace api {

@@ -10,6 +10,7 @@
 #include <allscale/api/user/algorithm/async.h>
 #include <allscale/api/user/algorithm/pfor.h>
 #include <allscale/api/user/data/grid.h>
+#include <allscale/utils/assert.h>
 
 // -- Other
 #include <Vc/Vc>
@@ -252,7 +253,7 @@ void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, con
 	}
 }
 
-// -- matrix * matrix multiplication using a single BLAS level 3 function calls
+// -- matrix * matrix multiplication using a single BLAS level 3 function call
 void matrix_multiplication_blas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
 	assert(lhs.columns() == rhs.rows());
 

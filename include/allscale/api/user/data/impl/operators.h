@@ -4,6 +4,8 @@
 
 #include "expressions.h"
 #include "forward.h"
+#include <allscale/api/user/data/grid.h>
+#include <allscale/utils/assert.h>
 
 namespace allscale {
 namespace api {
@@ -27,7 +29,7 @@ Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
 
 template <typename T, typename E>
 Matrix<T>& operator*=(Matrix<T>& u, const MatrixExpression<E>& v) {
-	assert(v.columns() == v.rows());
+	assert_eq(v.columns(), v.rows());
 	// no aliasing because the result is written in a temporary matrix
 	Matrix<T> tmp(u * v);
 	u = tmp;
