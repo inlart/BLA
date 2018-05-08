@@ -136,11 +136,11 @@ void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordina
 template <int size = 8, typename T>
 inline void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
 	using ct = coordinate_type;
-	using vt = Vc::Vector<T>;
+	using vt = Vc::native_simd<T>;
 
-	static_assert(size % vt::Size == 0, "vector type size doesn't divide 'size'"); // our vector type 'vt' fits into the size x size segment
+	static_assert(size % vt::size() == 0, "vector type size doesn't divide 'size'"); // our vector type 'vt' fits into the size x size segment
 
-	constexpr int vector_size = size / vt::Size; // vector_size contains the number of vt types needed per line
+	constexpr int vector_size = size / vt::size(); // vector_size contains the number of vt types needed per line
 
 	const auto k = end.x;
 
@@ -152,6 +152,12 @@ inline void block(point_type end, T* result, const T* lhs, const T* rhs, triple_
 
 	std::array<std::array<vt, vector_size>, size> res;
 
+	for(int i = 0; i < size; ++i) {
+	    for(int j = 0; j < vector_size; ++j) {
+	        res[i][j] = 0;
+	    }
+	}
+
 	for(ct i = 0; i < k; ++i) {
 		std::array<vt, size> a;
 
@@ -162,7 +168,7 @@ inline void block(point_type end, T* result, const T* lhs, const T* rhs, triple_
 		std::array<vt, vector_size> b;
 
 		for(ct j = 0; j < vector_size; ++j) {
-			b[j].load(rhs + j * vt::Size + i * size);
+			b[j].copy_from(rhs + j * vt::size() + i * size, Vc::flags::vector_aligned);
 
 
 			for(ct jj = 0; jj < size; ++jj) {
@@ -173,8 +179,8 @@ inline void block(point_type end, T* result, const T* lhs, const T* rhs, triple_
 
 	for(ct i = 0; i < size; ++i) {
 		for(ct j = 0; j < vector_size; ++j) {
-			ct jj = j * (ct)vt::Size;
-			for(ct k = 0; k < (ct)vt::Size; ++k) {
+			ct jj = j * (ct)vt::size();
+			for(ct k = 0; k < (ct)vt::size(); ++k) {
 				result[mindex(i, jj + k, matrix_sizes.z)] += res[i][j][k];
 			}
 		}
@@ -186,7 +192,7 @@ template <int size = 8, typename T>
 void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
 	using ct = coordinate_type;
 
-	T packed_b[end.y * end.x];
+	alignas(Vc::memory_alignment_v<Vc::native_simd<T>>) T packed_b[end.y * end.x];
 
 	algorithm::pfor(GridPoint<1>{end.y / size}, [&](const auto& pos) {
 		ct j = pos[0] * size;
@@ -236,7 +242,7 @@ void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, con
 	const auto k = lhs.columns();
 	const auto n = rhs.columns();
 
-	constexpr auto size = Vc::Vector<T>::Size;
+	constexpr auto size = Vc::native_simd<T>::size();
 
 	// TODO: find good values for kc, nc (multiple of vector size?)
 

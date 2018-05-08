@@ -6,6 +6,8 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 # -- contains dependencies for third party libs
 set(ALLSCALE_MATRIX_DEPENDENCIES)
 
+include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
+
 include(defaults)
 include(allscale)
 include(add_module)
@@ -17,23 +19,27 @@ include(dependencies/pthread)
 
 find_package(Boost REQUIRED)
 
-find_package(GTest)
-if(NOT GTest_FOUND)
-  message(STATUS "Adding googletest as third party dependency")
-  include(dependencies/googletest)
+add_subdirectory(${PROJECT_SOURCE_DIR}/googletest/googletest)
+
+set(GTEST_LIBRARIES gtest)
+set(GTEST_MAIN_LIBRARIES gtest_main)
+
+set(ALLSCALE_MATRIX_DEPENDENCIES gtest ${ALLSCALE_MATRIX_DEPENDENCIES})
+set(ALLSCALE_MATRIX_DEPENDENCIES gtest_main ${ALLSCALE_MATRIX_DEPENDENCIES})
+
+#Vc master
+if(EXISTS ${PROJECT_SOURCE_DIR}/Vc)
+  set(Vc_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/Vc)
+  message(STATUS "Vc include dir: ${Vc_INCLUDE_DIR}")
+else()
+  message(FATAL_ERROR "Vc submodule not found. Did you clone with \"git clone --recursive <url>\"?")
 endif()
 
-
-find_package(Vc)
-if(NOT Vc_FOUND)
-  message(STATUS "Adding Vc as third party dependency")
-  include(dependencies/vc)
-endif()
-
-find_package(Eigen3)
-if(NOT Eigen3_FOUND)
-  message(STATUS "Adding Eigen3 as third party dependency")
-  include(dependencies/eigen3)
+#Eigen 3.3
+if(EXISTS ${PROJECT_SOURCE_DIR}/eigen/Eigen)
+  set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/eigen)
+else()
+  message(FATAL_ERROR "Eigen submodule not found. Did you clone with \"git clone --recursive <url>\"?")
 endif()
 
 find_package(OpenBLAS)
@@ -75,6 +81,5 @@ endif()
 if(BUILD_EXAMPLES)
   add_module_executable_folder("src/examples/" ".cc" "example_" "" "include" ON ${ALLSCALE_MATRIX_DEPENDENCIES})
 endif()
-
 
 add_test_folder("src/test/user/data" ".cc" "" "_test" "include" ON ${ALLSCALE_MATRIX_DEPENDENCIES})

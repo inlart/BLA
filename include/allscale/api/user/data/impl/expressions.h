@@ -22,12 +22,12 @@ namespace impl {
 
 template <typename E>
 class MatrixExpression {
-    static_assert(std::is_same<E, std::decay_t<E>>::value, "A MatrixExpression type may not be const or cv qualified.");
+    static_assert(std::is_same<E, detail::remove_cvref_t<E>>::value, "A MatrixExpression type may not be const or cv qualified.");
 
 
   public:
 	using T = scalar_type_t<E>;
-	using PacketScalar = typename Vc::Vector<T>;
+	using PacketScalar = typename Vc::native_simd<T>;
 
 	/*
 	 * abstract class due to object slicing
@@ -145,7 +145,7 @@ class MatrixExpression {
 
 	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
 
-	Matrix<T> eval() const {
+	Matrix<T> eval() const { //TODO: handle MatrixExpression<Matrix<T>>
 		Matrix<T> tmp(size());
 
 		evaluate(*this, tmp);
@@ -580,7 +580,7 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
 	cmap_type getEigenMap() const { return eigenSub({0, rows()}); }
 
-	PacketScalar packet(point_type p) const { return PacketScalar(&operator[](p)); }
+	PacketScalar packet(point_type p) const { return PacketScalar(&operator[](p), Vc::flags::vector_aligned); }
 
 	const Matrix<T>& eval() const { return *this; }
 	Matrix<T>& eval() { return *this; }
@@ -611,7 +611,7 @@ class SubMatrix : public MatrixExpression<SubMatrix<E>> {
 
     SubMatrix<E> sub(BlockRange block_range) const {
         assert_ge(block_range.start, (point_type{0, 0}));
-        assert_le(block_range.start + block_range + size, this->block_range.size);
+        assert_le(block_range.start + block_range.size, this->block_range.size);
 
         BlockRange new_range;
         new_range.start = this->block_range.start + block_range.start;
@@ -652,7 +652,7 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<E>> {
 
     RefSubMatrix<Matrix<T>> sub(BlockRange block_range) const {
         assert_ge(block_range.start, (point_type{0, 0}));
-        assert_le(block_range.start + block_range + size, this->block_range.size);
+        assert_le(block_range.start + block_range.size, this->block_range.size);
 
         BlockRange new_range;
         new_range.start = this->block_range.start + block_range.start;
@@ -724,16 +724,17 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expressi
 	expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
 	using T = scalar_type_t<E>;
-	using PacketScalar = typename Vc::Vector<T>;
+	using PacketScalar = typename Vc::native_simd<T>;
+
 
 	const int total_size = expr.rows() * expr.columns();
-	const int packet_size = PacketScalar::Size;
+	const int packet_size = PacketScalar::size();
 	const int aligned_end = total_size / packet_size * packet_size;
 
 	algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
 		int i = coord[0] * packet_size;
 		point_type p{i / expr.columns(), i - i / expr.columns() * expr.columns()};
-		expr.packet(p).store(&dst[p]);
+		expr.packet(p).copy_to(&dst[p], Vc::flags::vector_aligned);
 	});
 
 	for(int i = aligned_end; i < total_size; i++) {
