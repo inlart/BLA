@@ -6,9 +6,13 @@ Provides the `Matrix` data type for the AllScale API.
 
 * CMake 3.5 (<https://cmake.org/>)
 * Allscale API (<https://github.com/allscale/allscale_api>)
-* Eigen 3.3 (<http://eigen.tuxfamily.org/index.php?title=Main_Page>)
-* Vc 1.3 (<https://github.com/VcDevel/Vc/tree/1.3>)
 * OpenBLAS 0.3.0 (<https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide>)
+
+The following dependencies are already included as git submodules:
+
+* Eigen 3.3.4 (<http://eigen.tuxfamily.org/index.php?title=Main_Page>)
+* Vc (<https://github.com/VcDevel/Vc>)
+* googletest 1.8 (<https://github.com/google/googletest/tree/release-1.8.0>)
 
 ## CMake Options
 
