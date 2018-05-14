@@ -132,6 +132,10 @@ class MatrixExpression {
 		return LUDecomposition().determinant();
 	}
 
+	Matrix<T> inverse() const {
+        return LUDecomposition().inverse();
+    }
+
 	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
 
 	Matrix<T> eval() const { //TODO: handle MatrixExpression<Matrix<T>>
@@ -642,7 +646,7 @@ class PermutationMatrix : public MatrixExpression<PermutationMatrix<T>> {
         swaps++;
     }
 
-    coordinate_type permutation(coordinate_type i) {
+    coordinate_type permutation(coordinate_type i) const {
         assert_lt(i, rows());
         return values[i];
     }

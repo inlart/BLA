@@ -114,6 +114,36 @@ struct LUD {
             return -det;
     }
 
+    Matrix<T> inverse() const {
+        using ct = coordinate_type;
+        Matrix<T> inverse(LU.size());
+
+
+        for(ct j = 0; j < LU.rows(); ++j) {
+            for(ct i = 0; i < LU.rows(); ++i) {
+                if(P.permutation(i) == j) {
+                    inverse[{i, j}] = static_cast<T>(1);
+                }
+                else {
+                    inverse[{i, j}] = static_cast<T>(0);
+                }
+
+                for(ct k = 0; k < i; ++k) {
+                    inverse[{i, j}] -= LU[{i, k}] * inverse[{k, j}];
+                }
+            }
+
+            for(ct i = LU.rows() - 1; i >= 0; --i) {
+                for(ct k = i + 1; k < LU.rows(); ++k) {
+                    inverse[{i, j}] -= LU[{i, k}] * inverse[{k, j}];
+                }
+                inverse[{i, j}] = inverse[{i, j}] / LU[{i, i}];
+            }
+        }
+
+        return inverse;
+    }
+
   private:
     PermutationMatrix<T> P;
     Matrix<T> LU;
