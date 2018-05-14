@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <allscale/api/user/data/grid.h>
 #include <allscale/utils/assert.h>
+#include <allscale/utils/vector.h>
 #include <cmath>
 #include <functional>
 
@@ -128,19 +129,7 @@ class MatrixExpression {
 	}
 
 	T determinant() const {
-		assert_eq(rows(), columns());
-		using ct = coordinate_type;
-		auto lu = LUDecomposition();
-		T det = static_cast<T>(1); // TODO: find a better way to do that
-
-		const ct n = lu.lower().rows();
-
-		for(ct i = 0; i < n; ++i) {
-			det *= lu.lower()[{i, i}] * lu.upper()[{i, i}];
-		}
-
-
-		return det;
+		return LUDecomposition().determinant();
 	}
 
 	PacketScalar packet(point_type p) const { return static_cast<const E&>(*this).packet(p); }
@@ -559,6 +548,33 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = f(); });
 	}
 
+    void fill_seq(const T& value) {
+        using ct = coordinate_type;
+        for(ct i = 0; i < rows(); ++i) {
+            for(ct j = 0; j < columns(); ++j) {
+                (*this)[{i, j}] = value;
+            }
+        }
+    }
+
+    void fill_seq(std::function<T(point_type)> f) {
+        using ct = coordinate_type;
+        for(ct i = 0; i < rows(); ++i) {
+            for(ct j = 0; j < columns(); ++j) {
+                (*this)[{i, j}] = f(point_type{i, j});
+            }
+        }
+    }
+
+    void fill_seq(std::function<T()> f) {
+        using ct = coordinate_type;
+        for(ct i = 0; i < rows(); ++i) {
+            for(ct j = 0; j < columns(); ++j) {
+                (*this)[{i, j}] = f();
+            }
+        }
+    }
+
 	void zero() { fill(static_cast<T>(0)); }
 
 	void eye() {
@@ -587,6 +603,57 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
   private:
 	data::Grid<T, 2> m_data;
+};
+
+//TODO: add to forward traits etc.
+template <typename T>
+class PermutationMatrix : public MatrixExpression<PermutationMatrix<T>> {
+  public:
+    PermutationMatrix(coordinate_type c) : values(utils::Vector<coordinate_type, 1>{c}), swaps(0) {
+        algorithm::pfor(utils::Vector<coordinate_type, 1>{c}, [&](const auto& p){
+            values[p] = p[0];
+        });
+    }
+
+    //TODO: remove this
+    PermutationMatrix(const PermutationMatrix<T>& mat) : values(utils::Vector<coordinate_type, 1>{mat.rows()}), swaps(0) {
+        algorithm::pfor(utils::Vector<coordinate_type, 1>{rows()}, [&](const auto& p){
+            values[p] = mat.values[p];
+        });
+    }
+
+    PermutationMatrix(PermutationMatrix<T>&&) = default;
+
+    T operator[](const point_type& pos) const {
+        assert_lt(pos, size);
+        return values[{pos.x}] == pos.y ? static_cast<T>(1) : static_cast<T>(0);
+    }
+
+    point_type size() const { return {rows(), columns()}; }
+
+    coordinate_type rows() const { return values.size()[0]; }
+
+    coordinate_type columns() const { return values.size()[0]; }
+
+    void swap(coordinate_type i , coordinate_type j) {
+        coordinate_type old = values[{i}];
+        values[{i}] = values[{j}];
+        values[{j}] = old;
+        swaps++;
+    }
+
+    coordinate_type permutation(coordinate_type i) {
+        assert_lt(i, rows());
+        return values[i];
+    }
+
+    int numSwaps() const {
+        return swaps;
+    }
+
+  private:
+    Grid<coordinate_type, 1> values;
+    int swaps;
 };
 
 template <typename E>
@@ -672,6 +739,33 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<E>> {
         algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(); });
     }
 
+    void fill_seq(const T& value) {
+        using ct = coordinate_type;
+        for(ct i = 0; i < rows(); ++i) {
+            for(ct j = 0; j < columns(); ++j) {
+                (*this)[{i, j}] = value;
+            }
+        }
+    }
+
+    void fill_seq(std::function<T(point_type)> f) {
+        using ct = coordinate_type;
+        for(ct i = 0; i < rows(); ++i) {
+            for(ct j = 0; j < columns(); ++j) {
+                (*this)[{i, j}] = f(point_type{i, j});
+            }
+        }
+    }
+
+    void fill_seq(std::function<T()> f) {
+        using ct = coordinate_type;
+        for(ct i = 0; i < rows(); ++i) {
+            for(ct j = 0; j < columns(); ++j) {
+                (*this)[{i, j}] = f();
+            }
+        }
+    }
+
     void zero() { fill(static_cast<T>(0)); }
 
     void eye() {
@@ -681,6 +775,18 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<E>> {
     void identity() {
         assert_eq(rows(), columns());
         eye();
+    }
+
+    template<typename E2>
+    void swap(RefSubMatrix<E2> other) {
+        assert_eq(size(), other.size());
+
+        algorithm::pfor(size(), [&](const auto& pos){
+            T tmp = (*this)[pos];
+            (*this)[pos] = other[pos];
+            other[pos] = tmp;
+        });
+
     }
 
     Exp& getExpression() const { return expression; }
@@ -765,7 +871,12 @@ Matrix<T>& simplify(Matrix<T>& m) {
 
 template <typename T>
 IdentityMatrix<T> simplify(IdentityMatrix<T> m) {
-	return m;
+    return m;
+}
+
+template <typename T>
+PermutationMatrix<T> simplify(PermutationMatrix<T> m) {
+    return m;
 }
 
 template <typename E1, typename E2>

@@ -94,6 +94,12 @@ class RefSubMatrix;
 template <typename T>
 class IdentityMatrix;
 
+/*
+ * A permutation matrix
+ */
+template <typename T>
+class PermutationMatrix;
+
 
 template <typename Expr>
 struct scalar_type;

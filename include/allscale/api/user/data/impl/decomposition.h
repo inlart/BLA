@@ -16,54 +16,107 @@ namespace impl {
 
 using point_type = GridPoint<2>;
 
+// -- partial pivoting LU decomposition with PA = LU
 template <typename T>
 struct LUD {
-	LUD(const Matrix<T>& A) : L(A.size()), U(A.size()) {
-		using ct = coordinate_type;
-		assert_eq(A.rows(), A.columns());
+    LUD(const Matrix<T>& A) : P(A.rows()), LU(A) {
+        using ct = coordinate_type;
+        assert_eq(A.rows(), A.columns());
 
-		ct n = A.rows();
+        const T epsilon = static_cast<T>(1E-4);
 
-		for(ct i = 0; i < n; ++i) {
-		    for(ct j = 0; j < n; ++j) {
-				if(j < i) {
-					L[{j, i}] = static_cast<T>(0);
-				} else {
-					L[{j, i}] = A[{j, i}];
-					for(ct k = 0; k < i; ++k) {
-						L[{j, i}] -= L[{j, k}] * U[{k, i}];
-					}
-				}
-			}
-		    for(ct j = 0; j < n; ++j) {
-				if(j < i) {
-					U[{i, j}] = static_cast<T>(0);
-				} else if(j == i) {
-					U[{i, j}] = static_cast<T>(1);
-				} else {
-					U[{i, j}] = A[{i, j}] / L[{i, i}];
-					for(ct k = 0; k < i; ++k) {
-						U[{i, j}] -= L[{i, k}] * U[{k, j}] / L[{i, i}];
-					}
-				}
-			}
-		}
-	}
+        // -- compute permutation matrix
+        for(ct i = 0; i < A.rows(); ++i) {
+            T max_value = static_cast<T>(0);
+            ct max_column = i;
 
-	LUD(const LUD<T>&) = delete;
-	LUD(LUD<T>&&) = default;
+            for(ct k = i; k < A.rows(); ++k) {
+                T value = std::abs(LU[{k, i}]);
+                if(value > max_value) {
+                    max_value = value;
+                    max_column = k;
+                }
+            }
 
-	LUD<T>& operator=(const LUD<T>&) = delete;
-	LUD<T>& operator=(LUD<T>&&) = default;
+            if(max_value < epsilon) {
+                assert_fail();
+                return;
+            }
+
+            if(max_column != i) {
+                P.swap(i, max_column);
+                LU.sub({{i, 0}, {1, LU.columns()}}).swap(LU.sub({{max_column, 0}, {1, LU.columns()}}));
+            }
+
+            for(ct j = i + 1; j < A.rows(); ++j) {
+                LU[{j, i}] /= LU[{i, i}];
+
+                for(ct k = i + 1; k < A.rows(); ++k) {
+                    LU[{j, k}] -= LU[{j, i}] * LU[{i, k}];
+                }
+            }
+        }
+    }
+
+    LUD(const LUD<T>&) = delete;
+    LUD(LUD<T>&&) = default;
+
+    LUD<T>& operator=(const LUD<T>&) = delete;
+    LUD<T>& operator=(LUD<T>&&) = default;
 
 
-	const Matrix<T>& lower() const { return L; }
+    Matrix<T> lower() const {
+        Matrix<T> l(LU.size());
+        l.fill([&](const auto& pos){
+            if(pos.x > pos.y) {
+                return LU[pos];
+            }
+            else if(pos.x == pos.y) {
+                return static_cast<T>(1);
+            }
+            else {
+                return static_cast<T>(0);
+            }
+        });
 
-	const Matrix<T>& upper() { return U; }
+        return l;
+    }
+
+    Matrix<T> upper() const {
+        Matrix<T> u(LU.size());
+        u.fill([&](const auto& pos){
+            if(pos.x <= pos.y) {
+                return LU[pos];
+            }
+            else {
+                return static_cast<T>(0);
+            }
+        });
+        return u;
+    }
+
+    const PermutationMatrix<T>& permutation() const { return P; }
+
+    T determinant() const {
+        using ct = coordinate_type;
+
+        T det = LU[{0, 0}];
+
+        const ct n = LU.rows();
+
+        for(ct i = 1; i < n; ++i) {
+            det *= LU[{i, i}];
+        }
+
+        if((P.numSwaps() & 1) == 0)
+            return det;
+        else
+            return -det;
+    }
 
   private:
-	Matrix<T> L;
-	Matrix<T> U;
+    PermutationMatrix<T> P;
+    Matrix<T> LU;
 };
 
 template <typename T>

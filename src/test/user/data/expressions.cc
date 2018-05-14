@@ -217,7 +217,7 @@ TEST(Utility, Random) {
 	std::uniform_real_distribution<double> dis(-1, 1);
 
 	auto g = [&](const auto&) { return dis(gen); };
-	m.fill(g);
+	m.fill_seq(g);
 	for(int i = 0; i < 2; ++i) {
 		for(int j = 0; j < 2; ++j) {
 			ASSERT_LE(-1.0, (m[{i, j}]));
@@ -235,12 +235,32 @@ TEST(Utility, EigenMap) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		auto map1 = m1.getEigenMap();
 		auto map2 = m2.getEigenMap();
 		ASSERT_TRUE(isAlmostEqual(Matrix<double>(map1 * map2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
 	}
+}
+
+TEST(Expression, PermutationMatrix) {
+    PermutationMatrix<int> p(5);
+
+    ASSERT_TRUE(isAlmostEqual(Matrix<int>(p), Matrix<int>(IdentityMatrix<int>({5, 5}))));
+
+    p.swap(0, 1);
+
+    algorithm::pfor(p.size(), [&](const auto& pos){
+        if(pos.x == 0) {
+            ASSERT_EQ(p[pos], pos.y == 1 ? 1 : 0);
+        }
+        else if(pos.x == 1) {
+            ASSERT_EQ(p[pos], pos.y == 0 ? 1 : 0);
+        }
+        else {
+            ASSERT_EQ(p[pos], pos.x == pos.y ? 1 : 0);
+        }
+    });
 }
 
 TEST(Expression, SubMatrix) {
@@ -294,6 +314,38 @@ TEST(Expression, RefSubMatrix) {
     });
 }
 
+TEST(Expression, RefSubMatrixSwap) {
+    const int n = 8;
+    const int nh = n / 2;
+    Matrix<int> m1({n, n});
+
+    m1.fill(5);
+
+    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], 5); });
+
+    m1.sub({{0, 0}, {nh, nh}}).fill(1);
+    m1.sub({{0, nh}, {nh, nh}}).fill(2);
+    m1.sub({{nh, 0}, {nh, nh}}).fill(3);
+    m1.sub({{nh, nh}, {nh, nh}}).fill(4);
+
+    m1.sub({{0, 0}, {nh, nh}}).swap(m1.sub({{nh, 0}, {nh, nh}}));
+
+    algorithm::pfor(m1.size(), [&](const auto& p) {
+        if(p.x < nh && p.y < nh) {
+            ASSERT_EQ(m1[p], 3);
+        }
+        else if(p.x < nh && p.y >= nh) {
+            ASSERT_EQ(m1[p], 2);
+        }
+        else if(p.x >= nh && p.y < nh) {
+            ASSERT_EQ(m1[p], 1);
+        }
+        else {
+            ASSERT_EQ(m1[p], 4);
+        }
+    });
+}
+
 TEST(Expression, IdentityMatrix) {
 	Matrix<int> m1({37, 31});
 	IdentityMatrix<int> m2(point_type{m1.columns(), m1.columns()});
@@ -317,7 +369,7 @@ TEST(Expression, Abs) {
 
 	auto g = [&]() { return dis(gen); };
 
-	m1.fill(g);
+	m1.fill_seq(g);
 
 	Matrix<int> m2 = m1.abs();
 
@@ -335,7 +387,7 @@ TEST(Expression, MatrixRowColumn) {
 	auto g = [&](const auto&) { return dis(gen); };
 
 	for(int i = 0; i < 20; ++i) {
-		m1.fill(g);
+		m1.fill_seq(g);
 
 		ASSERT_EQ(m1.row(15), m1.transpose().column(15).transpose());
 	}
@@ -379,8 +431,8 @@ TEST(Simplify, Transpose) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 
-	m1.fill(g);
-	m2.fill(g);
+	m1.fill_seq(g);
+	m2.fill_seq(g);
 	m3.zero();
 	m4.zero();
 
@@ -408,8 +460,8 @@ TEST(Simplify, RecursiveTranspose) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 
-	m1.fill(g);
-	m2.fill(g);
+	m1.fill_seq(g);
+	m2.fill_seq(g);
 	m3.zero();
 	m4.zero();
 
@@ -506,7 +558,7 @@ TEST(Simplify, Negation) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 
-	m1.fill(g);
+	m1.fill_seq(g);
 	m2.zero();
 	m3.zero();
 
@@ -537,8 +589,8 @@ TEST(Simplify, IdentityMatrix) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 
-	m1.fill(g);
-	m2.fill(g);
+	m1.fill_seq(g);
+	m2.fill_seq(g);
 
 	r1 = simplify(m3 * m1);
 
@@ -568,7 +620,7 @@ TEST(Operation, Determinant) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.fill(g);
+		m1.fill_seq(g);
 		ASSERT_TRUE(std::abs(m1.determinant() - (m1[{0, 0}] * m1[{1, 1}] - m1[{0, 1}] * m1[{1, 0}])) < 0.0001);
 	}
 }
@@ -582,7 +634,7 @@ TEST(Operation, DeterminantEigen) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.fill(g);
+		m1.fill_seq(g);
 
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = m1.toEigenMatrix();
 
@@ -599,8 +651,8 @@ TEST(Operation, ElementMultiplication) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		Matrix<double> m3(m1.product(m2));
 
 		for(coordinate_type i = 0; i < m1.rows(); ++i) {
@@ -618,7 +670,7 @@ TEST(Operation, Transpose) {
 	std::uniform_real_distribution<double> dis(-1, 1);
 
 	auto g = [&](const auto&) { return dis(gen); };
-	m1.fill(g);
+	m1.fill_seq(g);
 	Matrix<double> m2 = m1.transpose();
 
 	ASSERT_EQ(m1.rows(), m2.columns());

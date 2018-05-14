@@ -74,8 +74,8 @@ TEST(Operation, Addition) {
 	auto g = [&](const auto&) { return dis(gen); };
 
 	for(int i = 0; i < 20; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		ASSERT_EQ(m1 + m2, Matrix<double>(m1.toEigenMatrix() + m2.toEigenMatrix()));
 	}
 }
@@ -89,8 +89,8 @@ TEST(Operation, AssignAddition) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 
 		Eigen::MatrixXd m1e = m1.toEigenMatrix();
 		Eigen::MatrixXd m2e = m2.toEigenMatrix();
@@ -111,8 +111,8 @@ TEST(Operation, Subtraction) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		ASSERT_TRUE(isAlmostEqual(m1 - m2, Matrix<double>(m1.toEigenMatrix() - m2.toEigenMatrix())));
 		ASSERT_TRUE(isAlmostEqual(m1 - m1, m2 - m2));
 	}
@@ -127,8 +127,8 @@ TEST(Operation, AssignSubtraction) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 
 		Eigen::MatrixXd m1e = m1.toEigenMatrix();
 		Eigen::MatrixXd m2e = m2.toEigenMatrix();
@@ -150,7 +150,7 @@ TEST(Operation, Negation) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m.fill(g);
+		m.fill_seq(g);
 		ASSERT_TRUE(isAlmostEqual(-m, Matrix<double>(-(m.toEigenMatrix()))));
 	}
 }
@@ -164,7 +164,7 @@ TEST(Operation, ScalarMatrixMultiplication) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
+		m1.fill_seq(g);
 		ASSERT_EQ(3. * m1, Matrix<int>((3. * m1.toEigenMatrix()).eval()));
 	}
 }
@@ -177,7 +177,7 @@ TEST(Operation, MatrixScalarMultiplication) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
+		m1.fill_seq(g);
 		ASSERT_EQ(m1 * 3., Matrix<int>((m1.toEigenMatrix() * 3.).eval()));
 	}
 }
@@ -191,8 +191,8 @@ TEST(Operation, Multiple) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = m1.toEigenMatrix();
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m2e = m2.toEigenMatrix();
 		ASSERT_TRUE(isAlmostEqual(-(m1 + m1) * m2 + m2 - m2 + m2 - m2, Matrix<double>(-(m1e + m1e) * m2e + m2e - m2e + m2e - m2e)));

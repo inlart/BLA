@@ -46,8 +46,8 @@ TEST(Operation, Multiplication) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		ASSERT_TRUE(isAlmostEqual(m1 * m2, Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
 	}
 }
@@ -61,8 +61,8 @@ TEST(Operation, MultiplicationNoTransposeTranspose) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		ASSERT_TRUE(isAlmostEqual(m1 * m2.transpose(), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix().transpose()).eval())));
 	}
 }
@@ -76,8 +76,8 @@ TEST(Operation, MultiplicationTransposeNoTranspose) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		ASSERT_TRUE(isAlmostEqual(m1.transpose() * m2, Matrix<double>((m1.toEigenMatrix().transpose() * m2.toEigenMatrix()).eval())));
 	}
 }
@@ -91,8 +91,8 @@ TEST(Operation, MultiplicationTransposeTranspose) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		ASSERT_TRUE(isAlmostEqual(m1.transpose() * m2.transpose(), Matrix<double>((m1.toEigenMatrix().transpose() * m2.toEigenMatrix().transpose()).eval())));
 	}
 }
@@ -106,8 +106,8 @@ TEST(Operation, AssignMultiplication) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 20; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 
 		Eigen::MatrixXd m1e = m1.toEigenMatrix();
 		Eigen::MatrixXd m2e = m2.toEigenMatrix();
@@ -128,8 +128,8 @@ TEST(Operation, MultiplicationStrassen) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		ASSERT_TRUE(isAlmostEqual(strassen(m1, m2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
 	}
 }
@@ -143,8 +143,8 @@ TEST(Operation, MultiplicationBLAS) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 
 		Matrix<double> res({m1.rows(), m2.columns()});
 
@@ -163,8 +163,8 @@ TEST(Operation, MultiplicationAllscale) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		Matrix<double> m3({m1.rows(), m2.columns()});
 		matrix_multiplication_allscale(m3, m1, m2);
 
@@ -181,8 +181,8 @@ TEST(Operation, MultiplicationAllscaleInteger) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		Matrix<int> m3({m1.rows(), m2.columns()});
 		matrix_multiplication_allscale(m3, m1, m2);
 
@@ -199,8 +199,8 @@ TEST(Operation, MultiplicationFloat) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 4; ++i) {
-		m1.fill(g);
-		m2.fill(g);
+		m1.fill_seq(g);
+		m2.fill_seq(g);
 		Matrix<float> m3({m1.rows(), m2.columns()});
 		m3 = m1 * m2;
 

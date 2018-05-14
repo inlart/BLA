@@ -38,20 +38,13 @@ std::enable_if_t<std::is_same<scalar_type_t<E1>, std::complex<double>>::value, b
 }
 
 TEST(Operation, LUDecomposition) {
-	Matrix<double> m1({400, 400});
+	Matrix<double> m1({4, 4});
+	m1 << 1.1, 1.2, 1.7, 3.2, 1.2, 2.7, 1.3, 1.7, 9.7, 2.7, 3.3, 2.1, 0.9, 2.1, 2.0, 1.5;
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<double> dis(-1, 1);
+    auto lu = m1.LUDecomposition();
 
-	auto g = [&](const auto&) { return dis(gen); };
-	for(int i = 0; i < 1; ++i) {
-		m1.fill(g);
+    ASSERT_TRUE(isAlmostEqual(lu.permutation() * m1, (lu.lower() * lu.upper()).eval()));
 
-		auto lu = m1.LUDecomposition();
-
-		ASSERT_TRUE(isAlmostEqual(m1, (lu.lower() * lu.upper()).eval()));
-	}
 }
 
 TEST(Operation, QRDecomposition) {
@@ -63,7 +56,7 @@ TEST(Operation, QRDecomposition) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 1; ++i) {
-		m1.fill(g);
+		m1.fill_seq(g);
 
 		auto qr = m1.QRDecomposition();
 
@@ -82,7 +75,7 @@ TEST(Operation, DISABLED_SVDecomposition) {
 
 	auto g = [&](const auto&) { return dis(gen); };
 	for(int i = 0; i < 1; ++i) {
-		m1.fill(g);
+		m1.fill_seq(g);
 
 		auto sv = m1.SVDecomposition();
 

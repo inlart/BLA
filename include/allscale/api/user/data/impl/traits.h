@@ -105,6 +105,9 @@ struct scalar_type<Matrix<T>> : public detail::set_type<T> {};
 template <typename T>
 struct scalar_type<IdentityMatrix<T>> : public detail::set_type<T> {};
 
+template <typename T>
+struct scalar_type<PermutationMatrix<T>> : public detail::set_type<T> {};
+
 template <typename E>
 struct scalar_type<SubMatrix<E>> : public detail::set_type<typename scalar_type<E>::type> {};
 
@@ -159,6 +162,9 @@ struct vectorizable<Matrix<T>> : public std::is_arithmetic<T> {};
 
 template <typename E1, typename E2>
 struct vectorizable<MatrixMultiplication<E1, E2>> : public std::is_arithmetic<scalar_type_t<MatrixMultiplication<E1, E2>>> {};
+
+template <typename E>
+struct vectorizable<PermutationMatrix<E>> : public std::false_type {};
 
 template <typename E>
 struct vectorizable<SubMatrix<E>> : public std::false_type {};
