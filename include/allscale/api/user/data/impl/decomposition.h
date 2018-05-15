@@ -144,6 +144,31 @@ struct LUD {
         return inverse;
     }
 
+    // -- Solve A * x = b for x
+    Matrix<T> solve(const Matrix<T>& b) {
+        assert_eq(b.size(), (point_type{LU.rows(), 1}));
+        using ct = coordinate_type;
+        Matrix<T> x(b.size());
+
+        for(ct i = 0; i < LU.rows(); ++i) {
+            x[{i, 0}] = b[{P.permutation(i), 0}];
+
+            for(ct k = 0; k < i; ++k) {
+                x[{i, 0}] -= LU[{i, k}] * x[{k, 0}];
+            }
+        }
+
+        for(ct i = LU.rows() - 1; i >= 0; --i) {
+            for(ct k = i + 1; k < LU.rows(); ++k) {
+                x[{i, 0}] -= LU[{i, k}] * x[{k, 0}];
+            }
+
+            x[{i, 0}] /= LU[{i, i}];
+        }
+
+        return x;
+    }
+
   private:
     PermutationMatrix<T> P;
     Matrix<T> LU;

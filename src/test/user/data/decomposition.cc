@@ -47,6 +47,26 @@ TEST(Operation, LUDecomposition) {
 
 }
 
+TEST(Operation, LUSolve) {
+    Matrix<double> m1({3, 3});
+    m1 << 3, 2, -1, 2, -2, 4, -1, 0.5, -1;
+
+    auto lu = m1.LUDecomposition();
+
+    Matrix<double> b({3, 1});
+
+    b << 1, -2, 0;
+
+    Matrix<double> x = lu.solve(b);
+
+    std::cout << "x: " << x << std::endl;
+
+
+
+    ASSERT_TRUE(isAlmostEqual(m1 * x, b));
+
+}
+
 TEST(Operation, QRDecomposition) {
 	Matrix<double> m1({10, 5});
 
