@@ -59,9 +59,6 @@ TEST(Operation, LUSolve) {
 
     Matrix<double> x = lu.solve(b);
 
-    std::cout << "x: " << x << std::endl;
-
-
 
     ASSERT_TRUE(isAlmostEqual(m1 * x, b));
 
