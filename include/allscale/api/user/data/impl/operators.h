@@ -16,14 +16,14 @@ namespace impl {
 template <typename T, typename E>
 Matrix<T>& operator+=(Matrix<T>& u, const MatrixExpression<E>& v) {
 	// TODO: handle aliasing
-	evaluate(MatrixAddition<Matrix<T>, E>(u, v), u);
+	detail::evaluate(MatrixAddition<Matrix<T>, E>(u, v), &u[{0, 0}]);
 	return u;
 }
 
 template <typename T, typename E>
 Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
 	// TODO: handle aliasing
-	evaluate(MatrixSubtraction<Matrix<T>, E>(u, v), u);
+	detail::evaluate(MatrixSubtraction<Matrix<T>, E>(u, v), &u[{0, 0}]);
 	return u;
 }
 

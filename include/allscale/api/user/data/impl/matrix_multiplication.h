@@ -11,6 +11,7 @@
 #include <allscale/api/user/algorithm/pfor.h>
 #include <allscale/api/user/data/grid.h>
 #include <allscale/utils/assert.h>
+#include <allscale/utils/vector.h>
 
 // -- Other
 #include <Vc/Vc>
@@ -424,6 +425,16 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
 template <typename T, typename E1, typename E2>
 void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const MatrixExpression<E2>& rhs) {
 	matrix_multiplication(result, lhs.eval(), rhs.eval());
+}
+
+template <typename T, typename E1, typename E2>
+void matrix_multiplication(Matrix<T>& result, const PermutationMatrix<E1>& lhs, const MatrixExpression<E2>& rhs) {
+    assert_eq(lhs.columns(), rhs.rows());
+
+    algorithm::pfor(utils::Vector<coordinate_type, 1>(result.rows()), [&](const auto& pos){
+        const coordinate_type i = pos[0];
+        detail::evaluate(rhs.row(lhs.permutation(i)), &result.sub({{i, 0}, {1, result.columns()}})[{0, 0}]); //TODO: change sub to row()
+    });
 }
 
 template <typename T>
