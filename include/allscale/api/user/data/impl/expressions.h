@@ -541,7 +541,7 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 	}
 
 	void fill(const T& value) {
-		algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = value; });
+        set_value(value, *this);
 	}
 
 	void fill(std::function<T(point_type)> f) {
@@ -732,7 +732,7 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<E>> {
     }
 
     void fill(const T& value) {
-        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = value; });
+        set_value(value, *this);
     }
 
     void fill(std::function<T(point_type)> f) {
@@ -770,7 +770,9 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<E>> {
         }
     }
 
-    void zero() { fill(static_cast<T>(0)); }
+    void zero() {
+        fill(static_cast<T>(0));
+    }
 
     void eye() {
         fill([](const auto& pos) { return pos.x == pos.y ? static_cast<T>(1) : static_cast<T>(0); });
@@ -826,6 +828,41 @@ class IdentityMatrix : public MatrixExpression<IdentityMatrix<T>> {
 	point_type matrix_size;
 };
 
+//TODO: namespace detail
+template <typename T1, typename T2>
+std::enable_if_t<vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<T2>& dst) {
+    using PacketScalar = typename Vc::native_simd<T2>;
+
+
+    const int total_size = dst.rows() * dst.columns();
+    const int packet_size = PacketScalar::size();
+    const int aligned_end = total_size / packet_size * packet_size;
+
+    algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
+        int i = coord[0] * packet_size;
+        point_type p{i / dst.columns(), i % dst.columns()};
+
+        PacketScalar z(static_cast<T2>(value));
+
+        z.copy_to(&dst[p], Vc::flags::vector_aligned);
+    });
+
+    for(int i = aligned_end; i < total_size; i++) {
+        point_type p{i / dst.columns(), i % dst.columns()};
+        dst[p] = static_cast<T2>(value);
+    }
+}
+
+template <typename T1, typename T2>
+std::enable_if_t<!vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<T2>& dst) {
+    algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<T2>(value); });
+}
+
+template <typename T1, typename E>
+void set_value(const T1& value, RefSubMatrix<E>& dst) {
+    algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<scalar_type_t<E>>(value); });
+}
+
 // -- evaluate a matrix expression using vectorization
 template <typename E>
 std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
@@ -843,12 +880,12 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expressi
 
 	algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
 		int i = coord[0] * packet_size;
-		point_type p{i / expr.columns(), i - i / expr.columns() * expr.columns()};
+		point_type p{i / expr.columns(), i % expr.columns()};
 		expr.packet(p).copy_to(&dst[p], Vc::flags::vector_aligned);
 	});
 
 	for(int i = aligned_end; i < total_size; i++) {
-		point_type p{i / expr.columns(), i - i / expr.columns() * expr.columns()};
+		point_type p{i / expr.columns(), i % expr.columns()};
 		dst[p] = expr[p];
 	}
 }
