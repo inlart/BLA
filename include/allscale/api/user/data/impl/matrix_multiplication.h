@@ -441,7 +441,7 @@ void matrix_multiplication(Matrix<T>& result, const PermutationMatrix<E1>& lhs, 
     });
 }
 
-// -- colum permutation
+// -- column permutation
 template <typename T, typename E1, typename E2>
 void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const MatrixTranspose<PermutationMatrix<E2>>& rhs) {
     assert_eq(lhs.columns(), rhs.rows());
