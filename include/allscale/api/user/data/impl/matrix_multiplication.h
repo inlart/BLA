@@ -430,6 +430,7 @@ void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, c
     matrix_multiplication(result, lhs.eval(), rhs.eval());
 }
 
+// -- row permutation
 template <typename T, typename E1, typename E2>
 void matrix_multiplication(Matrix<T>& result, const PermutationMatrix<E1>& lhs, const MatrixExpression<E2>& rhs) {
     assert_eq(lhs.columns(), rhs.rows());
@@ -438,6 +439,14 @@ void matrix_multiplication(Matrix<T>& result, const PermutationMatrix<E1>& lhs, 
         const coordinate_type i = pos[0];
         detail::evaluate(rhs.row(lhs.permutation(i)), &result.row(i)[{0, 0}]);
     });
+}
+
+// -- colum permutation
+template <typename T, typename E1, typename E2>
+void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const MatrixTranspose<PermutationMatrix<E2>>& rhs) {
+    assert_eq(lhs.columns(), rhs.rows());
+
+    algorithm::pfor(result.size(), [&](const auto& pos) { result[pos] = lhs[{pos.x, rhs.getExpression().permutation(pos.y)}]; });
 }
 
 template <typename T>

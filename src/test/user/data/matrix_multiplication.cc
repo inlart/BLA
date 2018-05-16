@@ -216,7 +216,7 @@ TEST(Operation, MultiplicationFloat) {
     }
 }
 
-TEST(Operation, MultiplicationPermutation) {
+TEST(Operation, MultiplicationRowPermutation) {
     Matrix<double> m({19, 35});
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -233,6 +233,26 @@ TEST(Operation, MultiplicationPermutation) {
         m.fill_seq(g);
 
         ASSERT_TRUE(isAlmostEqual(p * m, p.eval() * m));
+    }
+}
+
+TEST(Operation, MultiplicationColumnPermutation) {
+    Matrix<double> m({19, 35});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    std::uniform_int_distribution<> dis_int(0, m.rows() - 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 10; ++i) {
+        PermutationMatrix<double> p(m.columns());
+        for(int k = 0; k < m.rows() / 4; ++k) {
+            p.swap(dis_int(gen), dis_int(gen));
+        }
+        m.fill_seq(g);
+
+        ASSERT_TRUE(isAlmostEqual(m * p.transpose(), m * p.transpose().eval()));
     }
 }
 

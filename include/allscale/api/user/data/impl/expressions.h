@@ -990,7 +990,8 @@ public:
     }
 
     // TODO: remove this
-    PermutationMatrix(const PermutationMatrix<T>& mat) : values(utils::Vector<coordinate_type, 1>{mat.rows()}), swaps(0) {
+    PermutationMatrix(const PermutationMatrix<T>& mat)
+        : MatrixExpression<PermutationMatrix<T>>(), values(utils::Vector<coordinate_type, 1>{mat.rows()}), swaps(0) {
         algorithm::pfor(utils::Vector<coordinate_type, 1>{rows()}, [&](const auto& p) { values[p] = mat.values[p]; });
     }
 

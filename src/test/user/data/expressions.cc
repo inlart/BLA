@@ -141,7 +141,7 @@ TEST(Matrix, CustomTypeInit) {
             return 1;
         }
         double operator-(const B&) const {
-            return 0.1337;
+            return 0.1337 + value;
         }
 
     private:
