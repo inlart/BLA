@@ -702,7 +702,8 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 
     auto row(coordinate_type r) {
         assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
+        auto s = sub({{r, 0}, {1, columns()}});
+        return RefSubMatrix<Matrix<T>, true>(s.getExpression(), s.getBlockRange());
     }
 
     auto row(coordinate_type r) const {
@@ -903,6 +904,7 @@ class SubMatrix : public MatrixExpression<SubMatrix<E>> {
 template <typename E, bool Contiguous>
 class RefSubMatrix : public MatrixExpression<RefSubMatrix<E, Contiguous>> {
     using typename MatrixExpression<RefSubMatrix<E, Contiguous>>::T;
+    using typename MatrixExpression<RefSubMatrix<E, Contiguous>>::PacketScalar;
 
     using Exp = detail::remove_cvref_t<expression_member_t<E>>;
 
@@ -940,6 +942,12 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<E, Contiguous>> {
         new_range.start = this->block_range.start + block_range.start;
         new_range.size = block_range.size;
         return SubMatrix<Matrix<T>>(*this, new_range);
+    }
+
+    auto row(coordinate_type r) {
+        assert_lt(r, rows());
+        auto s = sub({{r, 0}, {1, columns()}});
+        return RefSubMatrix<E, Contiguous>(s.getExpression(), s.getBlockRange());
     }
 
     auto row(coordinate_type r) const {
@@ -1015,6 +1023,8 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<E, Contiguous>> {
         });
 
     }
+
+    PacketScalar packet(point_type p) const { return PacketScalar(&operator[](p), Vc::flags::vector_aligned); }
 
     Exp& getExpression() const { return expression; }
 

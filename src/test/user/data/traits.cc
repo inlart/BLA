@@ -37,7 +37,7 @@ std::enable_if_t<std::is_same<scalar_type_t<E1>, std::complex<double>>::value, b
 	return true;
 }
 
-TEST(Utility, Traits) {
+TEST(Utility, Vectorizable) {
 	Matrix<double> m1({55, 56});
 	Matrix<double> m2({55, 56});
 
@@ -59,6 +59,33 @@ TEST(Utility, Traits) {
 
 	ASSERT_TRUE((std::is_same<int, scalar_type_t<decltype(m4 + m5)>>::value));
 	ASSERT_FALSE((std::is_same<double, scalar_type_t<decltype(m4 + m5)>>::value));
+}
+
+TEST(Utility, VectorizableRefSubMatrix) {
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+
+    for(int i = 0; i < 10; ++i) {
+        Matrix<double> m1({55, 56});
+        m1.fill_seq(g);
+        const Matrix<double> m2(m1);
+
+        auto refsub = m1.row(2);
+        auto sub = m2.row(2);
+
+        ASSERT_TRUE(vectorizable_v<decltype(refsub)>);
+        ASSERT_FALSE(vectorizable_v<decltype(sub)>);
+
+        ASSERT_TRUE(isAlmostEqual((m1.row(2) + m1.row(3)).eval(), (m2.row(2) + m2.row(3)).eval()));
+
+        ASSERT_TRUE(vectorizable_v<decltype(m1.row(2) + m1.row(3))>);
+        ASSERT_FALSE(vectorizable_v<decltype(m2.row(2) + m2.row(3))>);
+
+    }
 }
 
 
@@ -134,11 +161,11 @@ TEST(Utility, TypeConsistent) {
 }
 
 TEST(Utility, IsValid) {
-	struct A {};
+    struct A {};
 
-	ASSERT_FALSE((is_valid_v<std::plus<>, A, A>));
-	ASSERT_TRUE((is_valid_v<std::plus<>, int, int>));
-	ASSERT_TRUE((is_valid_v<std::plus<>, int, double>));
+    ASSERT_FALSE((is_valid_v<std::plus<>, A, A>));
+    ASSERT_TRUE((is_valid_v<std::plus<>, int, int>));
+    ASSERT_TRUE((is_valid_v<std::plus<>, int, double>));
 }
 
 } // end namespace impl

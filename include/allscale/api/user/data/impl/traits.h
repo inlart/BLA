@@ -111,8 +111,8 @@ struct scalar_type<PermutationMatrix<T>> : public detail::set_type<T> {};
 template <typename E>
 struct scalar_type<SubMatrix<E>> : public detail::set_type<typename scalar_type<E>::type> {};
 
-template <typename E>
-struct scalar_type<RefSubMatrix<E>> : public detail::set_type<typename scalar_type<E>::type> {};
+template <typename E, bool C>
+struct scalar_type<RefSubMatrix<E, C>> : public detail::set_type<typename scalar_type<E>::type> {};
 
 template <typename Expr>
 using scalar_type_t = typename scalar_type<Expr>::type;
