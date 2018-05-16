@@ -86,7 +86,6 @@ namespace detail {
     // -- evaluate a matrix expression by simply copying each value
     template <typename E, typename T>
     std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, T* dst) {
-        assert_eq(expression.size(), dst.size());
         expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
         algorithm::pfor(expr.size(), [&](const auto& pos) {
@@ -705,7 +704,7 @@ class PermutationMatrix : public MatrixExpression<PermutationMatrix<T>> {
     PermutationMatrix(PermutationMatrix<T>&&) = default;
 
     T operator[](const point_type& pos) const {
-        assert_lt(pos, size);
+        assert_lt(pos, size());
         return values[{pos.x}] == pos.y ? static_cast<T>(1) : static_cast<T>(0);
     }
 
