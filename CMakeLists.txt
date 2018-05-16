@@ -68,10 +68,10 @@ if(COMPILER_SUPPORTS_MARCH_NATIVE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif()
 
-include_directories(${GTEST_INCLUDE_DIRS})
-include_directories(${Vc_INCLUDE_DIR})
-include_directories(${OpenBLAS_INCLUDE_DIRS})
-include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
+include_directories(SYSTEM ${Vc_INCLUDE_DIR})
+include_directories(SYSTEM ${OpenBLAS_INCLUDE_DIRS})
+include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 # -- Compilation
 if(BUILD_BENCHMARKS)
