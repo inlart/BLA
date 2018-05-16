@@ -38,6 +38,9 @@ struct LUD {
                 }
             }
 
+            if(max_value < epsilon)
+                return;
+
             if(max_value < epsilon) {
                 assert_fail();
                 return;
@@ -67,14 +70,12 @@ struct LUD {
 
     Matrix<T> lower() const {
         Matrix<T> l(LU.size());
-        l.fill([&](const auto& pos){
+        l.fill([&](const auto& pos) {
             if(pos.x > pos.y) {
                 return LU[pos];
-            }
-            else if(pos.x == pos.y) {
+            } else if(pos.x == pos.y) {
                 return static_cast<T>(1);
-            }
-            else {
+            } else {
                 return static_cast<T>(0);
             }
         });
@@ -84,18 +85,19 @@ struct LUD {
 
     Matrix<T> upper() const {
         Matrix<T> u(LU.size());
-        u.fill([&](const auto& pos){
+        u.fill([&](const auto& pos) {
             if(pos.x <= pos.y) {
                 return LU[pos];
-            }
-            else {
+            } else {
                 return static_cast<T>(0);
             }
         });
         return u;
     }
 
-    const PermutationMatrix<T>& permutation() const { return P; }
+    const PermutationMatrix<T>& permutation() const {
+        return P;
+    }
 
     T determinant() const {
         using ct = coordinate_type;
@@ -123,8 +125,7 @@ struct LUD {
             for(ct i = 0; i < LU.rows(); ++i) {
                 if(P.permutation(i) == j) {
                     inverse[{i, j}] = static_cast<T>(1);
-                }
-                else {
+                } else {
                     inverse[{i, j}] = static_cast<T>(0);
                 }
 
@@ -169,95 +170,106 @@ struct LUD {
         return x;
     }
 
-  private:
+private:
     PermutationMatrix<T> P;
     Matrix<T> LU;
 };
 
 template <typename T>
 struct QRD {
-	QRD(const Matrix<T>& A) : Q(point_type{A.rows(), A.rows()}), R(A) {
-		using ct = coordinate_type;
+    QRD(const Matrix<T>& A) : Q(point_type{A.rows(), A.rows()}), R(A) {
+        using ct = coordinate_type;
 
-		// Householder QR Decomposition
-		T mag, alpha;
-		Matrix<T> u({A.rows(), 1});
-		Matrix<T> v({A.rows(), 1});
+        // Householder QR Decomposition
+        T mag, alpha;
+        Matrix<T> u({A.rows(), 1});
+        Matrix<T> v({A.rows(), 1});
 
-		Matrix<T> P(point_type{A.rows(), A.rows()});
-		Matrix<T> I(IdentityMatrix<T>(point_type{A.rows(), A.rows()})); // TODO: fix
+        Matrix<T> P(point_type{A.rows(), A.rows()});
+        Matrix<T> I(IdentityMatrix<T>(point_type{A.rows(), A.rows()})); // TODO: fix
 
-		Q.identity();
+        Q.identity();
 
-		for(ct i = 0; i < A.columns(); ++i) {
-			u.zero();
-			v.zero();
+        for(ct i = 0; i < A.columns(); ++i) {
+            u.zero();
+            v.zero();
 
-			mag = 0;
-			for(ct j = i; j < A.rows(); ++j) {
-				u[{j, 0}] = R[{j, i}];
-				mag += u[{j, 0}] * u[{j, 0}];
-			}
-			mag = std::sqrt(mag);
+            mag = 0;
+            for(ct j = i; j < A.rows(); ++j) {
+                u[{j, 0}] = R[{j, i}];
+                mag += u[{j, 0}] * u[{j, 0}];
+            }
+            mag = std::sqrt(mag);
 
-			alpha = u[{i, 0}] < 0 ? mag : -mag;
+            alpha = u[{i, 0}] < 0 ? mag : -mag;
 
-			mag = 0.0;
-			for(ct j = i; j < A.rows(); ++j) {
-				v[{j, 0}] = j == i ? u[{j, 0}] + alpha : u[{j, 0}];
+            mag = 0.0;
+            for(ct j = i; j < A.rows(); ++j) {
+                v[{j, 0}] = j == i ? u[{j, 0}] + alpha : u[{j, 0}];
 
-				mag += v[{j, 0}] * v[{j, 0}];
-			}
-			mag = std::sqrt(mag);
+                mag += v[{j, 0}] * v[{j, 0}];
+            }
+            mag = std::sqrt(mag);
 
-			if(mag < 1E-10) continue;
+            if(mag < 1E-10)
+                continue;
 
-			for(ct j = i; j < A.rows(); ++j) {
-				v[{j, 0}] /= mag;
-			}
+            for(ct j = i; j < A.rows(); ++j) {
+                v[{j, 0}] /= mag;
+            }
 
-			P = I - (v * v.transpose()) * 2.0;
+            P = I - (v * v.transpose()) * 2.0;
 
-			R = P * R;
-			Q = Q * P;
-		}
-	}
+            R = P * R;
+            Q = Q * P;
+        }
+    }
 
-	QRD(const QRD<T>&) = delete;
-	QRD(QRD<T>&&) = default;
+    QRD(const QRD<T>&) = delete;
+    QRD(QRD<T>&&) = default;
 
-	QRD<T>& operator=(const QRD<T>&) = delete;
-	QRD<T>& operator=(QRD<T>&&) = default;
+    QRD<T>& operator=(const QRD<T>&) = delete;
+    QRD<T>& operator=(QRD<T>&&) = default;
 
-	const Matrix<T>& getQ() const { return Q; }
-	const Matrix<T>& getR() const { return R; }
+    const Matrix<T>& getQ() const {
+        return Q;
+    }
+    const Matrix<T>& getR() const {
+        return R;
+    }
 
-  private:
-	Matrix<T> Q;
-	Matrix<T> R;
+private:
+    Matrix<T> Q;
+    Matrix<T> R;
 };
 
 template <typename T>
 struct SVD {
-	SVD(const Matrix<T>& A) : U(point_type{A.rows(), A.rows()}), S(A.size()), V(point_type{A.columns(), A.columns()}) {
-		// TODO: implement
-		assert_fail();
-	}
+    SVD(const Matrix<T>& A) : U(point_type{A.rows(), A.rows()}), S(A.size()), V(point_type{A.columns(), A.columns()}) {
+        // TODO: implement
+        assert_fail();
+    }
 
-	SVD(const SVD<T>&) = delete;
-	SVD(SVD<T>&&) = default;
+    SVD(const SVD<T>&) = delete;
+    SVD(SVD<T>&&) = default;
 
-	SVD<T>& operator=(const SVD<T>&) = delete;
-	SVD<T>& operator=(SVD<T>&&) = default;
+    SVD<T>& operator=(const SVD<T>&) = delete;
+    SVD<T>& operator=(SVD<T>&&) = default;
 
-	const Matrix<T>& getU() { return U; }
-	const Matrix<T>& getS() { return S; }
-	const Matrix<T>& getV() { return V; }
+    const Matrix<T>& getU() {
+        return U;
+    }
+    const Matrix<T>& getS() {
+        return S;
+    }
+    const Matrix<T>& getV() {
+        return V;
+    }
 
-  private:
-	Matrix<T> U;
-	Matrix<T> S;
-	Matrix<T> V;
+private:
+    Matrix<T> U;
+    Matrix<T> S;
+    Matrix<T> V;
 };
 
 

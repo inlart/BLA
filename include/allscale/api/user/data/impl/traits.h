@@ -14,7 +14,7 @@ namespace detail {
 
 template <typename T>
 struct set_type {
-	using type = T;
+    using type = T;
 };
 
 template <bool... A>
@@ -22,12 +22,12 @@ struct and_value;
 
 template <bool A>
 struct and_value<A> {
-	static constexpr bool value = A;
+    static constexpr bool value = A;
 };
 
 template <bool A, bool... B>
 struct and_value<A, B...> {
-	static constexpr bool value = A && and_value<B...>::value;
+    static constexpr bool value = A && and_value<B...>::value;
 };
 
 // C++ 17 feature
@@ -79,9 +79,9 @@ struct scalar_type<ElementMatrixMultiplication<E1, E2>>
 
 template <typename E1, typename E2>
 struct scalar_type<MatrixMultiplication<E1, E2>> {
-	using type = operation_result_t<std::multiplies<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>;
-	static_assert(std::is_same<operation_result_t<std::plus<>, type, type>, type>::value,
-	              "Resulting type of matrix multiplication must yield the same type if added up.");
+    using type = operation_result_t<std::multiplies<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>;
+    static_assert(std::is_same<operation_result_t<std::plus<>, type, type>, type>::value,
+                  "Resulting type of matrix multiplication must yield the same type if added up.");
 };
 
 template <typename E>

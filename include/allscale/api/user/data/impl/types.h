@@ -17,23 +17,27 @@ using point_type = GridPoint<2>;
 using triple_type = GridPoint<3>;
 
 struct RowRange {
-	coordinate_type start;
-	coordinate_type end;
+    coordinate_type start;
+    coordinate_type end;
 };
 
 struct BlockRange {
-	BlockRange() : start({0, 0}), size({0, 0}) {}
-	BlockRange(point_type start, point_type size) : start(start), size(size) {}
+    BlockRange() : start({0, 0}), size({0, 0}) {
+    }
+    BlockRange(point_type start, point_type size) : start(start), size(size) {
+    }
 
-	point_type start;
-	point_type size;
+    point_type start;
+    point_type size;
 
-	point_type range() const { return size; }
+    point_type range() const {
+        return size;
+    }
 
-	coordinate_type area() const {
-		auto x = range();
-		return x.x * x.y;
-	}
+    coordinate_type area() const {
+        auto x = range();
+        return x.x * x.y;
+    }
 };
 
 } // end namespace impl
