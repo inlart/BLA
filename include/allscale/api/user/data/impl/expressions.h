@@ -130,14 +130,20 @@ class MatrixExpression {
 
 	bool isSquare() const { return rows() == columns(); }
 
+	auto row(coordinate_type r) {
+        return static_cast<E&>(*this).row(r);
+    }
+
 	auto row(coordinate_type r) const {
-		assert_lt(r, rows());
-		return sub({{r, 0}, {1, columns()}});
+		return static_cast<const E&>(*this).row(r);
 	}
 
+	auto column(coordinate_type c) {
+        return static_cast<E&>(*this).column(c);
+    }
+
 	auto column(coordinate_type c) const {
-		assert_lt(c, columns());
-		return sub({{0, c}, {rows(), 1}});
+	    return static_cast<const E&>(*this).column(c);
 	}
 
 	template <typename E2>
@@ -252,6 +258,16 @@ class MatrixAddition : public MatrixExpression<MatrixAddition<E1, E2>> {
 	    return SubMatrix<MatrixAddition<E1, E2>>(*this, block_range);
 	}
 
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
+    }
+
 	Exp1 getLeftExpression() const { return lhs; }
 
 	Exp2 getRightExpression() const { return rhs; }
@@ -288,6 +304,16 @@ class MatrixSubtraction : public MatrixExpression<MatrixSubtraction<E1, E2>> {
         return SubMatrix<MatrixSubtraction<E1, E2>>(*this, block_range);
     }
 
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
+    }
+
 	Exp1 getLeftExpression() const { return lhs; }
 
 	Exp2 getRightExpression() const { return rhs; }
@@ -322,6 +348,16 @@ class ElementMatrixMultiplication : public MatrixExpression<ElementMatrixMultipl
 
 	SubMatrix<ElementMatrixMultiplication<E1, E2>> sub(BlockRange block_range) const {
         return SubMatrix<ElementMatrixMultiplication<E1, E2>>(*this, block_range);
+    }
+
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
     }
 
 	Exp1 getLeftExpression() const { return lhs; }
@@ -371,6 +407,16 @@ class MatrixMultiplication : public MatrixExpression<MatrixMultiplication<E1, E2
         return SubMatrix<MatrixMultiplication<E1, E2>>(*this, block_range);
     }
 
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
+    }
+
 	Exp1 getLeftExpression() const { return lhs; }
 
 	Exp2 getRightExpression() const { return rhs; }
@@ -414,6 +460,16 @@ class MatrixTranspose : public MatrixExpression<MatrixTranspose<E>> {
         return SubMatrix<MatrixTranspose<E>>(*this, block_range);
     }
 
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
+    }
+
 	Exp getExpression() const { return expression; }
 
   private:
@@ -441,6 +497,16 @@ class MatrixNegation : public MatrixExpression<MatrixNegation<E>> {
 
     SubMatrix<MatrixNegation<E>> sub(BlockRange block_range) const {
         return SubMatrix<MatrixNegation<E>>(*this, block_range);
+    }
+
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
     }
 
 	Exp getExpression() const { return expression; }
@@ -472,6 +538,16 @@ class MatrixAbs : public MatrixExpression<MatrixAbs<E>> {
         return SubMatrix<MatrixAbs<E>>(*this, block_range);
     }
 
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
+    }
+
 	Exp getExpression() const { return expression; }
 
   private:
@@ -499,6 +575,16 @@ class MatrixScalarMultiplication : public MatrixExpression<MatrixScalarMultiplic
 
     SubMatrix<MatrixScalarMultiplication<E, U>> sub(BlockRange block_range) const {
         return SubMatrix<MatrixScalarMultiplication<E, U>>(*this, block_range);
+    }
+
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
     }
 
 	const U& getScalar() const { return scalar; }
@@ -531,6 +617,16 @@ class ScalarMatrixMultiplication : public MatrixExpression<ScalarMatrixMultiplic
 
     SubMatrix<ScalarMatrixMultiplication<E, U>> sub(BlockRange block_range) const {
         return SubMatrix<ScalarMatrixMultiplication<E, U>>(*this, block_range);
+    }
+
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
     }
 
 	const U& getScalar() const { return scalar; }
@@ -604,6 +700,25 @@ class Matrix : public MatrixExpression<Matrix<T>> {
         return RefSubMatrix<Matrix<T>>(*this, block_range);
     }
 
+    auto row(coordinate_type r) {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
+    }
 
 	map_type eigenSub(const RowRange& r) {
 		assert_le(r.start, r.end);
@@ -684,7 +799,6 @@ class Matrix : public MatrixExpression<Matrix<T>> {
 	data::Grid<T, 2> m_data;
 };
 
-//TODO: add to forward traits etc.
 template <typename T>
 class PermutationMatrix : public MatrixExpression<PermutationMatrix<T>> {
   public:
@@ -767,6 +881,16 @@ class SubMatrix : public MatrixExpression<SubMatrix<E>> {
         return SubMatrix<E>(*this, new_range);
     }
 
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
+    }
+
 	Exp getExpression() const { return expression; }
 
 	BlockRange getBlockRange() const { return block_range; }
@@ -776,9 +900,9 @@ class SubMatrix : public MatrixExpression<SubMatrix<E>> {
 	BlockRange block_range;
 };
 
-template <typename E>
-class RefSubMatrix : public MatrixExpression<RefSubMatrix<E>> {
-    using typename MatrixExpression<RefSubMatrix<E>>::T;
+template <typename E, bool Contiguous>
+class RefSubMatrix : public MatrixExpression<RefSubMatrix<E, Contiguous>> {
+    using typename MatrixExpression<RefSubMatrix<E, Contiguous>>::T;
 
     using Exp = detail::remove_cvref_t<expression_member_t<E>>;
 
@@ -798,14 +922,34 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<E>> {
 
     coordinate_type columns() const { return block_range.size[1]; }
 
-    RefSubMatrix<Matrix<T>> sub(BlockRange block_range) const {
+    RefSubMatrix<Matrix<T>, false> sub(BlockRange block_range) {
         assert_ge(block_range.start, (point_type{0, 0}));
         assert_le(block_range.start + block_range.size, this->block_range.size);
 
         BlockRange new_range;
         new_range.start = this->block_range.start + block_range.start;
         new_range.size = block_range.size;
-        return RefSubMatrix<Matrix<T>>(*this, new_range);
+        return RefSubMatrix<Matrix<T>, false>(*this, new_range);
+    }
+
+    SubMatrix<Matrix<T>> sub(BlockRange block_range) const {
+        assert_ge(block_range.start, (point_type{0, 0}));
+        assert_le(block_range.start + block_range.size, this->block_range.size);
+
+        BlockRange new_range;
+        new_range.start = this->block_range.start + block_range.start;
+        new_range.size = block_range.size;
+        return SubMatrix<Matrix<T>>(*this, new_range);
+    }
+
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
     }
 
     void fill(const T& value) {
@@ -860,8 +1004,8 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<E>> {
         eye();
     }
 
-    template<typename E2>
-    void swap(RefSubMatrix<E2> other) {
+    template<typename E2, bool C2>
+    void swap(RefSubMatrix<E2, C2> other) {
         assert_eq(size(), other.size());
 
         algorithm::pfor(size(), [&](const auto& pos){
@@ -899,6 +1043,16 @@ class IdentityMatrix : public MatrixExpression<IdentityMatrix<T>> {
 
     SubMatrix<IdentityMatrix<T>> sub(BlockRange block_range) const {
         return SubMatrix<IdentityMatrix<T>>(*this, block_range);
+    }
+
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
     }
 
   private:
@@ -991,8 +1145,8 @@ auto simplify(SubMatrix<E> e) {
     return SubMatrix<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
 }
 
-template <typename E>
-auto simplify(RefSubMatrix<E> e) {
+template <typename E, bool C>
+auto simplify(RefSubMatrix<E, C> e) {
     return RefSubMatrix<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
 }
 

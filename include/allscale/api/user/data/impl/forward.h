@@ -85,7 +85,7 @@ class SubMatrix;
 /*
  * Represents a part of a Matrix
  */
-template <typename T>
+template <typename T, bool Contiguous = false>
 class RefSubMatrix;
 
 /*

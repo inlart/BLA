@@ -433,7 +433,7 @@ void matrix_multiplication(Matrix<T>& result, const PermutationMatrix<E1>& lhs, 
 
     algorithm::pfor(utils::Vector<coordinate_type, 1>(result.rows()), [&](const auto& pos){
         const coordinate_type i = pos[0];
-        detail::evaluate(rhs.row(lhs.permutation(i)), &result.sub({{i, 0}, {1, result.columns()}})[{0, 0}]); //TODO: change sub to row()
+        detail::evaluate(rhs.row(lhs.permutation(i)), &result.row(i)[{0, 0}]);
     });
 }
 

@@ -45,7 +45,7 @@ struct LUD {
 
             if(max_column != i) {
                 P.swap(i, max_column);
-                LU.sub({{i, 0}, {1, LU.columns()}}).swap(LU.sub({{max_column, 0}, {1, LU.columns()}}));
+                LU.row(i).swap(LU.row(max_column));
             }
 
             for(ct j = i + 1; j < A.rows(); ++j) {

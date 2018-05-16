@@ -169,6 +169,10 @@ struct vectorizable<PermutationMatrix<E>> : public std::false_type {};
 template <typename E>
 struct vectorizable<SubMatrix<E>> : public std::false_type {};
 
+template <typename E, bool C>
+struct vectorizable<RefSubMatrix<E, C>> : public detail::and_value<C, vectorizable<E>::value> {};
+
+
 template <typename T>
 struct vectorizable<IdentityMatrix<T>> : public std::false_type {};
 
