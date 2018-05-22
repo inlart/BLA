@@ -336,7 +336,7 @@ TEST(Expression, RefSubMatrix) {
 }
 
 TEST(Expression, RefSubMatrixSwap) {
-    const int n = 8;
+    const int n = 38;
     const int nh = n / 2;
     Matrix<int> m1({n, n});
 
@@ -351,6 +351,7 @@ TEST(Expression, RefSubMatrixSwap) {
 
     m1.sub({{0, 0}, {nh, nh}}).swap(m1.sub({{nh, 0}, {nh, nh}}));
 
+
     algorithm::pfor(m1.size(), [&](const auto& p) {
         if(p.x < nh && p.y < nh) {
             ASSERT_EQ(m1[p], 3);
@@ -362,6 +363,23 @@ TEST(Expression, RefSubMatrixSwap) {
             ASSERT_EQ(m1[p], 4);
         }
     });
+}
+
+TEST(Expression, RefSubMatrixContiguous) {
+    const int n = 37;
+    Matrix<int> m1({n, n});
+
+    m1.fill(-1);
+
+    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], -1); });
+
+    for(int i = 0; i < n; ++i) {
+        m1.row(i).fill(i);
+    }
+
+    ASSERT_TRUE(vectorizable_v<decltype(m1.row(0))>);
+
+    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(p.x, m1[p]); });
 }
 
 TEST(Expression, IdentityMatrix) {
