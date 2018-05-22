@@ -629,6 +629,30 @@ TEST(Simplify, IdentityMatrix) {
     ASSERT_TRUE((std::is_same<std::decay_t<decltype(m3)>, std::decay_t<decltype(simplify(m3 * m4))>>::value));
 }
 
+TEST(Simplify, SubMatrixMultiplication) {
+    Matrix<int> m1({55, 58});
+    Matrix<int> m2({58, 55});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 9);
+
+    auto g = [&](const auto&) { return dis(gen); };
+
+    m1.fill_seq(g);
+    m2.fill_seq(g);
+
+    BlockRange range({4, 7}, {13, 27});
+
+    Matrix<int> result = m1 * m2;
+
+    ASSERT_EQ(result.sub(range), (m1 * m2).sub(range));
+
+    ASSERT_TRUE((std::is_same<std::decay_t<decltype(static_cast<const Matrix<int>&>(m1).sub(std::declval<BlockRange>())
+                                                    * static_cast<const Matrix<int>&>(m2).sub(std::declval<BlockRange>()))>,
+                              std::decay_t<decltype(simplify((m1 * m2).sub(std::declval<BlockRange>())))>>::value));
+}
+
 TEST(Operation, Determinant) {
     Matrix<double> m1({2, 2});
 

@@ -1421,6 +1421,17 @@ auto simplify(RefSubMatrix<E, C> e) {
 }
 
 // What we really simplify
+template <typename E1, typename E2>
+auto simplify(SubMatrix<MatrixMultiplication<E1, E2>> e) {
+    auto range = e.getBlockRange();
+    BlockRange left({range.start.x, 0}, {range.size.x, e.getExpression().getLeftExpression().columns()});
+    BlockRange right({0, range.start.y}, {e.getExpression().getRightExpression().rows(), range.size.y});
+
+    return MatrixMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<SubMatrix<E1>>()))>,
+                                detail::remove_cvref_t<decltype(simplify(std::declval<SubMatrix<E2>>()))>>(
+        simplify(e.getExpression().getLeftExpression().sub(left)), simplify(e.getExpression().getRightExpression().sub(right)));
+}
+
 template <typename E>
 expression_member_t<E> simplify(MatrixTranspose<MatrixTranspose<E>> e) {
     return e.getExpression().getExpression();
