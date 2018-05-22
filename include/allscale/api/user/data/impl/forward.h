@@ -38,6 +38,12 @@ template <typename E1, typename E2>
 class MatrixMultiplication;
 
 /*
+ * Represents an evaluated matrix multiplication with resulting type T
+ */
+template <typename T>
+class EvaluatedMatrixMultiplication;
+
+/*
  * Represents the negation of the MatrixExpression E
  */
 template <typename E>

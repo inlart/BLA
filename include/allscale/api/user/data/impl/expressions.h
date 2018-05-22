@@ -462,13 +462,19 @@ class MatrixMultiplication : public MatrixExpression<MatrixMultiplication<E1, E2
     using Exp2 = expression_member_t<E2>;
 
 public:
-    MatrixMultiplication(Exp1 u, Exp2 v) : lhs(u), rhs(v), tmp(nullptr) {
+    MatrixMultiplication(Exp1 u, Exp2 v) : lhs(u), rhs(v) {
         assert_eq(lhs.columns(), rhs.rows());
     }
 
     T operator[](const point_type& pos) const {
-        evaluate();
-        return (*tmp)[pos];
+        T value = static_cast<T>(0);
+
+        // TODO: preduce?
+        for(int i = 0; i < lhs.columns(); ++i) {
+            value += lhs[{pos.x, i}] * rhs[{i, pos.y}];
+        }
+
+        return value;
     }
 
     point_type size() const {
@@ -481,11 +487,6 @@ public:
 
     coordinate_type columns() const {
         return rhs.columns();
-    }
-
-    PacketScalar packet(point_type p) const {
-        evaluate();
-        return tmp->packet(p);
     }
 
     SubMatrix<MatrixMultiplication<E1, E2>> sub(BlockRange block_range) const {
@@ -510,23 +511,57 @@ public:
         return rhs;
     }
 
-    void evaluate() const {
-        if(tmp != nullptr)
-            return;
-
-        tmp = std::make_shared<Matrix<T>>(size());
-
-        matrix_multiplication(*tmp, lhs, rhs);
-    }
-
 private:
     Exp1 lhs;
     Exp2 rhs;
+};
 
-    /*
-     * temporary matrix that is only evaluated if needed
-     */
-    mutable std::shared_ptr<Matrix<T>> tmp;
+template <typename T>
+class EvaluatedMatrixMultiplication : public MatrixExpression<EvaluatedMatrixMultiplication<T>> {
+    using typename MatrixExpression<EvaluatedMatrixMultiplication<T>>::PacketScalar;
+
+public:
+    template <typename ME1, typename ME2>
+    EvaluatedMatrixMultiplication(const MatrixMultiplication<ME1, ME2>& m) : tmp(m.size()) {
+        matrix_multiplication(tmp, m.getLeftExpression(), m.getRightExpression());
+    }
+
+    T operator[](const point_type& pos) const {
+        return tmp[pos];
+    }
+
+    point_type size() const {
+        return {rows(), columns()};
+    }
+
+    coordinate_type rows() const {
+        return tmp.rows();
+    }
+
+    coordinate_type columns() const {
+        return tmp.columns();
+    }
+
+    PacketScalar packet(point_type p) const {
+        return tmp.packet(p);
+    }
+
+    //    SubMatrix<MatrixMultiplication<E1, E2>> sub(BlockRange block_range) const {
+    //        return SubMatrix<MatrixMultiplication<E1, E2>>(*this, block_range);
+    //    }
+
+    //    auto row(coordinate_type r) const {
+    //        assert_lt(r, rows());
+    //        return sub({{r, 0}, {1, columns()}});
+    //    }
+    //
+    //    auto column(coordinate_type c) const {
+    //        assert_lt(c, columns());
+    //        return sub({{0, c}, {rows(), 1}});
+    //    }
+
+private:
+    Matrix<T> tmp;
 };
 
 template <typename E>
@@ -1309,12 +1344,16 @@ PermutationMatrix<T> simplify(PermutationMatrix<T> m) {
     return m;
 }
 
+template <typename T>
+EvaluatedMatrixMultiplication<T> simplify(EvaluatedMatrixMultiplication<T> m) {
+    return m;
+}
+
 template <typename E1, typename E2>
 auto simplify(MatrixMultiplication<E1, E2> e) {
     MatrixMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<E1>()))>, detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>
         e_simple(simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
-    e_simple.evaluate();
-    return e_simple;
+    return EvaluatedMatrixMultiplication<scalar_type_t<decltype(e_simple)>>(e_simple);
 }
 
 template <typename T>

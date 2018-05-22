@@ -84,6 +84,9 @@ struct scalar_type<MatrixMultiplication<E1, E2>> {
                   "Resulting type of matrix multiplication must yield the same type if added up.");
 };
 
+template <typename T>
+struct scalar_type<EvaluatedMatrixMultiplication<T>> : public detail::set_type<T> {};
+
 template <typename E>
 struct scalar_type<MatrixNegation<E>> : public detail::set_type<typename scalar_type<E>::type> {};
 
