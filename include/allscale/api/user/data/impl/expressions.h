@@ -52,9 +52,9 @@ std::enable_if_t<!vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<
     algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<T2>(value); });
 }
 
-template <typename T1, typename E>
-void set_value(const T1& value, RefSubMatrix<E>& dst) {
-    algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<scalar_type_t<E>>(value); });
+template <typename T1, typename T2, bool C>
+void set_value(const T1& value, RefSubMatrix<T2, C>& dst) {
+    algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<T2>(value); });
 }
 
 // -- evaluate a matrix expression using vectorization
@@ -901,14 +901,14 @@ public:
         return SubMatrix<Matrix<T>>(*this, block_range);
     }
 
-    RefSubMatrix<Matrix<T>> sub(BlockRange block_range) {
-        return RefSubMatrix<Matrix<T>>(*this, block_range);
+    RefSubMatrix<T> sub(BlockRange block_range) {
+        return RefSubMatrix<T>(*this, block_range);
     }
 
     auto row(coordinate_type r) {
         assert_lt(r, rows());
         auto s = sub({{r, 0}, {1, columns()}});
-        return RefSubMatrix<Matrix<T>, true>(s.getExpression(), s.getBlockRange());
+        return RefSubMatrix<T, true>(s.getExpression(), s.getBlockRange());
     }
 
     auto row(coordinate_type r) const {
@@ -1134,12 +1134,11 @@ private:
     BlockRange block_range;
 };
 
-template <typename E, bool Contiguous>
-class RefSubMatrix : public MatrixExpression<RefSubMatrix<E, Contiguous>> {
-    using typename MatrixExpression<RefSubMatrix<E, Contiguous>>::T;
-    using typename MatrixExpression<RefSubMatrix<E, Contiguous>>::PacketScalar;
+template <typename T, bool Contiguous>
+class RefSubMatrix : public MatrixExpression<RefSubMatrix<T, Contiguous>> {
+    using typename MatrixExpression<RefSubMatrix<T, Contiguous>>::PacketScalar;
 
-    using Exp = detail::remove_cvref_t<expression_member_t<E>>;
+    using Exp = detail::remove_cvref_t<Matrix<T>>;
 
 public:
     RefSubMatrix(Exp& v, BlockRange block_range) : expression(v), block_range(block_range) {
@@ -1190,7 +1189,7 @@ public:
     auto row(coordinate_type r) {
         assert_lt(r, rows());
         auto s = sub({{r, 0}, {1, columns()}});
-        return RefSubMatrix<E, Contiguous>(s.getExpression(), s.getBlockRange());
+        return RefSubMatrix<T, Contiguous>(s.getExpression(), s.getBlockRange());
     }
 
     auto row(coordinate_type r) const {
@@ -1415,9 +1414,9 @@ auto simplify(SubMatrix<E> e) {
     return SubMatrix<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
 }
 
-template <typename E, bool C>
-auto simplify(RefSubMatrix<E, C> e) {
-    return RefSubMatrix<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
+template <typename T, bool C>
+auto simplify(RefSubMatrix<T, C> e) {
+    return e;
 }
 
 // What we really simplify

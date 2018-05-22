@@ -114,8 +114,8 @@ struct scalar_type<PermutationMatrix<T>> : public detail::set_type<T> {};
 template <typename E>
 struct scalar_type<SubMatrix<E>> : public detail::set_type<typename scalar_type<E>::type> {};
 
-template <typename E, bool C>
-struct scalar_type<RefSubMatrix<E, C>> : public detail::set_type<typename scalar_type<E>::type> {};
+template <typename T, bool C>
+struct scalar_type<RefSubMatrix<T, C>> : public detail::set_type<T> {};
 
 template <typename Expr>
 using scalar_type_t = typename scalar_type<Expr>::type;
@@ -172,8 +172,8 @@ struct vectorizable<PermutationMatrix<E>> : public std::false_type {};
 template <typename E>
 struct vectorizable<SubMatrix<E>> : public std::false_type {};
 
-template <typename E, bool C>
-struct vectorizable<RefSubMatrix<E, C>> : public detail::and_value<C, vectorizable<E>::value> {};
+template <typename T, bool C>
+struct vectorizable<RefSubMatrix<T, C>> : public std::integral_constant<bool, C> {};
 
 
 template <typename T>
