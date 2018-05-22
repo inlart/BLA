@@ -38,7 +38,7 @@ std::enable_if_t<vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<T
 
         PacketScalar z(static_cast<T2>(value));
 
-        z.copy_to(&dst[p], Vc::flags::vector_aligned);
+        z.copy_to(&dst[p], Vc::flags::element_aligned);
     });
 
     for(int i = aligned_end; i < total_size; i++) {
@@ -97,7 +97,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expressi
     algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
         int i = coord[0] * packet_size;
         point_type p{i / expr.columns(), i % expr.columns()};
-        expr.packet(p).copy_to(dst + i, Vc::flags::vector_aligned);
+        expr.packet(p).copy_to(dst + i, Vc::flags::element_aligned);
     });
 
     for(int i = aligned_end; i < total_size; i++) {
@@ -1027,7 +1027,7 @@ public:
     }
 
     PacketScalar packet(point_type p) const {
-        return PacketScalar(&operator[](p), Vc::flags::vector_aligned);
+        return PacketScalar(&operator[](p), Vc::flags::element_aligned);
     }
 
     const Matrix<T>& eval() const {
@@ -1290,7 +1290,7 @@ public:
     }
 
     PacketScalar packet(point_type p) const {
-        return PacketScalar(&operator[](p), Vc::flags::vector_aligned);
+        return PacketScalar(&operator[](p), Vc::flags::element_aligned);
     }
 
     Exp& getExpression() const {
