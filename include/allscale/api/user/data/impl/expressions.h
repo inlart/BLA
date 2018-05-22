@@ -546,19 +546,19 @@ public:
         return tmp.packet(p);
     }
 
-    //    SubMatrix<MatrixMultiplication<E1, E2>> sub(BlockRange block_range) const {
-    //        return SubMatrix<MatrixMultiplication<E1, E2>>(*this, block_range);
-    //    }
+    SubMatrix<EvaluatedMatrixMultiplication<T>> sub(BlockRange block_range) const {
+        return SubMatrix<EvaluatedMatrixMultiplication<T>>(*this, block_range);
+    }
 
-    //    auto row(coordinate_type r) const {
-    //        assert_lt(r, rows());
-    //        return sub({{r, 0}, {1, columns()}});
-    //    }
-    //
-    //    auto column(coordinate_type c) const {
-    //        assert_lt(c, columns());
-    //        return sub({{0, c}, {rows(), 1}});
-    //    }
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
+    }
 
 private:
     Matrix<T> tmp;
