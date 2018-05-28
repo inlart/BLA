@@ -1165,6 +1165,9 @@ class RefSubMatrix : public MatrixExpression<RefSubMatrix<T, Contiguous>> {
     using Exp = detail::remove_cvref_t<Matrix<T>>;
 
 public:
+    RefSubMatrix(Exp& m) : expression(m), block_range({{0, 0}, {m.size()}}) {
+    }
+
     RefSubMatrix(Exp& v, BlockRange block_range) : expression(v), block_range(block_range) {
         assert_ge(block_range.start, (point_type{0, 0}));
         assert_ge(block_range.size, (point_type{0, 0}));
@@ -1190,14 +1193,14 @@ public:
         return block_range.size[1];
     }
 
-    RefSubMatrix<Matrix<T>, false> sub(BlockRange block_range) {
+    RefSubMatrix<T, false> sub(BlockRange block_range) {
         assert_ge(block_range.start, (point_type{0, 0}));
         assert_le(block_range.start + block_range.size, this->block_range.size);
 
         BlockRange new_range;
         new_range.start = this->block_range.start + block_range.start;
         new_range.size = block_range.size;
-        return RefSubMatrix<Matrix<T>, false>(*this, new_range);
+        return RefSubMatrix<T, false>(expression, new_range);
     }
 
     SubMatrix<Matrix<T>> sub(BlockRange block_range) const {
