@@ -117,6 +117,16 @@ std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& express
     });
 }
 
+template <typename T>
+T conj(const T& x) {
+    return x;
+}
+
+template <typename T>
+std::complex<T> conj(const std::complex<T>& x) {
+    return std::conj(x);
+}
+
 } // end namespace detail
 
 template <typename E>
@@ -186,6 +196,10 @@ public:
 
     MatrixTranspose<E> transpose() const {
         return MatrixTranspose<E>(static_cast<const E&>(*this));
+    }
+
+    MatrixConjugate<E> conjugate() const {
+        return MatrixConjugate<E>(static_cast<const E&>(*this));
     }
 
     auto sub(BlockRange block_range) const {
@@ -612,6 +626,54 @@ public:
 
     coordinate_type columns() const {
         return expression.rows();
+    }
+
+    SubMatrix<MatrixTranspose<E>> sub(BlockRange block_range) const {
+        return SubMatrix<MatrixTranspose<E>>(*this, block_range);
+    }
+
+    auto row(coordinate_type r) const {
+        assert_lt(r, rows());
+        return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) const {
+        assert_lt(c, columns());
+        return sub({{0, c}, {rows(), 1}});
+    }
+
+    Exp getExpression() const {
+        return expression;
+    }
+
+private:
+    Exp expression;
+};
+
+template <typename E>
+class MatrixConjugate : public MatrixExpression<MatrixConjugate<E>> {
+    using typename MatrixExpression<MatrixConjugate<E>>::T;
+
+    using Exp = expression_member_t<E>;
+
+public:
+    MatrixConjugate(Exp u) : expression(u) {
+    }
+
+    T operator[](const point_type& pos) const {
+        return detail::conj(expression[pos]);
+    }
+
+    point_type size() const {
+        return expression.size();
+    }
+
+    coordinate_type rows() const {
+        return expression.rows();
+    }
+
+    coordinate_type columns() const {
+        return expression.columns();
     }
 
     SubMatrix<MatrixTranspose<E>> sub(BlockRange block_range) const {
@@ -1172,6 +1234,12 @@ public:
         assert_ge(block_range.start, (point_type{0, 0}));
         assert_ge(block_range.size, (point_type{0, 0}));
         assert_le(block_range.start + block_range.size, expression.size());
+    }
+
+    template <typename E>
+    RefSubMatrix& operator=(const MatrixExpression<E>& exp) {
+        assert_eq(size(), exp.size());
+        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = exp[p]; });
     }
 
     const T& operator[](const point_type& pos) const {

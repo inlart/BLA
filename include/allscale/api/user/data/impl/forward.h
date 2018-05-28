@@ -56,6 +56,12 @@ template <typename E>
 class MatrixTranspose;
 
 /*
+ * Represents the conjugate MatrixExpression E
+ */
+template <typename E>
+class MatrixConjugate;
+
+/*
  * Represents the absolute values of MatrixExpression E
  */
 template <typename E>

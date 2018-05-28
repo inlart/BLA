@@ -94,6 +94,9 @@ template <typename E>
 struct scalar_type<MatrixTranspose<E>> : public detail::set_type<typename scalar_type<E>::type> {};
 
 template <typename E>
+struct scalar_type<MatrixConjugate<E>> : public detail::set_type<typename scalar_type<E>::type> {};
+
+template <typename E>
 struct scalar_type<MatrixAbs<E>> : public detail::set_type<typename scalar_type<E>::type> {};
 
 template <typename E, typename U>
