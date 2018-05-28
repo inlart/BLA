@@ -430,6 +430,24 @@ TEST(Expression, Conjugate) {
     }
 }
 
+TEST(Expression, Adjugate) {
+    Matrix<double> m1({102, 53});
+    Matrix<std::complex<double>> m2({102, 53});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g1 = [&](const auto&) { return dis(gen); };
+    auto g2 = [&](const auto&) { return std::complex<double>(dis(gen), dis(gen)); };
+    for(int i = 0; i < 4; ++i) {
+        m1.fill_seq(g1);
+        m2.fill_seq(g2);
+
+        ASSERT_TRUE(isAlmostEqual(m1.adjoint(), Matrix<double>(m1.toEigenMatrix().adjoint().eval())));
+        ASSERT_TRUE(isAlmostEqual(m2.adjoint(), Matrix<std::complex<double>>(m2.toEigenMatrix().adjoint().eval())));
+    }
+}
+
 TEST(Expression, MatrixRowColumn) {
     Matrix<int> m1({37, 31});
     IdentityMatrix<int> m2(point_type{m1.columns(), m1.columns()});

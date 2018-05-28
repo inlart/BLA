@@ -202,6 +202,10 @@ public:
         return MatrixConjugate<E>(static_cast<const E&>(*this));
     }
 
+    MatrixTranspose<MatrixConjugate<E>> adjoint() const {
+        return this->conjugate().transpose();
+    }
+
     auto sub(BlockRange block_range) const {
         return static_cast<const E&>(*this).sub(block_range);
     }
