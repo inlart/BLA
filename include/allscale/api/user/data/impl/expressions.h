@@ -147,11 +147,80 @@ const Matrix<T>& eval(const Matrix<T>& m) {
     return m;
 }
 
+template <typename E>
+auto sub(const MatrixExpression<E>& e, const BlockRange& br) {
+    return SubMatrix<E>(e, br);
+}
+
+template <bool Contiguous = false, typename T>
+auto sub(Matrix<T>& e, const BlockRange& br) {
+    return RefSubMatrix<T, Contiguous>(e, br);
+}
+
+template <bool Contiguous = false, typename T>
+auto sub(const RefSubMatrix<T>& e, BlockRange block_range) {
+    assert_ge(block_range.start, (point_type{0, 0}));
+    assert_le(block_range.start + block_range.size, e.getBlockRange().size);
+
+    BlockRange new_range;
+    new_range.start = e.getBlockRange().start + block_range.start;
+    new_range.size = block_range.size;
+    return RefSubMatrix<T, Contiguous>(e.getExpression(), new_range);
+}
+
+template <typename E>
+auto sub(const SubMatrix<E>& e, BlockRange block_range) {
+    assert_ge(block_range.start, (point_type{0, 0}));
+    assert_le(block_range.start + block_range.size, e.getBlockRange().size);
+
+    BlockRange new_range;
+    new_range.start = e.getBlockRange().start + block_range.start;
+    new_range.size = block_range.size;
+    return SubMatrix<E>(e.getExpression(), new_range);
+}
+
+template <typename E>
+auto row(const MatrixExpression<E>& e, coordinate_type r) {
+    assert_lt(r, e.rows());
+    return sub(e, {{r, 0}, {1, e.columns()}});
+}
+
+template <typename T>
+auto row(Matrix<T>& e, coordinate_type r) {
+    assert_lt(r, e.rows());
+    return sub<true>(e, {{r, 0}, {1, e.columns()}});
+}
+
+template <typename T, bool C>
+auto row(const RefSubMatrix<T, C>& e, coordinate_type r) {
+    assert_lt(r, e.rows());
+    return sub<C>(e, {{r, 0}, {1, e.columns()}});
+}
+
+template <typename E>
+auto column(const MatrixExpression<E>& e, coordinate_type c) {
+    assert_lt(c, e.columns());
+    return sub(e, {{0, c}, {e.rows(), 1}});
+}
+
+template <typename T>
+auto column(Matrix<T>& e, coordinate_type c) {
+    assert_lt(c, e.columns());
+    return sub(e, {{0, c}, {e.rows(), 1}});
+}
+
+template <typename T>
+auto column(const RefSubMatrix<T>& e, coordinate_type c) {
+    assert_lt(c, e.columns());
+    return sub(e, {{0, c}, {e.rows(), 1}});
+}
+
+
 } // end namespace detail
 
 template <typename E>
 class MatrixExpression {
-    static_assert(std::is_same<E, detail::remove_cvref_t<E>>::value, "A MatrixExpression type may not be const or cv qualified.");
+    static_assert(std::is_same<E, detail::remove_cvref_t<E>>::value, "A MatrixExpression type may not be cv qualified.");
 
 
 public:
@@ -168,10 +237,6 @@ protected:
 
 public:
     T operator[](const point_type& pos) const {
-        return static_cast<const E&>(*this)[pos];
-    }
-
-    T at(const point_type& pos) const {
         assert_lt(pos, size());
         assert_ge(pos, (point_type{0, 0}));
         return static_cast<const E&>(*this)[pos];
@@ -194,19 +259,19 @@ public:
     }
 
     auto row(coordinate_type r) {
-        return static_cast<E&>(*this).row(r);
+        return detail::row(static_cast<E&>(*this), r);
     }
 
     auto row(coordinate_type r) const {
-        return static_cast<const E&>(*this).row(r);
+        return detail::row(static_cast<const E&>(*this), r);
     }
 
     auto column(coordinate_type c) {
-        return static_cast<E&>(*this).column(c);
+        return detail::column(static_cast<E&>(*this), c);
     }
 
     auto column(coordinate_type c) const {
-        return static_cast<const E&>(*this).column(c);
+        return detail::column(static_cast<const E&>(*this), c);
     }
 
     template <typename E2>
@@ -226,8 +291,12 @@ public:
         return this->conjugate().transpose();
     }
 
+    auto sub(BlockRange block_range) {
+        return detail::sub(static_cast<E&>(*this), block_range);
+    }
+
     auto sub(BlockRange block_range) const {
-        return static_cast<const E&>(*this).sub(block_range);
+        return detail::sub(static_cast<const E&>(*this), block_range);
     }
 
     MatrixAbs<E> abs() const {
@@ -307,11 +376,11 @@ public:
     }
 
     auto eval() {
-        return detail::eval(*this);
+        return detail::eval(static_cast<E&>(*this));
     }
 
     auto eval() const {
-        return detail::eval(*this);
+        return detail::eval(static_cast<const E&>(*this));
     }
 
     operator E&() {
@@ -355,20 +424,6 @@ public:
 
     PacketScalar packet(point_type p) const {
         return lhs.packet(p) + rhs.packet(p);
-    }
-
-    SubMatrix<MatrixAddition<E1, E2>> sub(BlockRange block_range) const {
-        return SubMatrix<MatrixAddition<E1, E2>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
     }
 
     Exp1 getLeftExpression() const {
@@ -419,20 +474,6 @@ public:
         return lhs.packet(p) - rhs.packet(p);
     }
 
-    SubMatrix<MatrixSubtraction<E1, E2>> sub(BlockRange block_range) const {
-        return SubMatrix<MatrixSubtraction<E1, E2>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
-    }
-
     Exp1 getLeftExpression() const {
         return lhs;
     }
@@ -479,20 +520,6 @@ public:
 
     PacketScalar packet(point_type p) const {
         return lhs.packet(p) * rhs.packet(p);
-    }
-
-    SubMatrix<ElementMatrixMultiplication<E1, E2>> sub(BlockRange block_range) const {
-        return SubMatrix<ElementMatrixMultiplication<E1, E2>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
     }
 
     Exp1 getLeftExpression() const {
@@ -551,20 +578,6 @@ public:
         return rhs.columns();
     }
 
-    SubMatrix<MatrixMultiplication<E1, E2>> sub(BlockRange block_range) const {
-        return SubMatrix<MatrixMultiplication<E1, E2>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
-    }
-
     Exp1 getLeftExpression() const {
         return lhs;
     }
@@ -608,20 +621,6 @@ public:
         return tmp.packet(p);
     }
 
-    SubMatrix<EvaluatedMatrixMultiplication<T>> sub(BlockRange block_range) const {
-        return SubMatrix<EvaluatedMatrixMultiplication<T>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
-    }
-
 private:
     Matrix<T> tmp;
 };
@@ -650,20 +649,6 @@ public:
 
     coordinate_type columns() const {
         return expression.rows();
-    }
-
-    SubMatrix<MatrixTranspose<E>> sub(BlockRange block_range) const {
-        return SubMatrix<MatrixTranspose<E>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
     }
 
     Exp getExpression() const {
@@ -698,20 +683,6 @@ public:
 
     coordinate_type columns() const {
         return expression.columns();
-    }
-
-    SubMatrix<MatrixTranspose<E>> sub(BlockRange block_range) const {
-        return SubMatrix<MatrixTranspose<E>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
     }
 
     Exp getExpression() const {
@@ -752,20 +723,6 @@ public:
         return -expression.packet(p);
     }
 
-    SubMatrix<MatrixNegation<E>> sub(BlockRange block_range) const {
-        return SubMatrix<MatrixNegation<E>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
-    }
-
     Exp getExpression() const {
         return expression;
     }
@@ -804,20 +761,6 @@ public:
         return Vc::abs(expression.packet(p));
     }
 
-    SubMatrix<MatrixAbs<E>> sub(BlockRange block_range) const {
-        return SubMatrix<MatrixAbs<E>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
-    }
-
     Exp getExpression() const {
         return expression;
     }
@@ -854,20 +797,6 @@ public:
 
     PacketScalar packet(point_type p) const {
         return expression.packet(p) * PacketScalar(scalar);
-    }
-
-    SubMatrix<MatrixScalarMultiplication<E, U>> sub(BlockRange block_range) const {
-        return SubMatrix<MatrixScalarMultiplication<E, U>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
     }
 
     const U& getScalar() const {
@@ -912,21 +841,6 @@ public:
     PacketScalar packet(point_type p) const {
         return PacketScalar(scalar) * expression.packet(p);
     }
-
-    SubMatrix<ScalarMatrixMultiplication<E, U>> sub(BlockRange block_range) const {
-        return SubMatrix<ScalarMatrixMultiplication<E, U>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
-    }
-
     const U& getScalar() const {
         return scalar;
     }
@@ -1005,35 +919,6 @@ public:
 
     inline coordinate_type columns() const {
         return m_data.size()[1];
-    }
-
-    SubMatrix<Matrix<T>> sub(BlockRange block_range) const {
-        return SubMatrix<Matrix<T>>(*this, block_range);
-    }
-
-    RefSubMatrix<T> sub(BlockRange block_range) {
-        return RefSubMatrix<T>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) {
-        assert_lt(r, rows());
-        auto s = sub({{r, 0}, {1, columns()}});
-        return RefSubMatrix<T, true>(s.getExpression(), s.getBlockRange());
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
     }
 
     map_type eigenSub(const RowRange& r) {
@@ -1211,26 +1096,6 @@ public:
         return block_range.size[1];
     }
 
-    SubMatrix<E> sub(BlockRange block_range) const {
-        assert_ge(block_range.start, (point_type{0, 0}));
-        assert_le(block_range.start + block_range.size, this->block_range.size);
-
-        BlockRange new_range;
-        new_range.start = this->block_range.start + block_range.start;
-        new_range.size = block_range.size;
-        return SubMatrix<E>(*this, new_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
-    }
-
     Exp getExpression() const {
         return expression;
     }
@@ -1285,48 +1150,6 @@ public:
 
     coordinate_type columns() const {
         return block_range.size[1];
-    }
-
-    RefSubMatrix<T, false> sub(BlockRange block_range) {
-        assert_ge(block_range.start, (point_type{0, 0}));
-        assert_le(block_range.start + block_range.size, this->block_range.size);
-
-        BlockRange new_range;
-        new_range.start = this->block_range.start + block_range.start;
-        new_range.size = block_range.size;
-        return RefSubMatrix<T, false>(expression, new_range);
-    }
-
-    SubMatrix<Matrix<T>> sub(BlockRange block_range) const {
-        assert_ge(block_range.start, (point_type{0, 0}));
-        assert_le(block_range.start + block_range.size, this->block_range.size);
-
-        BlockRange new_range;
-        new_range.start = this->block_range.start + block_range.start;
-        new_range.size = block_range.size;
-        return SubMatrix<Matrix<T>>(*this, new_range);
-    }
-
-    auto row(coordinate_type r) {
-        assert_lt(r, rows());
-        auto s = sub({{r, 0}, {1, columns()}});
-        return RefSubMatrix<T, Contiguous>(s.getExpression(), s.getBlockRange());
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) {
-        assert_lt(c, columns());
-        auto s = sub({{0, c}, {rows(), 1}});
-        return RefSubMatrix<T, false>(s.getExpression(), s.getBlockRange());
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
     }
 
     void fill(const T& value) {
@@ -1430,20 +1253,6 @@ public:
 
     coordinate_type columns() const {
         return matrix_size[1];
-    }
-
-    SubMatrix<IdentityMatrix<T>> sub(BlockRange block_range) const {
-        return SubMatrix<IdentityMatrix<T>>(*this, block_range);
-    }
-
-    auto row(coordinate_type r) const {
-        assert_lt(r, rows());
-        return sub({{r, 0}, {1, columns()}});
-    }
-
-    auto column(coordinate_type c) const {
-        assert_lt(c, columns());
-        return sub({{0, c}, {rows(), 1}});
     }
 
 private:
