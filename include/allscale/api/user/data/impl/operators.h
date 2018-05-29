@@ -21,9 +21,37 @@ Matrix<T>& operator+=(Matrix<T>& u, const MatrixExpression<E>& v) {
 }
 
 template <typename T, typename E>
+RefSubMatrix<T, true> operator+=(RefSubMatrix<T, true> u, const MatrixExpression<E>& v) {
+    // TODO: handle aliasing
+    detail::evaluate(MatrixAddition<RefSubMatrix<T, true>, E>(u, v), &u[{0, 0}]);
+    return u;
+}
+
+template <typename T, typename E>
+RefSubMatrix<T, false> operator+=(RefSubMatrix<T, false> u, const MatrixExpression<E>& v) {
+    // TODO: handle aliasing
+    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] += v[pos]; });
+    return u;
+}
+
+template <typename T, typename E>
 Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
     // TODO: handle aliasing
     detail::evaluate(MatrixSubtraction<Matrix<T>, E>(u, v), &u[{0, 0}]);
+    return u;
+}
+
+template <typename T, typename E>
+RefSubMatrix<T, true> operator-=(RefSubMatrix<T, true> u, const MatrixExpression<E>& v) {
+    // TODO: handle aliasing
+    detail::evaluate(MatrixSubtraction<RefSubMatrix<T, true>, E>(u, v), &u[{0, 0}]);
+    return u;
+}
+
+template <typename T, typename E>
+RefSubMatrix<T, false> operator-=(RefSubMatrix<T, false> u, const MatrixExpression<E>& v) {
+    // TODO: handle aliasing
+    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] -= v[pos]; });
     return u;
 }
 
@@ -38,6 +66,14 @@ Matrix<T>& operator*=(Matrix<T>& u, const MatrixExpression<E>& v) {
 
 template <typename T>
 Matrix<T>& operator*=(Matrix<T>& u, const T& v) {
+    // no aliasing because the result is written in a temporary matrix
+    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
+
+    return u;
+}
+
+template <typename T, bool C>
+RefSubMatrix<T> operator*=(RefSubMatrix<T, C> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
 

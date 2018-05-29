@@ -127,6 +127,26 @@ std::complex<T> conj(const std::complex<T>& x) {
     return std::conj(x);
 }
 
+template <typename E>
+auto eval(const MatrixExpression<E>& e) -> Matrix<scalar_type_t<E>> {
+    using T = scalar_type_t<E>;
+    Matrix<T> tmp(e.size());
+
+    detail::evaluate(e, &tmp[{0, 0}]);
+
+    return tmp;
+}
+
+template <typename T>
+Matrix<T>& eval(Matrix<T>& m) {
+    return m;
+}
+
+template <typename T>
+const Matrix<T>& eval(const Matrix<T>& m) {
+    return m;
+}
+
 } // end namespace detail
 
 template <typename E>
@@ -286,12 +306,12 @@ public:
         return static_cast<const E&>(*this).packet(p);
     }
 
-    Matrix<T> eval() const { // TODO: handle MatrixExpression<Matrix<T>>
-        Matrix<T> tmp(size());
+    auto eval() {
+        return detail::eval(*this);
+    }
 
-        detail::evaluate(*this, &tmp[{0, 0}]);
-
-        return tmp;
+    auto eval() const {
+        return detail::eval(*this);
     }
 
     operator E&() {
@@ -1244,6 +1264,8 @@ public:
     RefSubMatrix& operator=(const MatrixExpression<E>& exp) {
         assert_eq(size(), exp.size());
         algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = exp[p]; });
+
+        return *this;
     }
 
     const T& operator[](const point_type& pos) const {
@@ -1294,6 +1316,12 @@ public:
     auto row(coordinate_type r) const {
         assert_lt(r, rows());
         return sub({{r, 0}, {1, columns()}});
+    }
+
+    auto column(coordinate_type c) {
+        assert_lt(c, columns());
+        auto s = sub({{0, c}, {rows(), 1}});
+        return RefSubMatrix<T, false>(s.getExpression(), s.getBlockRange());
     }
 
     auto column(coordinate_type c) const {
@@ -1491,6 +1519,11 @@ auto simplify(MatrixNegation<E> e) {
 template <typename E>
 auto simplify(MatrixTranspose<E> e) {
     return MatrixTranspose<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+}
+
+template <typename E>
+auto simplify(MatrixConjugate<E> e) {
+    return MatrixConjugate<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E>
