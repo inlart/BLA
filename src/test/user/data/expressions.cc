@@ -335,6 +335,20 @@ TEST(Expression, RefSubMatrix) {
     });
 }
 
+TEST(Expression, RefSubMatrixConversion) {
+    Matrix<int> m1({197, 107});
+
+    m1.fill(5);
+
+    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], 5); });
+
+    RefSubMatrix<int> m2 = m1;
+
+    ASSERT_EQ(m1.size(), m2.size());
+
+    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], m2[p]); });
+}
+
 TEST(Expression, RefSubMatrixSwap) {
     const int n = 38;
     const int nh = n / 2;
