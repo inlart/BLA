@@ -14,11 +14,6 @@ using point_type = GridPoint<2>;
 using range_type = GridPoint<2>;
 using triple_type = GridPoint<3>;
 
-struct RowRange {
-    coordinate_type start;
-    coordinate_type end;
-};
-
 struct BlockRange {
     BlockRange() : start({0, 0}), size({0, 0}) {
     }

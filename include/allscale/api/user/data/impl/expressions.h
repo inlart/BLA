@@ -970,14 +970,12 @@ public:
         return m_data.size()[1];
     }
 
-    map_type eigenSub(const RowRange& r) {
-        assert_le(r.start, r.end);
-        return map_type(&m_data[{r.start, 0}], r.end - r.start, columns());
+    map_type eigenSub(const range_type& r) {
+        return map_type(&m_data[{r.x, 0}], r.y, columns());
     }
 
-    cmap_type eigenSub(const RowRange& r) const {
-        assert_le(r.start, r.end);
-        return cmap_type(&m_data[{r.start, 0}], r.end - r.start, columns());
+    cmap_type eigenSub(const range_type& r) const {
+        return cmap_type(&m_data[{r.x, 0}], r.y, columns());
     }
 
     void fill(const T& value) {

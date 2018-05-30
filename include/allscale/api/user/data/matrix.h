@@ -17,11 +17,11 @@ using Matrix = impl::Matrix<T>;
 template <typename E>
 using MatrixExpression = impl::MatrixExpression<E>;
 
-using RowRange = impl::RowRange;
-
 using BlockRange = impl::BlockRange;
 
 using point_type = impl::point_type;
+
+using range_type = impl::range_type;
 
 // using coordinate_type as defined in allscale/api/user/data/grid.h
 

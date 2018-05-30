@@ -144,8 +144,6 @@ template <typename Functor, typename T1, typename T2>
 struct operation_result;
 
 
-struct RowRange;
-
 struct BlockRange;
 
 

@@ -273,26 +273,24 @@ void matrix_multiplication_blas(Matrix<double>& result, const Matrix<double>& lh
 void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
     assert(lhs.columns() == rhs.rows());
 
-    auto blas_multiplication = [&](const RowRange& r) {
-        assert_le(r.start, r.end);
-
-        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, r.end - r.start, rhs.columns(), lhs.columns(), 1.0, &lhs[{r.start, 0}], lhs.columns(),
-                    &rhs[{0, 0}], rhs.columns(), 0.0, &result[{r.start, 0}], rhs.columns());
+    auto blas_multiplication = [&](const range_type& r) {
+        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, r.y, rhs.columns(), lhs.columns(), 1.0, &lhs[{r.x, 0}], lhs.columns(), &rhs[{0, 0}],
+                    rhs.columns(), 0.0, &result[{r.x, 0}], rhs.columns());
     };
 
     auto multiplication_rec = prec(
         // base case test
-        [&](const RowRange& r) { return r.start + 256 >= r.end; },
+        [&](const range_type& r) { return r.y < 64; },
         // base case
         blas_multiplication,
         core::pick(
             // parallel recursive split
-            [&](const RowRange& r, const auto& rec) {
-                int mid = r.start + (r.end - r.start) / 2;
-                return core::parallel(rec({r.start, mid}), rec({mid, r.end}));
+            [&](const range_type& r, const auto& rec) {
+                int mid = r.x + r.y / 2;
+                return core::parallel(rec({r.x, r.y / 2}), rec({mid, r.y - r.y / 2}));
             },
             // BLAS multiplication if no further parallelism can be exploited
-            [&](const RowRange& r, const auto&) {
+            [&](const range_type& r, const auto&) {
                 blas_multiplication(r);
                 return core::done();
             }));
@@ -355,9 +353,7 @@ void matrix_multiplication_peigen(Matrix<T>& result, const Matrix<T>& lhs, const
     // create an Eigen map for the rhs of the multiplication
     auto eigen_rhs = rhs.getEigenMap();
 
-    auto eigen_multiplication = [&](const RowRange& r) {
-        assert_le(r.start, r.end);
-
+    auto eigen_multiplication = [&](const range_type& r) {
         auto eigen_res_row = result.eigenSub(r);
         auto eigen_lhs_row = lhs.eigenSub(r);
 
@@ -367,17 +363,17 @@ void matrix_multiplication_peigen(Matrix<T>& result, const Matrix<T>& lhs, const
 
     auto multiplication_rec = prec(
         // base case test
-        [&](const RowRange& r) { return r.start + 64 >= r.end; },
+        [&](const range_type& r) { return r.y < 64; },
         // base case
         eigen_multiplication,
         core::pick(
             // parallel recursive split
-            [&](const RowRange& r, const auto& rec) {
-                int mid = r.start + (r.end - r.start) / 2;
-                return core::parallel(rec({r.start, mid}), rec({mid, r.end}));
+            [&](const range_type& r, const auto& rec) {
+                int mid = r.x + r.y / 2;
+                return core::parallel(rec({r.x, r.y / 2}), rec({mid, r.y - r.y / 2}));
             },
-            // Eigen multiplication if no further parallelism can be exploited
-            [&](const RowRange& r, const auto&) {
+            // BLAS multiplication if no further parallelism can be exploited
+            [&](const range_type& r, const auto&) {
                 eigen_multiplication(r);
                 return core::done();
             }));
