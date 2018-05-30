@@ -14,7 +14,7 @@ macro(add_module_executable_folder folder extension prefix postfix includes alwa
             set(uses_gmp TRUE)
         endif()
 
-        if((NOT uses_gmp)  OR GMPXX_FOUND)
+        if((NOT uses_gmp)  OR (GMP_FOUND AND GMPXX_FOUND))
             # -- Add Executable
             add_executable(${filename} ${file})
 
