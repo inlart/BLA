@@ -112,6 +112,18 @@ class IdentityMatrix;
 template <typename T>
 class PermutationMatrix;
 
+/*
+ * Decompositions
+ */
+template <typename T>
+struct LUD;
+
+template <typename T>
+struct QRD;
+
+template <typename T>
+struct SVD;
+
 
 template <typename Expr>
 struct scalar_type;

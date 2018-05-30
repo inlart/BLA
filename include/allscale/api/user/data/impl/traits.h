@@ -1,8 +1,11 @@
 #pragma once
 
-#include "forward.h"
+#include "allscale/api/user/data/impl/expressions.h"
+
+#include "allscale/api/user/data/impl/forward.h"
 
 #include <functional>
+#include <type_traits>
 
 namespace allscale {
 namespace api {
@@ -151,11 +154,17 @@ struct vectorizable<ElementMatrixMultiplication<E1, E2>>
     : public detail::and_value<vectorizable<E1>::value, vectorizable<E2>::value,
                                std::is_arithmetic<scalar_type_t<ElementMatrixMultiplication<E1, E2>>>::value> {};
 
+template <typename T>
+struct vectorizable<EvaluatedMatrixMultiplication<T>> : public std::true_type {};
+
 template <typename E>
 struct vectorizable<MatrixNegation<E>> : public vectorizable<E> {};
 
 template <typename E>
 struct vectorizable<MatrixTranspose<E>> : public std::false_type {};
+
+template <typename E>
+struct vectorizable<MatrixConjugate<E>> : public std::false_type {};
 
 template <typename E>
 struct vectorizable<MatrixAbs<E>> : public vectorizable<E> {};

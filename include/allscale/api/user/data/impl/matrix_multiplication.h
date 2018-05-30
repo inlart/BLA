@@ -1,10 +1,10 @@
 #pragma once
 
-#include "expressions.h"
-#include "operators.h"
-#include "types.h"
+#include "allscale/api/user/data/impl/expressions.h"
+#include "allscale/api/user/data/impl/operators.h"
+#include "allscale/api/user/data/impl/types.h"
 
-#include "forward.h"
+#include "allscale/api/user/data/impl/forward.h"
 
 #include <allscale/api/core/prec.h>
 #include <allscale/api/user/algorithm/async.h>
@@ -15,6 +15,7 @@
 
 // -- Other
 #include <Vc/Vc>
+#include <array>
 #include <cblas.h>
 
 

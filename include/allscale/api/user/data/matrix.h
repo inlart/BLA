@@ -1,12 +1,10 @@
 #pragma once
 
-#include <allscale/api/user/data/grid.h>
-
-#include "impl/expressions.h"
-#include "impl/matrix_multiplication.h"
-#include "impl/operators.h"
-#include "impl/traits.h"
-#include "impl/types.h"
+#include "allscale/api/user/data/impl/expressions.h"
+#include "allscale/api/user/data/impl/matrix_multiplication.h"
+#include "allscale/api/user/data/impl/operators.h"
+#include "allscale/api/user/data/impl/traits.h"
+#include "allscale/api/user/data/impl/types.h"
 
 namespace allscale {
 namespace api {

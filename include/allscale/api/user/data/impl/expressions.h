@@ -1,10 +1,10 @@
 #pragma once
 
-#include "decomposition.h"
-#include "traits.h"
-#include "types.h"
+#include "allscale/api/user/data/impl/decomposition.h"
+#include "allscale/api/user/data/impl/traits.h"
+#include "allscale/api/user/data/impl/types.h"
 
-#include "forward.h"
+#include "allscale/api/user/data/impl/forward.h"
 
 #include <Eigen/Dense>
 #include <Vc/Vc>
@@ -13,6 +13,7 @@
 #include <allscale/utils/assert.h>
 #include <allscale/utils/vector.h>
 #include <cmath>
+#include <complex>
 #include <functional>
 
 namespace allscale {

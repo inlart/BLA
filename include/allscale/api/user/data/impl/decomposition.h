@@ -1,9 +1,9 @@
 #pragma once
 
-#include "expressions.h"
-#include "traits.h"
+#include "allscale/api/user/data/impl/expressions.h"
+#include "allscale/api/user/data/impl/traits.h"
 
-#include "forward.h"
+#include "allscale/api/user/data/impl/forward.h"
 
 #include <allscale/api/user/data/grid.h>
 #include <allscale/utils/assert.h>

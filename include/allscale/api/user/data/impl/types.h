@@ -1,10 +1,6 @@
 #pragma once
 
 #include <allscale/api/user/data/grid.h>
-#include <iostream>
-
-#include "expressions.h"
-#include "forward.h"
 
 namespace allscale {
 namespace api {
@@ -12,6 +8,7 @@ namespace user {
 namespace data {
 namespace impl {
 
+using coordinate_type = allscale::api::user::data::coordinate_type;
 
 using point_type = GridPoint<2>;
 using triple_type = GridPoint<3>;
