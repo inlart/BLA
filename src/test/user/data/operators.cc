@@ -110,6 +110,37 @@ TEST(Operation, AssignAddition) {
     }
 }
 
+TEST(Operation, AssignAdditionRefSubMatrix) {
+    Matrix<double> m1({123, 76});
+    Matrix<double> m2({5, 76});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        m2.fill_seq(g);
+
+        Eigen::MatrixXd m1e = m1.toEigenMatrix();
+        Eigen::MatrixXd m2e = m2.toEigenMatrix();
+
+        m1.sub({{0, 0}, {5, 76}}) += m2;
+        m1e.block(0, 0, 5, 76) += m2e;
+
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(m1e.block(0, 0, 5, 76))));
+        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+
+        m1.topRows(5) += m2;
+        m1e.block(0, 0, 5, 76) += m2e;
+
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(m1e.block(0, 0, 5, 76))));
+        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+
+        ASSERT_FALSE((std::is_same<decltype(m1.sub({{0, 0}, {5, 76}})), decltype(m1.topRows(5))>::value));
+    }
+}
+
 TEST(Operation, Subtraction) {
     Matrix<double> m1({31, 47});
     Matrix<double> m2(m1.size());
@@ -144,6 +175,88 @@ TEST(Operation, AssignSubtraction) {
         m1 -= m2;
         m1e -= m2e;
 
+        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+    }
+}
+
+TEST(Operation, AssignSubtractionRefSubMatrix) {
+    Matrix<double> m1({123, 76});
+    Matrix<double> m2({5, 76});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        m2.fill_seq(g);
+
+        Eigen::MatrixXd m1e = m1.toEigenMatrix();
+        Eigen::MatrixXd m2e = m2.toEigenMatrix();
+
+        m1.sub({{0, 0}, {5, 76}}) -= m2;
+        m1e.block(0, 0, 5, 76) -= m2e;
+
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(m1e.block(0, 0, 5, 76))));
+        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+
+        m1.topRows(5) -= m2;
+        m1e.block(0, 0, 5, 76) -= m2e;
+
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(m1e.block(0, 0, 5, 76))));
+        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+
+        ASSERT_FALSE((std::is_same<decltype(m1.sub({{0, 0}, {5, 76}})), decltype(m1.topRows(5))>::value));
+    }
+}
+
+TEST(Operation, AssignScalarMultiplication) {
+    Matrix<double> m1({123, 76});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&]() { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+
+        Eigen::MatrixXd m1e = m1.toEigenMatrix();
+
+        auto number = g();
+
+        m1 *= number;
+        m1e *= number;
+
+        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+    }
+}
+
+TEST(Operation, AssignScalarMultiplicationRefSubMatrix) {
+    Matrix<double> m1({123, 76});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&]() { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+
+        auto number = g();
+
+        Eigen::MatrixXd m1e = m1.toEigenMatrix();
+
+        m1.sub({{0, 0}, {5, 76}}) *= number;
+        m1e.block(0, 0, 5, 76) *= number;
+
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(m1e.block(0, 0, 5, 76))));
+        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+
+        number = g();
+
+        m1.topRows(5) *= number;
+        m1e.block(0, 0, 5, 76) *= number;
+
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(m1e.block(0, 0, 5, 76))));
         ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
     }
 }

@@ -76,7 +76,7 @@ Matrix<T>& operator*=(Matrix<T>& u, const T& v) {
 }
 
 template <typename T, bool C>
-RefSubMatrix<T> operator*=(RefSubMatrix<T, C> u, const T& v) {
+RefSubMatrix<T, C> operator*=(RefSubMatrix<T, C> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
 
