@@ -165,9 +165,9 @@ std::ostream& operator<<(std::ostream& os, const MatrixExpression<E>& m) {
 template <typename T>
 class MatrixInitializer {
 public:
-    MatrixInitializer(Matrix<T>& m, const T& val) : matrix(m), pos({0, 0}) {
-        matrix[{0, 0}] = val;
-        increasePos();
+    template <typename T2>
+    MatrixInitializer(Matrix<T>& m, T2&& val) : matrix(m), pos({0, 0}) {
+        *this, std::move(val);
     }
 
     ~MatrixInitializer() {
@@ -199,8 +199,8 @@ private:
 };
 
 template <typename T1, typename T2>
-MatrixInitializer<T1> operator<<(Matrix<T1>& m, const T2& val) {
-    return MatrixInitializer<T1>(m, static_cast<T1>(val));
+MatrixInitializer<T1> operator<<(Matrix<T1>& m, T2&& val) {
+    return MatrixInitializer<T1>(m, std::move(val));
 }
 
 
