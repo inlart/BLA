@@ -335,6 +335,34 @@ TEST(Expression, RefSubMatrix) {
     });
 }
 
+TEST(Expression, RefSubMatrixCopy) {
+    Matrix<double> m1({123, 76});
+    Matrix<double> m2({5, 76});
+
+    m1.zero();
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m2.fill_seq(g);
+
+        auto m1_su = m1.topRows(5);
+
+        m1_su = m2;
+
+        algorithm::pfor(m1.size(), [&](const auto& pos) {
+            if(pos < m1_su.size()) {
+                ASSERT_EQ(m1[pos], m2[pos]);
+            } else {
+                ASSERT_EQ(m1[pos], 0);
+            }
+        });
+    }
+}
+
 TEST(Expression, RefSubMatrixConversion) {
     Matrix<int> m1({197, 107});
 
