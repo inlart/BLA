@@ -175,7 +175,7 @@ public:
     }
 
     template <typename T2>
-    MatrixInitializer& operator,(const T2& val) {
+    MatrixInitializer& operator,(T2&& val) {
         assert_lt(pos, matrix.size());
         matrix[pos] = static_cast<T>(val);
 
