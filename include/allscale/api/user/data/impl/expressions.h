@@ -148,7 +148,7 @@ const Matrix<T>& eval(const Matrix<T>& m) {
     return m;
 }
 
-template <typename E>
+template <bool Contiguous = false, typename E>
 auto sub(const MatrixExpression<E>& e, const BlockRange& br) {
     return SubMatrix<E>(e, br);
 }
@@ -169,7 +169,7 @@ auto sub(const RefSubMatrix<T>& e, BlockRange block_range) {
     return RefSubMatrix<T, Contiguous>(e.getExpression(), new_range);
 }
 
-template <typename E>
+template <bool Contiguous = false, typename E>
 auto sub(const SubMatrix<E>& e, BlockRange block_range) {
     assert_ge(block_range.start, (point_type{0, 0}));
     assert_le(block_range.start + block_range.size, e.getBlockRange().size);
@@ -273,6 +273,22 @@ public:
 
     auto column(coordinate_type c) const {
         return detail::column(static_cast<const E&>(*this), c);
+    }
+
+    auto rowRange(range_type p) {
+        return detail::sub<true>(static_cast<E&>(*this), {{p.x, 0}, {p.y, columns()}});
+    }
+
+    auto rowRange(range_type p) const {
+        return detail::sub<true>(static_cast<const E&>(*this), {{p.x, 0}, {p.y, columns()}});
+    }
+
+    auto columnRange(range_type p) {
+        return detail::sub<false>(static_cast<E&>(*this), {{0, p.x}, {rows(), p.y}});
+    }
+
+    auto columnRange(range_type p) const {
+        return detail::sub<false>(static_cast<const E&>(*this), {{0, p.x}, {rows(), p.y}});
     }
 
     template <typename E2>

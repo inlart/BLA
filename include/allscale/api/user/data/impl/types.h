@@ -11,6 +11,7 @@ namespace impl {
 using coordinate_type = allscale::api::user::data::coordinate_type;
 
 using point_type = GridPoint<2>;
+using range_type = GridPoint<2>;
 using triple_type = GridPoint<3>;
 
 struct RowRange {

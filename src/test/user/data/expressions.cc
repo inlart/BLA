@@ -478,6 +478,78 @@ TEST(Expression, MatrixRow) {
     }
 }
 
+TEST(Expression, MatrixRowRange) {
+    Matrix<int> m(point_type{31, 47});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 10);
+
+    auto g = [&](const auto&) { return dis(gen); };
+
+    for(int i = 0; i < 20; ++i) {
+        m.fill_seq(g);
+
+        range_type r = {4, 1};
+
+        auto range = m.rowRange(r);
+
+        for(int i = 0; i < r.y; ++i) {
+            for(int j = 0; j < m.columns(); ++j) {
+                ASSERT_EQ((m[{i + r.x, j}]), (range[{i, j}]));
+            }
+        }
+
+        range.fill(0);
+
+        for(int i = 0; i < m.rows(); ++i) {
+            for(int j = 0; j < m.columns(); ++j) {
+                if(i >= r.x && i < r.x + r.y) {
+                    ASSERT_EQ((m[{i, j}]), 0);
+                } else {
+                    ASSERT_NE((m[{i, j}]), 0);
+                }
+            }
+        }
+    }
+}
+
+TEST(Expression, MatrixColumnRange) {
+    Matrix<int> m(point_type{31, 47});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 10);
+
+    auto g = [&](const auto&) { return dis(gen); };
+
+    for(int i = 0; i < 20; ++i) {
+        m.fill_seq(g);
+
+        range_type r = {4, 1};
+
+        auto range = m.columnRange(r);
+
+        for(int i = 0; i < m.rows(); ++i) {
+            for(int j = 0; j < r.y; ++j) {
+                ASSERT_EQ((m[{i, j + r.x}]), (range[{i, j}]));
+            }
+        }
+
+        range.fill(0);
+
+        for(int i = 0; i < m.rows(); ++i) {
+            for(int j = 0; j < m.columns(); ++j) {
+                if(j >= r.x && j < r.x + r.y) {
+                    ASSERT_EQ((m[{i, j}]), 0);
+                } else {
+                    ASSERT_NE((m[{i, j}]), 0);
+                }
+            }
+        }
+    }
+}
+
 TEST(Expression, MatrixColumn) {
     const coordinate_type c = 31;
     IdentityMatrix<int> m(point_type{c, c});
