@@ -291,6 +291,38 @@ public:
         return detail::sub<false>(static_cast<const E&>(*this), {{0, p.x}, {rows(), p.y}});
     }
 
+    auto topRows(coordinate_type row_count) {
+        return rowRange({0, row_count});
+    }
+
+    auto topRows(coordinate_type row_count) const {
+        return rowRange({0, row_count});
+    }
+
+    auto bottomRows(coordinate_type row_count) {
+        return rowRange({rows() - row_count, row_count});
+    }
+
+    auto bottomRows(coordinate_type row_count) const {
+        return rowRange({rows() - row_count, row_count});
+    }
+
+    auto topColumns(coordinate_type column_count) {
+        return columnRange({0, column_count});
+    }
+
+    auto topColumns(coordinate_type column_count) const {
+        return columnRange({0, column_count});
+    }
+
+    auto bottomColumns(coordinate_type column_count) {
+        return columnRange({columns() - column_count, column_count});
+    }
+
+    auto bottomColumns(coordinate_type column_count) const {
+        return columnRange({columns() - column_count, column_count});
+    }
+
     template <typename E2>
     ElementMatrixMultiplication<E, E2> product(const MatrixExpression<E2>& e) const {
         return ElementMatrixMultiplication<E, E2>(static_cast<const E&>(*this), e);

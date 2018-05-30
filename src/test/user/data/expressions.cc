@@ -550,6 +550,158 @@ TEST(Expression, MatrixColumnRange) {
     }
 }
 
+TEST(Expression, MatrixTopRows) {
+    Matrix<int> m(point_type{31, 47});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 10);
+
+    auto g = [&](const auto&) { return dis(gen); };
+
+    for(int i = 0; i < 20; ++i) {
+        m.fill_seq(g);
+
+        coordinate_type r = 4;
+
+        auto range = m.topRows(r);
+
+        ASSERT_EQ(range.size(), (point_type{r, m.columns()}));
+
+        for(int i = 0; i < r; ++i) {
+            for(int j = 0; j < m.columns(); ++j) {
+                ASSERT_EQ((m[{i, j}]), (range[{i, j}]));
+            }
+        }
+
+        range.fill(0);
+
+        for(int i = 0; i < m.rows(); ++i) {
+            for(int j = 0; j < m.columns(); ++j) {
+                if(i < r) {
+                    ASSERT_EQ((m[{i, j}]), 0);
+                } else {
+                    ASSERT_NE((m[{i, j}]), 0);
+                }
+            }
+        }
+    }
+}
+
+TEST(Expression, MatrixBottomRows) {
+    Matrix<int> m(point_type{31, 47});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 10);
+
+    auto g = [&](const auto&) { return dis(gen); };
+
+    for(int i = 0; i < 20; ++i) {
+        m.fill_seq(g);
+
+        coordinate_type r = 4;
+
+        auto range = m.bottomRows(r);
+
+        ASSERT_EQ(range.size(), (point_type{r, m.columns()}));
+
+        for(int i = 0; i < r; ++i) {
+            for(int j = 0; j < m.columns(); ++j) {
+                ASSERT_EQ((m[{m.rows() - r + i, j}]), (range[{i, j}]));
+            }
+        }
+
+        range.fill(0);
+
+        for(int i = 0; i < m.rows(); ++i) {
+            for(int j = 0; j < m.columns(); ++j) {
+                if(i >= m.rows() - r) {
+                    ASSERT_EQ((m[{i, j}]), 0);
+                } else {
+                    ASSERT_NE((m[{i, j}]), 0);
+                }
+            }
+        }
+    }
+}
+
+TEST(Expression, MatrixTopColumns) {
+    Matrix<int> m(point_type{31, 47});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 10);
+
+    auto g = [&](const auto&) { return dis(gen); };
+
+    for(int i = 0; i < 20; ++i) {
+        m.fill_seq(g);
+
+        coordinate_type r = 4;
+
+        auto range = m.topColumns(r);
+
+        ASSERT_EQ(range.size(), (point_type{m.rows(), r}));
+
+        for(int i = 0; i < m.rows(); ++i) {
+            for(int j = 0; j < r; ++j) {
+                ASSERT_EQ((m[{i, j}]), (range[{i, j}]));
+            }
+        }
+
+        range.fill(0);
+
+        for(int i = 0; i < m.rows(); ++i) {
+            for(int j = 0; j < m.columns(); ++j) {
+                if(j < r) {
+                    ASSERT_EQ((m[{i, j}]), 0);
+                } else {
+                    ASSERT_NE((m[{i, j}]), 0);
+                }
+            }
+        }
+    }
+}
+
+TEST(Expression, MatrixBottomColumns) {
+    Matrix<int> m(point_type{31, 47});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 10);
+
+    auto g = [&](const auto&) { return dis(gen); };
+
+    for(int i = 0; i < 20; ++i) {
+        m.fill_seq(g);
+
+        coordinate_type r = 4;
+
+        auto range = m.bottomColumns(r);
+
+        ASSERT_EQ(range.size(), (point_type{m.rows(), r}));
+
+        for(int i = 0; i < r; ++i) {
+            for(int j = 0; j < m.columns(); ++j) {
+                ASSERT_EQ((m[{i, m.columns() - r + j}]), (range[{i, j}]));
+            }
+        }
+
+        range.fill(0);
+
+        for(int i = 0; i < m.rows(); ++i) {
+            for(int j = 0; j < m.columns(); ++j) {
+                if(j >= m.columns() - r) {
+                    ASSERT_EQ((m[{i, j}]), 0);
+                } else {
+                    ASSERT_NE((m[{i, j}]), 0);
+                }
+            }
+        }
+    }
+}
+
 TEST(Expression, MatrixColumn) {
     const coordinate_type c = 31;
     IdentityMatrix<int> m(point_type{c, c});
