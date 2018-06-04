@@ -49,8 +49,6 @@ for num_threads in 1..max_threads
 
         result = JSON.parse(ret)
 
-        puts result["benchmarks"]
-
         result["benchmarks"].each { | element |
 
             if element["time_unit"] != "ns"
