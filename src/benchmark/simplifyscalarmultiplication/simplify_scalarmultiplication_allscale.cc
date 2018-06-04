@@ -1,20 +1,23 @@
-// system
-#include <iostream>
-
-#include <Eigen/Dense>
 #include <allscale/api/user/data/matrix.h>
+#include <benchmark/benchmark.h>
+#include <iostream>
+#include <random>
 
-// own
-#include "bench_result.h"
-#include "timer.h"
-#include "utility.h"
+#ifndef BENCHMARK_MIN_SIZE
+#define BENCHMARK_MIN_SIZE 128
+#endif
+
+#ifndef BENCHMARK_MAX_SIZE
+#define BENCHMARK_MAX_SIZE 2048
+#endif
 
 using Matrix = allscale::api::user::data::Matrix<double>;
 
-BenchResult bench_allscale(int n) {
-    BenchResult res(NUMBER_BENCHMARK_RUNS);
+static void benchmark_scalarmultiplication_allscale(benchmark::State& state) {
+    const int n = state.range(0);
 
     Matrix a({n, n});
+
     Matrix result({n, n});
 
     std::random_device rd;
@@ -23,44 +26,13 @@ BenchResult bench_allscale(int n) {
 
     auto g = [&]() { return dis(gen); };
 
-    a.fill(g);
+    a.fill_seq(g);
 
-
-    Eigen::MatrixXd a_eigen = a.toEigenMatrix();
-    Eigen::MatrixXd result_eigen = result.toEigenMatrix();
-
-    auto first_elem_square_sums = 0.0; // to try and avoid optimiser pitfals
-
-    for(int i = 0; i < NUMBER_BENCHMARK_RUNS; ++i) {
-        {
-            Timer t;
-            result = a * 5 * 6 * 8;
-            res.addMeasurement(t.elapsed());
-        }
-        result_eigen = a_eigen * 5 * 6 * 8;
-        first_elem_square_sums += result[{0, 0}] * result[{0, 0}];
-        if(!isAlmostEqual(result, Matrix(result_eigen), 0.001)) {
-            std::cerr << "Matrix multiplication check failed" << std::endl;
-            return BenchResult(0);
-        }
-    }
-    if(first_elem_square_sums < 0) { // this should never happen and is just to disuade the optimiser
-        return BenchResult(0);
-    }
-    return res;
-}
-
-int main(int argc, const char** argv) {
-    int matrix_size = 650;
-    if(argc > 1) {
-        matrix_size = std::stoi(argv[1]);
-    }
-
-    auto t = bench_allscale(matrix_size);
-
-    if(argc > 2) { // output the raw machine processable data for benchmarking scripts
-        std::cout << t.raw() << std::endl;
-    } else {
-        std::cout << "Allscale square matrix multiplication with size " << matrix_size << "x" << matrix_size << ": " << t.summary() << std::endl;
+    for(auto _ : state) {
+        benchmark::DoNotOptimize(result = a * 5 * 6 * 8);
     }
 }
+
+BENCHMARK(benchmark_scalarmultiplication_allscale)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+
+BENCHMARK_MAIN();

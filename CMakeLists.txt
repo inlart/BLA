@@ -19,6 +19,7 @@ include(dependencies/pthread)
 
 find_package(Boost REQUIRED)
 
+#GTest
 add_subdirectory(${PROJECT_SOURCE_DIR}/googletest/googletest)
 
 set(GTEST_LIBRARIES gtest)
@@ -26,6 +27,10 @@ set(GTEST_MAIN_LIBRARIES gtest_main)
 
 set(ALLSCALE_MATRIX_DEPENDENCIES gtest ${ALLSCALE_MATRIX_DEPENDENCIES})
 set(ALLSCALE_MATRIX_DEPENDENCIES gtest_main ${ALLSCALE_MATRIX_DEPENDENCIES})
+
+#GBenchmark
+find_package(benchmark)
+
 
 #Vc master
 if(EXISTS ${PROJECT_SOURCE_DIR}/Vc)
@@ -42,6 +47,7 @@ else()
   message(FATAL_ERROR "Eigen submodule not found. Did you clone with \"git clone --recursive <url>\"?")
 endif()
 
+#OpenBLAS
 find_package(OpenBLAS)
 if(NOT OpenBLAS_FOUND)
   message(STATUS "Adding OpenBLAS as third party dependency")
@@ -49,8 +55,6 @@ if(NOT OpenBLAS_FOUND)
 endif()
 
 find_package(GMPXX)
-
-message(STATUS "GMPXX found: ${GMPXX_FOUND}")
 
 include(FindOpenMP)
 if(OPENMP_FOUND)

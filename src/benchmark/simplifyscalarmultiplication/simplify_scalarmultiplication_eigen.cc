@@ -1,50 +1,29 @@
-// sys
+#include <Eigen/Core>
+#include <benchmark/benchmark.h>
 #include <iostream>
-#include <stdlib.h>
-#include <time.h>
+#include <random>
 
-// libs
-#include <Eigen/Dense>
-using namespace Eigen;
+#ifndef BENCHMARK_MIN_SIZE
+#define BENCHMARK_MIN_SIZE 128
+#endif
 
-// own
-#include "bench_result.h"
-#include "timer.h"
+#ifndef BENCHMARK_MAX_SIZE
+#define BENCHMARK_MAX_SIZE 2048
+#endif
 
-BenchResult bench_eigen(int n) {
-    BenchResult res(NUMBER_BENCHMARK_RUNS);
+using Eigen::MatrixXd;
 
-    MatrixXd a = MatrixXd::Ones(n, n);
-    MatrixXd result = MatrixXd(n, n);
+static void benchmark_scalarmultiplication_eigen(benchmark::State& state) {
+    const int n = state.range(0);
 
-    auto first_elem_square_sums = 0.0; // to try and avoid optimiser pitfals
+    MatrixXd a = MatrixXd::Random(n, n);
+    MatrixXd result = MatrixXd::Zero(n, n);
 
-    for(int i = 0; i < NUMBER_BENCHMARK_RUNS; ++i) {
-        {
-            Timer t;
-            result = a * 5 * 6 * 8;
-            res.addMeasurement(t.elapsed());
-        }
-        first_elem_square_sums += result(0, 0) * result(0, 0);
-    }
-    if(first_elem_square_sums < 0) { // this should never happen and is just to disuade the optimiser
-        return BenchResult(0);
-    }
-    return res;
-}
-
-int main(int argc, const char** argv) {
-    srand(time(NULL));
-    int matrix_size = 650;
-    if(argc > 1) {
-        matrix_size = std::stoi(argv[1]);
-    }
-
-    auto t = bench_eigen(matrix_size);
-
-    if(argc > 2) { // output the raw machine processable data for benchmarking scripts
-        std::cout << t.raw() << std::endl;
-    } else {
-        std::cout << "Eigen square matrix multiplication with size " << matrix_size << "x" << matrix_size << ": " << t.summary() << std::endl;
+    for(auto _ : state) {
+        benchmark::DoNotOptimize(result = a * 5 * 6 * 8);
     }
 }
+
+BENCHMARK(benchmark_scalarmultiplication_eigen)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+
+BENCHMARK_MAIN();

@@ -14,6 +14,11 @@ macro(add_module_executable_folder folder extension prefix postfix includes alwa
             set(uses_gmp TRUE)
         endif()
 
+        set(uses_benchmark FALSE)
+        if(${filename} MATCHES "(.*)benchmark(.*)")
+            set(uses_benchmark TRUE)
+        endif()
+
         if((NOT uses_gmp)  OR (GMP_FOUND AND GMPXX_FOUND))
             # -- Add Executable
             add_executable(${filename} ${file})
@@ -41,6 +46,12 @@ macro(add_module_executable_folder folder extension prefix postfix includes alwa
 
                 target_link_libraries(${filename} ${GMPXX_LIBRARIES})
                 target_link_libraries(${filename} ${GMP_LIBRARIES})
+            endif()
+
+            # -- Google Benchmark
+            if(uses_benchmark)
+                target_include_directories(${filename} PUBLIC ${benchmark_INCLUDE_DIR})
+                target_link_libraries(${filename} benchmark::benchmark_main)
             endif()
         else()
             message(WARNING "${filename} uses gmp but gmp was not found")
