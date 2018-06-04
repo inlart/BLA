@@ -281,6 +281,8 @@ puts "\\documentclass{article}
 
 \\usepackage{pgfplots}
 
+\\usepackage{morefloats}
+
 \\pgfplotsset{compat=1.14}
 
 \\begin{document}
