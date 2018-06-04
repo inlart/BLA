@@ -102,21 +102,27 @@ struct SVD;
  * Defined in traits.h
  */
 
+// -- extract the scalar type of a MatrixExpression
 template <typename Expr>
 struct scalar_type;
 
+// -- trait to check SIMD vectorizability of a MatrixExpression
 template <typename Expr>
 struct vectorizable;
 
+// -- type that is saved inside a MatrixExpression class
 template <typename E>
 struct expression_member;
 
+// -- checks if T is associative
 template <typename T>
 struct is_associative;
 
+// checks if F(T, T) returns a T
 template <typename F, typename T>
 struct type_consistent;
 
+// result of operation Functor(T1, T2)
 template <typename Functor, typename T1, typename T2>
 struct operation_result;
 
