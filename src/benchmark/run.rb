@@ -37,8 +37,6 @@ for num_threads in 1..max_threads
 
         total_time = 0
 
-        result_content = Array.new
-
         print "Running #{extension} with #{num_threads} thread(s)\n"
 
         ENV['NUM_WORKERS'] = num_threads.to_s
@@ -56,19 +54,21 @@ for num_threads in 1..max_threads
                 exit
             end
 
+            result_content = Array.new
+
             result_content.push(element["name"].split('/')[1])
             result_content.push(num_threads)
             result_content.push(element["name"].split('/')[0])
             result_content.push(element["real_time"])
             csv_content.push(result_content)
+
+            CSV.open(filename, 'a+') do |csv_object|
+                csv_content.each do |row_array|
+                    csv_object << row_array
+                end
+            end
+            csv_content = Array.new
         }
 
     end
-
-        CSV.open(filename, 'a+') do |csv_object|
-            csv_content.each do |row_array|
-                csv_object << row_array
-            end
-        end
-        csv_content = Array.new
 end
