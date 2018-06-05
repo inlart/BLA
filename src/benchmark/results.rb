@@ -13,7 +13,6 @@ class Latex
             return
         end
         @@api_colors.store(api, @@colors[@@colors_count])
-        puts
         @@colors_count += 1
         if @@colors_count >= @@colors.length then
             @@colors_count = 0
@@ -27,6 +26,7 @@ class Latex
         color = 0
         legend = Array.new
         data.each do |compiler, thread_tests|
+            compiler = compiler.split('_')[-1]
             self.add_api(compiler)
             if thread_tests.size < 1
                 next
@@ -247,7 +247,7 @@ class ResultSet
 
             num_threads = row[1]
             compiler = row[2]
-            time = row[3]
+            time = Float(row[3]) / 1000000
 
             program = (compiler.split("_")[1]) + '\_' + program
 
