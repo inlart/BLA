@@ -41,7 +41,7 @@ for num_threads in 1..max_threads
 
         ENV['NUM_WORKERS'] = num_threads.to_s
         ENV['OMP_NUM_THREADS'] = num_threads.to_s
-        ENV['GOMP_CPU_AFFINITY'] = "0-3"
+        # ENV['GOMP_CPU_AFFINITY'] = "0-3"
 
         ret = `#{bin_folder}#{extension} --benchmark_format=json`
 
