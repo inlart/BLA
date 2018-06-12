@@ -1058,6 +1058,38 @@ TEST(Operation, Transpose) {
     algorithm::pfor(m1.size(), [&](const point_type& p) { ASSERT_EQ(m1[p], (m2[{p.y, p.x}])); });
 }
 
+TEST(Operation, TransposeFloat) {
+    Matrix<float> m1({47, 39});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    m1.fill_seq(g);
+    Matrix<float> m2 = m1.transpose();
+
+    ASSERT_EQ(m1.rows(), m2.columns());
+    ASSERT_EQ(m2.rows(), m1.columns());
+
+    algorithm::pfor(m1.size(), [&](const point_type& p) { ASSERT_EQ(m1[p], (m2[{p.y, p.x}])); });
+}
+
+TEST(Operation, TransposeInt) {
+    Matrix<int> m1({47, 39});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 9);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    m1.fill_seq(g);
+    Matrix<int> m2 = m1.transpose();
+
+    ASSERT_EQ(m1.rows(), m2.columns());
+    ASSERT_EQ(m2.rows(), m1.columns());
+
+    algorithm::pfor(m1.size(), [&](const point_type& p) { ASSERT_EQ(m1[p], (m2[{p.y, p.x}])); });
+}
+
 } // end namespace impl
 } // end namespace data
 } // end namespace user
