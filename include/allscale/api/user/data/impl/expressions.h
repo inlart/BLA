@@ -2,6 +2,7 @@
 
 #include "allscale/api/user/data/impl/decomposition.h"
 #include "allscale/api/user/data/impl/traits.h"
+//#include "allscale/api/user/data/impl/transpose.h"
 #include "allscale/api/user/data/impl/types.h"
 
 #include "allscale/api/user/data/impl/forward.h"
@@ -12,9 +13,18 @@
 #include <allscale/api/user/data/grid.h>
 #include <allscale/utils/assert.h>
 #include <allscale/utils/vector.h>
+#include <array>
 #include <cmath>
 #include <complex>
 #include <functional>
+
+#ifdef Vc_HAVE_SSE
+#include <xmmintrin.h>
+#endif
+
+#ifdef Vc_HAVE_AVX
+#include <immintrin.h>
+#endif
 
 namespace allscale {
 namespace api {
@@ -420,8 +430,9 @@ public:
         return LUDecomposition().inverse();
     }
 
-    PacketScalar packet(point_type p) const {
-        return static_cast<const E&>(*this).packet(p);
+    template <typename simd_type = PacketScalar>
+    std::enable_if_t<vectorizable_v<E>, simd_type> packet(point_type p) const {
+        return static_cast<const E&>(*this).template packet<simd_type>(p);
     }
 
     auto eval() {
@@ -471,8 +482,9 @@ public:
         return lhs.columns();
     }
 
-    PacketScalar packet(point_type p) const {
-        return lhs.packet(p) + rhs.packet(p);
+    template <typename simd_type = PacketScalar>
+    simd_type packet(point_type p) const {
+        return lhs.template packet<simd_type>(p) + rhs.template packet<simd_type>(p);
     }
 
     Exp1 getLeftExpression() const {
@@ -519,8 +531,9 @@ public:
         return lhs.columns();
     }
 
-    PacketScalar packet(point_type p) const {
-        return lhs.packet(p) - rhs.packet(p);
+    template <typename simd_type = PacketScalar>
+    simd_type packet(point_type p) const {
+        return lhs.template packet<simd_type>(p) - rhs.template packet<simd_type>(p);
     }
 
     Exp1 getLeftExpression() const {
@@ -567,8 +580,9 @@ public:
         return lhs.columns();
     }
 
-    PacketScalar packet(point_type p) const {
-        return lhs.packet(p) * rhs.packet(p);
+    template <typename simd_type = PacketScalar>
+    simd_type packet(point_type p) const {
+        return lhs.template packet<simd_type>(p) * rhs.template packet<simd_type>(p);
     }
 
     Exp1 getLeftExpression() const {
@@ -640,14 +654,13 @@ private:
     Exp2 rhs;
 };
 
+// -- A wrapper around a temporary Matrix
 template <typename T>
-class EvaluatedMatrixMultiplication : public MatrixExpression<EvaluatedMatrixMultiplication<T>> {
-    using typename MatrixExpression<EvaluatedMatrixMultiplication<T>>::PacketScalar;
+class EvaluatedExpression : public MatrixExpression<EvaluatedExpression<T>> {
+    using typename MatrixExpression<EvaluatedExpression<T>>::PacketScalar;
 
 public:
-    template <typename ME1, typename ME2>
-    EvaluatedMatrixMultiplication(const MatrixMultiplication<ME1, ME2>& m) : tmp(m.size()) {
-        matrix_multiplication(tmp, m.getLeftExpression(), m.getRightExpression());
+    EvaluatedExpression(Matrix<T>&& m) : tmp(std::move(m)) {
     }
 
     T operator[](const point_type& pos) const {
@@ -665,10 +678,16 @@ public:
     coordinate_type columns() const {
         return tmp.columns();
     }
-
-    PacketScalar packet(point_type p) const {
-        return tmp.packet(p);
+    template <typename simd_type = PacketScalar>
+    simd_type packet(point_type p) const {
+        return tmp.template packet<simd_type>(p);
     }
+
+    //    EvaluatedExpression(const EvaluatedExpression&) = delete;
+    //    EvaluatedExpression(EvaluatedExpression&&) = default;
+    //
+    //    EvaluatedExpression& operator=(const EvaluatedExpression&) = delete;
+    //    EvaluatedExpression& operator=(EvaluatedExpression&&) = default;
 
 private:
     Matrix<T> tmp;
@@ -686,6 +705,38 @@ public:
 
     T operator[](const point_type& pos) const {
         return expression[{pos.y, pos.x}];
+    }
+
+    void evaluation(Matrix<T>& tmp) {
+        using ct = coordinate_type;
+
+        using block_type = SimdBlock<decltype(expression.packet({0, 0}))>;
+
+        // TODO: pfor?
+        for(ct i = 0; i < rows() - rows() % block_type::size()[0]; i += block_type::size()[0]) {
+            for(ct j = 0; j < columns() - columns() % block_type::size()[1]; j += block_type::size()[1]) {
+                block_type b(expression, {j, i});
+
+                b.transpose();
+                b.load_to(tmp, {i, j});
+            }
+        }
+
+
+        // transpose the rest that can't be done with a full block
+        // right side
+        for(ct i = 0; i < rows() - rows() % block_type::size()[0]; ++i) {
+            for(ct j = columns() - columns() % block_type::size()[1]; j < columns(); ++j) {
+                tmp[{i, j}] = expression[{j, i}];
+            }
+        }
+
+        // bottom
+        for(ct i = rows() - rows() % block_type::size()[0]; i < rows(); ++i) {
+            for(ct j = 0; j < columns(); ++j) {
+                tmp[{i, j}] = expression[{j, i}];
+            }
+        }
     }
 
     point_type size() const {
@@ -768,8 +819,9 @@ public:
         return expression.columns();
     }
 
-    PacketScalar packet(point_type p) const {
-        return -expression.packet(p);
+    template <typename simd_type = PacketScalar>
+    simd_type packet(point_type p) const {
+        return -expression.template packet<simd_type>(p);
     }
 
     Exp getExpression() const {
@@ -806,8 +858,9 @@ public:
         return expression.columns();
     }
 
-    PacketScalar packet(point_type p) const {
-        return Vc::abs(expression.packet(p));
+    template <typename simd_type = PacketScalar>
+    simd_type packet(point_type p) const {
+        return Vc::abs(expression.template packet<simd_type>(p));
     }
 
     Exp getExpression() const {
@@ -844,8 +897,9 @@ public:
         return expression.columns();
     }
 
-    PacketScalar packet(point_type p) const {
-        return expression.packet(p) * PacketScalar(scalar);
+    template <typename simd_type = PacketScalar>
+    simd_type packet(point_type p) const {
+        return expression.template packet<simd_type>(p) * simd_type(scalar);
     }
 
     const U& getScalar() const {
@@ -887,8 +941,9 @@ public:
         return expression.columns();
     }
 
-    PacketScalar packet(point_type p) const {
-        return PacketScalar(scalar) * expression.packet(p);
+    template <typename simd_type = PacketScalar>
+    simd_type packet(point_type p) const {
+        return simd_type(scalar) * expression.template packet<simd_type>(p);
     }
     const U& getScalar() const {
         return scalar;
@@ -1044,8 +1099,9 @@ public:
         return eigenSub({0, rows()});
     }
 
-    PacketScalar packet(point_type p) const {
-        return PacketScalar(&operator[](p), Vc::flags::element_aligned);
+    template <typename simd_type = PacketScalar>
+    simd_type packet(point_type p) const {
+        return simd_type(&operator[](p), Vc::flags::element_aligned);
     }
 
     const Matrix<T>& eval() const {
@@ -1261,9 +1317,9 @@ public:
             other[pos] = tmp;
         });
     }
-
-    PacketScalar packet(point_type p) const {
-        return PacketScalar(&operator[](p), Vc::flags::element_aligned);
+    template <typename simd_type = PacketScalar>
+    simd_type packet(point_type p) const {
+        return simd_type(&operator[](p), Vc::flags::element_aligned);
     }
 
     Exp& getExpression() const {
@@ -1327,15 +1383,18 @@ PermutationMatrix<T> simplify(PermutationMatrix<T> m) {
 }
 
 template <typename T>
-EvaluatedMatrixMultiplication<T> simplify(EvaluatedMatrixMultiplication<T> m) {
+EvaluatedExpression<T> simplify(EvaluatedExpression<T> m) {
     return m;
 }
 
 template <typename E1, typename E2>
 auto simplify(MatrixMultiplication<E1, E2> e) {
-    MatrixMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<E1>()))>, detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>
-        e_simple(simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
-    return EvaluatedMatrixMultiplication<scalar_type_t<decltype(e_simple)>>(e_simple);
+    Matrix<scalar_type_t<decltype(e)>> tmp(e.size());
+
+
+    matrix_multiplication(tmp, simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
+
+    return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
 }
 
 template <typename T>
@@ -1373,8 +1432,17 @@ auto simplify(MatrixNegation<E> e) {
 }
 
 template <typename E>
-auto simplify(MatrixTranspose<E> e) {
-    return MatrixTranspose<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+std::enable_if_t<vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTranspose<E>>>> simplify(MatrixTranspose<E> e) {
+    Matrix<scalar_type_t<MatrixTranspose<E>>> tmp(e.size());
+
+    e.evaluation(tmp);
+
+    return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
+}
+
+template <typename E>
+std::enable_if_t<!vectorizable_v<E>, MatrixTranspose<E>> simplify(MatrixTranspose<E> e) {
+    return e;
 }
 
 template <typename E>
@@ -1470,6 +1538,145 @@ IdentityMatrix<T> simplify(MatrixMultiplication<IdentityMatrix<T>, IdentityMatri
     assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
     return e.getLeftExpression();
 }
+
+
+namespace detail {
+
+// fallback function
+template <typename data_type>
+void transpose(std::array<Vc::simd<data_type, Vc::simd_abi::scalar>, 1>&) {
+    // Nothing to do in scalar case
+}
+
+#ifdef Vc_HAVE_SSE
+
+// TODO
+
+#endif
+
+#ifdef Vc_HAVE_AVX
+
+// -- AVX float 8x8
+void transpose(std::array<Vc::simd<float, Vc::simd_abi::avx>, 8>& rows) {
+    // TODO: check if this is valid
+    __m256& r1 = reinterpret_cast<__m256&>(rows[0]);
+    __m256& r2 = reinterpret_cast<__m256&>(rows[1]);
+    __m256& r3 = reinterpret_cast<__m256&>(rows[2]);
+    __m256& r4 = reinterpret_cast<__m256&>(rows[3]);
+    __m256& r5 = reinterpret_cast<__m256&>(rows[4]);
+    __m256& r6 = reinterpret_cast<__m256&>(rows[5]);
+    __m256& r7 = reinterpret_cast<__m256&>(rows[6]);
+    __m256& r8 = reinterpret_cast<__m256&>(rows[7]);
+
+    __m256 t1, t2, t3, t4, t5, t6, t7, t8;
+    __m256 u1, u2, u3, u4, u5, u6, u7, u8;
+
+
+    t1 = _mm256_unpacklo_ps(r1, r2);
+    t2 = _mm256_unpackhi_ps(r1, r2);
+    t3 = _mm256_unpacklo_ps(r3, r4);
+    t4 = _mm256_unpackhi_ps(r3, r4);
+    t5 = _mm256_unpacklo_ps(r5, r6);
+    t6 = _mm256_unpackhi_ps(r5, r6);
+    t7 = _mm256_unpacklo_ps(r7, r8);
+    t8 = _mm256_unpackhi_ps(r7, r8);
+
+    u1 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1, 0, 1, 0));
+    u2 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(3, 2, 3, 2));
+    u3 = _mm256_shuffle_ps(t2, t4, _MM_SHUFFLE(1, 0, 1, 0));
+    u4 = _mm256_shuffle_ps(t2, t4, _MM_SHUFFLE(3, 2, 3, 2));
+    u5 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(1, 0, 1, 0));
+    u6 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(3, 2, 3, 2));
+    u7 = _mm256_shuffle_ps(t6, t8, _MM_SHUFFLE(1, 0, 1, 0));
+    u8 = _mm256_shuffle_ps(t6, t8, _MM_SHUFFLE(3, 2, 3, 2));
+
+
+    r1 = _mm256_permute2f128_ps(u1, u5, 0x20);
+    r2 = _mm256_permute2f128_ps(u2, u6, 0x20);
+    r3 = _mm256_permute2f128_ps(u3, u7, 0x20);
+    r4 = _mm256_permute2f128_ps(u4, u8, 0x20);
+    r5 = _mm256_permute2f128_ps(u1, u5, 0x31);
+    r6 = _mm256_permute2f128_ps(u2, u6, 0x31);
+    r7 = _mm256_permute2f128_ps(u3, u7, 0x31);
+    r8 = _mm256_permute2f128_ps(u4, u8, 0x31);
+}
+
+// -- AVX double 4x4
+void transpose(std::array<Vc::simd<double, Vc::simd_abi::avx>, 4>& rows) {
+    // TODO: check if this is valid
+    __m256d& r1 = reinterpret_cast<__m256d&>(rows[0]);
+    __m256d& r2 = reinterpret_cast<__m256d&>(rows[1]);
+    __m256d& r3 = reinterpret_cast<__m256d&>(rows[2]);
+    __m256d& r4 = reinterpret_cast<__m256d&>(rows[3]);
+
+    __m256d t1, t2, t3, t4;
+
+    t1 = _mm256_shuffle_pd(r1, r2, 0x0);
+    t2 = _mm256_shuffle_pd(r3, r4, 0x0);
+    t3 = _mm256_shuffle_pd(r1, r2, 0xF);
+    t4 = _mm256_shuffle_pd(r3, r4, 0xF);
+
+    r1 = _mm256_permute2f128_pd(t1, t2, 0x20);
+    r2 = _mm256_permute2f128_pd(t3, t4, 0x20);
+    r3 = _mm256_permute2f128_pd(t1, t2, 0x31);
+    r4 = _mm256_permute2f128_pd(t3, t4, 0x31);
+}
+
+
+// -- AVX int 8x8
+// -- TODO
+// void transpose(std::array<Vc::simd<int, Vc::simd_abi::avx>, 8>& rows) {
+// }
+
+#endif
+
+// TODO: move
+template <typename Arg, typename _ = void>
+struct transpose_exists : std::false_type {};
+
+template <typename Arg>
+struct transpose_exists<Arg, void_t<decltype(transpose(std::declval<Arg&>()))>> : std::true_type {};
+
+template <typename Arg>
+constexpr bool transpose_exists_v = transpose_exists<Arg>::value;
+
+} // namespace detail
+
+template <typename simd_type>
+class SimdBlock {
+    // TODO: decide abi tag is_vectorizable exp
+    using T = typename simd_type::value_type;
+    using abi_type =
+        std::conditional_t<detail::transpose_exists_v<std::array<simd_type, simd_type::size()>>, typename simd_type::abi_type, Vc::simd_abi::scalar>;
+    using simd_t = Vc::simd<T, abi_type>;
+
+    static_assert(Vc::is_simd_v<simd_type>, "SimdBlock consists of SIMD vectors");
+
+public:
+    template <typename E>
+    SimdBlock(const MatrixExpression<E>& exp, point_type pos) {
+        for(coordinate_type i = 0; i < (coordinate_type)simd_t::size(); ++i) {
+            rows[i] = exp.template packet<simd_t>({pos.x + i, pos.y});
+        }
+    }
+
+    static point_type size() {
+        return {simd_t::size(), simd_t::size()};
+    }
+
+    void transpose() {
+        detail::transpose(rows);
+    }
+
+    void load_to(Matrix<T>& matrix, point_type pos) {
+        for(coordinate_type i = 0; i < (coordinate_type)simd_t::size(); ++i) {
+            rows[i].copy_to(&matrix[{pos.x + i, pos.y}], Vc::flags::element_aligned);
+        }
+    }
+
+private:
+    std::array<simd_t, simd_t::size()> rows;
+};
 
 } // end namespace impl
 } // end namespace data

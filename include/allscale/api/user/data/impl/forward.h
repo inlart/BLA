@@ -31,9 +31,9 @@ class ElementMatrixMultiplication;
 template <typename E1, typename E2>
 class MatrixMultiplication;
 
-// -- Represents an evaluated matrix multiplication with resulting type T
+// -- Represents an evaluated expression
 template <typename T>
-class EvaluatedMatrixMultiplication;
+class EvaluatedExpression;
 
 // -- Represents the negation of the MatrixExpression E
 template <typename E>
@@ -79,6 +79,9 @@ class IdentityMatrix;
 // -- A permutation matrix
 template <typename T>
 class PermutationMatrix;
+
+template <typename T>
+class SimdBlock;
 
 /*
  * Decompositions

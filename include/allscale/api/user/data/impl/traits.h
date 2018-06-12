@@ -88,7 +88,7 @@ struct scalar_type<MatrixMultiplication<E1, E2>> {
 };
 
 template <typename T>
-struct scalar_type<EvaluatedMatrixMultiplication<T>> : public detail::set_type<T> {};
+struct scalar_type<EvaluatedExpression<T>> : public detail::set_type<T> {};
 
 template <typename E>
 struct scalar_type<MatrixNegation<E>> : public detail::set_type<typename scalar_type<E>::type> {};
@@ -155,7 +155,7 @@ struct vectorizable<ElementMatrixMultiplication<E1, E2>>
                                std::is_arithmetic<scalar_type_t<ElementMatrixMultiplication<E1, E2>>>::value> {};
 
 template <typename T>
-struct vectorizable<EvaluatedMatrixMultiplication<T>> : public std::true_type {};
+struct vectorizable<EvaluatedExpression<T>> : public std::true_type {};
 
 template <typename E>
 struct vectorizable<MatrixNegation<E>> : public vectorizable<E> {};
