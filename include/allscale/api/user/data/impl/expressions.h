@@ -712,15 +712,14 @@ public:
 
         using block_type = SimdBlock<decltype(expression.packet({0, 0}))>;
 
-        // TODO: pfor?
-        for(ct i = 0; i < rows() - rows() % block_type::size()[0]; i += block_type::size()[0]) {
-            for(ct j = 0; j < columns() - columns() % block_type::size()[1]; j += block_type::size()[1]) {
-                block_type b(expression, {j, i});
+        algorithm::pfor(point_type{rows() / block_type::size()[0], columns() / block_type::size()[1]}, [&](const auto& pos) {
+            coordinate_type i = pos.x * block_type::size()[0];
+            coordinate_type j = pos.y * block_type::size()[1];
+            block_type b(expression, {j, i});
 
-                b.transpose();
-                b.load_to(tmp, {i, j});
-            }
-        }
+            b.transpose();
+            b.load_to(tmp, {i, j});
+        });
 
 
         // transpose the rest that can't be done with a full block
@@ -1550,9 +1549,18 @@ void transpose(std::array<Vc::simd<data_type, Vc::simd_abi::scalar>, 1>&) {
 
 #ifdef Vc_HAVE_SSE
 
-// TODO
+#ifdef _MM_TRANSPOSE4_PS
 
-#endif
+// -- AVX float 8x8
+void transpose(std::array<Vc::simd<float, Vc::simd_abi::sse>, 4>& rows) {
+    // TODO: check if this is valid
+    _MM_TRANSPOSE4_PS(reinterpret_cast<__m128&>(rows[0]), reinterpret_cast<__m128&>(rows[1]), reinterpret_cast<__m128&>(rows[2]),
+                      reinterpret_cast<__m128&>(rows[3]));
+}
+
+#endif // _MM_TRANSPOSE4_PS
+
+#endif // Vc_HAVE_SSE
 
 #ifdef Vc_HAVE_AVX
 
@@ -1628,7 +1636,7 @@ void transpose(std::array<Vc::simd<double, Vc::simd_abi::avx>, 4>& rows) {
 // void transpose(std::array<Vc::simd<int, Vc::simd_abi::avx>, 8>& rows) {
 // }
 
-#endif
+#endif // Vc_HAVE_AVX
 
 // TODO: move
 template <typename Arg, typename _ = void>
