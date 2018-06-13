@@ -920,23 +920,23 @@ public:
         return *this;
     }
 
-    inline T& operator[](const point_type& pos) {
+    T& operator[](const point_type& pos) {
         return m_data[pos];
     }
 
-    inline const T& operator[](const point_type& pos) const {
+    const T& operator[](const point_type& pos) const {
         return m_data[pos];
     }
 
-    inline point_type size() const {
+    point_type size() const {
         return m_data.size();
     }
 
-    inline coordinate_type rows() const {
+    coordinate_type rows() const {
         return m_data.size()[0];
     }
 
-    inline coordinate_type columns() const {
+    coordinate_type columns() const {
         return m_data.size()[1];
     }
 

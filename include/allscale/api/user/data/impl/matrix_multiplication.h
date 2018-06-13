@@ -136,7 +136,7 @@ void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordina
 
 // calculate a size * size block
 template <int size = 8, typename T>
-inline void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
+void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
     using ct = coordinate_type;
     using vt = Vc::native_simd<T>;
 
