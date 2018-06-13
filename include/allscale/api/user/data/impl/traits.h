@@ -4,6 +4,8 @@
 
 #include "allscale/api/user/data/impl/forward.h"
 
+#include <Vc/Vc>
+#include <cstddef>
 #include <functional>
 #include <type_traits>
 
@@ -43,6 +45,13 @@ struct remove_cvref : public set_type<std::remove_cv_t<std::remove_reference_t<T
 
 template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
+
+template <typename T>
+struct alignment
+    : public std::conditional<alignof(std::max_align_t) >= Vc::memory_alignment_v<T>, Vc::flags::vector_aligned_tag, Vc::flags::element_aligned_tag> {};
+
+template <typename T>
+using alignment_t = typename alignment<T>::type;
 
 } // end namespace detail
 
@@ -247,8 +256,8 @@ struct is_valid<F, E1, E2, detail::void_t<decltype(std::declval<F>()(std::declva
 template <typename F, typename E1, typename E2>
 constexpr bool is_valid_v = is_valid<F, E1, E2>::value;
 
-} // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace impl
+} // namespace data
+} // namespace user
+} // namespace api
+} // namespace allscale
