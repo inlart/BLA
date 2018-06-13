@@ -38,9 +38,6 @@ struct LUD {
                 }
             }
 
-            if(max_value < epsilon)
-                return;
-
             if(max_value < epsilon) {
                 assert_fail();
                 return;
