@@ -1,13 +1,11 @@
 #pragma once
 
-#include "allscale/api/user/data/impl/expressions.h"
-
-#include "allscale/api/user/data/impl/forward.h"
-
 #include <Vc/Vc>
 #include <cstddef>
 #include <functional>
 #include <type_traits>
+
+#include "allscale/api/user/data/impl/forward.h"
 
 namespace allscale {
 namespace api {

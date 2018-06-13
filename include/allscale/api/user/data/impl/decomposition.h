@@ -1,12 +1,10 @@
 #pragma once
 
-#include "allscale/api/user/data/impl/expressions.h"
-#include "allscale/api/user/data/impl/traits.h"
-
-#include "allscale/api/user/data/impl/forward.h"
-
 #include <allscale/api/user/data/grid.h>
 #include <allscale/utils/assert.h>
+
+#include "allscale/api/user/data/impl/expressions.h"
+#include "allscale/api/user/data/impl/traits.h"
 
 namespace allscale {
 namespace api {
@@ -268,6 +266,31 @@ private:
     Matrix<T> S;
     Matrix<T> V;
 };
+
+template <typename E>
+LUD<scalar_type_t<E>> MatrixExpression<E>::LUDecomposition() const {
+    return LUD<scalar_type_t<E>>(*this);
+}
+
+template <typename E>
+QRD<scalar_type_t<E>> MatrixExpression<E>::QRDecomposition() const {
+    return QRD<scalar_type_t<E>>(*this);
+}
+
+template <typename E>
+SVD<scalar_type_t<E>> MatrixExpression<E>::SVDecomposition() const {
+    return SVD<scalar_type_t<E>>(*this);
+}
+
+template <typename E>
+scalar_type_t<E> MatrixExpression<E>::determinant() const {
+    return LUDecomposition().determinant();
+}
+
+template <typename E>
+Matrix<scalar_type_t<E>> MatrixExpression<E>::inverse() const {
+    return LUDecomposition().inverse();
+}
 
 
 } // end namespace impl

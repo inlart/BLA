@@ -1,9 +1,13 @@
 #pragma once
 
+#include "allscale/api/user/data/impl/decomposition.h"
+#include "allscale/api/user/data/impl/evaluate.h"
 #include "allscale/api/user/data/impl/expressions.h"
 #include "allscale/api/user/data/impl/matrix_multiplication.h"
 #include "allscale/api/user/data/impl/operators.h"
+#include "allscale/api/user/data/impl/simplify.h"
 #include "allscale/api/user/data/impl/traits.h"
+#include "allscale/api/user/data/impl/transpose.h"
 #include "allscale/api/user/data/impl/types.h"
 
 namespace allscale {

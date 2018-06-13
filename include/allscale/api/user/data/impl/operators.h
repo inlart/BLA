@@ -1,14 +1,11 @@
 #pragma once
 
+#include <allscale/api/user/data/grid.h>
+#include <allscale/utils/assert.h>
 #include <iostream>
 
 #include "allscale/api/user/data/impl/expressions.h"
 #include "allscale/api/user/data/impl/types.h"
-
-#include "allscale/api/user/data/impl/forward.h"
-
-#include <allscale/api/user/data/grid.h>
-#include <allscale/utils/assert.h>
 
 namespace allscale {
 namespace api {

@@ -1,11 +1,7 @@
 #pragma once
 
-#include "allscale/api/user/data/impl/decomposition.h"
 #include "allscale/api/user/data/impl/traits.h"
-//#include "allscale/api/user/data/impl/transpose.h"
 #include "allscale/api/user/data/impl/types.h"
-
-#include "allscale/api/user/data/impl/forward.h"
 
 #include <Eigen/Dense>
 #include <Vc/Vc>
@@ -17,14 +13,6 @@
 #include <cmath>
 #include <complex>
 #include <functional>
-
-#ifdef Vc_HAVE_SSE
-#include <xmmintrin.h>
-#endif
-
-#ifdef Vc_HAVE_AVX
-#include <immintrin.h>
-#endif
 
 namespace allscale {
 namespace api {
@@ -92,41 +80,6 @@ void set_value(const T1& value, RefSubMatrix<T2, false>& dst) {
     algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<T2>(value); });
 }
 
-// -- evaluate a matrix expression using vectorization
-template <typename E>
-std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, scalar_type_t<E>* dst) {
-    expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
-
-    using T = scalar_type_t<E>;
-    using PacketScalar = typename Vc::native_simd<T>;
-
-
-    const int total_size = expr.rows() * expr.columns();
-    const int packet_size = PacketScalar::size();
-    const int aligned_end = total_size / packet_size * packet_size;
-
-    algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
-        int i = coord[0] * packet_size;
-        point_type p{i / expr.columns(), i % expr.columns()};
-        expr.template packet<PacketScalar, alignment_t<PacketScalar>>(p).copy_to(dst + i, alignment_t<PacketScalar>{});
-    });
-
-    for(int i = aligned_end; i < total_size; i++) {
-        point_type p{i / expr.columns(), i % expr.columns()};
-        dst[i] = expr[p];
-    }
-}
-
-// -- evaluate a matrix expression by simply copying each value
-template <typename E, typename T>
-std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, T* dst) {
-    expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
-
-    algorithm::pfor(expr.size(), [&](const auto& pos) {
-        int i = pos.x * expr.columns() + pos.y;
-        dst[i] = expr[pos];
-    });
-}
 
 template <typename T>
 T conj(const T& x) {
@@ -136,26 +89,6 @@ T conj(const T& x) {
 template <typename T>
 std::complex<T> conj(const std::complex<T>& x) {
     return std::conj(x);
-}
-
-template <typename E>
-auto eval(const MatrixExpression<E>& e) -> Matrix<scalar_type_t<E>> {
-    using T = scalar_type_t<E>;
-    Matrix<T> tmp(e.size());
-
-    detail::evaluate(e, &tmp[{0, 0}]);
-
-    return tmp;
-}
-
-template <typename T>
-Matrix<T>& eval(Matrix<T>& m) {
-    return m;
-}
-
-template <typename T>
-const Matrix<T>& eval(const Matrix<T>& m) {
-    return m;
 }
 
 template <bool Contiguous = false, typename E>
@@ -338,9 +271,7 @@ public:
         return ElementMatrixMultiplication<E, E2>(static_cast<const E&>(*this), e);
     }
 
-    MatrixTranspose<E> transpose() const {
-        return MatrixTranspose<E>(static_cast<const E&>(*this));
-    }
+    MatrixTranspose<E> transpose() const;
 
     MatrixConjugate<E> conjugate() const {
         return MatrixConjugate<E>(static_cast<const E&>(*this));
@@ -366,17 +297,10 @@ public:
         return std::sqrt(product(*this).reduce(0, std::plus<T>{}));
     }
 
-    LUD<T> LUDecomposition() const {
-        return LUD<T>(*this);
-    }
-
-    QRD<T> QRDecomposition() const {
-        return QRD<T>(*this);
-    }
-
-    SVD<T> SVDecomposition() const {
-        return SVD<T>(*this);
-    }
+    // -- defined in decomposition.h
+    LUD<T> LUDecomposition() const;
+    QRD<T> QRDecomposition() const;
+    SVD<T> SVDecomposition() const;
 
     template <typename Reducer>
     T reduce(T init, Reducer f) const {
@@ -422,26 +346,18 @@ public:
         return reduce([](T a, T b) { return std::min(a, b); });
     }
 
-    T determinant() const {
-        return LUDecomposition().determinant();
-    }
-
-    Matrix<T> inverse() const {
-        return LUDecomposition().inverse();
-    }
+    // -- defined in decomposition.h
+    T determinant() const;
+    Matrix<T> inverse() const;
 
     template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     std::enable_if_t<vectorizable_v<E>, simd_type> packet(point_type p) const {
         return static_cast<const E&>(*this).template packet<simd_type, align>(p);
     }
 
-    auto eval() {
-        return detail::eval(static_cast<E&>(*this));
-    }
-
-    auto eval() const {
-        return detail::eval(static_cast<const E&>(*this));
-    }
+    // -- defined in evaluate.h
+    auto eval();
+    auto eval() const;
 
     operator E&() {
         return static_cast<E&>(*this);
@@ -970,7 +886,7 @@ public:
 
     template <typename E>
     Matrix(const MatrixExpression<E>& mat) : m_data(mat.size()) {
-        detail::evaluate(mat, &(*this)[{0, 0}]);
+        evaluate(mat);
     }
 
     template <typename Derived>
@@ -979,13 +895,13 @@ public:
     }
 
     Matrix(const Matrix& mat) : MatrixExpression<Matrix<T>>(), m_data(mat.size()) {
-        detail::evaluate(mat, &(*this)[{0, 0}]);
+        evaluate(mat);
     }
 
     Matrix(Matrix&&) = default;
 
     Matrix& operator=(const Matrix& mat) {
-        detail::evaluate(mat, &(*this)[{0, 0}]);
+        evaluate(mat);
 
         return *this;
     }
@@ -999,7 +915,7 @@ public:
 
     template <typename E>
     Matrix& operator=(MatrixExpression<E> const& mat) {
-        detail::evaluate(mat, &(*this)[{0, 0}]);
+        evaluate(mat);
 
         return *this;
     }
@@ -1111,6 +1027,9 @@ public:
     }
 
 private:
+    template <typename E>
+    void evaluate(const MatrixExpression<E>&);
+
     data::Grid<T, 2> m_data;
 };
 
@@ -1361,333 +1280,8 @@ private:
     point_type matrix_size;
 };
 
-template <typename T>
-const Matrix<T>& simplify(const Matrix<T>& m) {
-    return m;
-}
-
-template <typename T>
-Matrix<T>& simplify(Matrix<T>& m) {
-    return m;
-}
-
-template <typename T>
-IdentityMatrix<T> simplify(IdentityMatrix<T> m) {
-    return m;
-}
-
-template <typename T>
-PermutationMatrix<T> simplify(PermutationMatrix<T> m) {
-    return m;
-}
-
-template <typename T>
-EvaluatedExpression<T> simplify(EvaluatedExpression<T> m) {
-    return m;
-}
-
-template <typename E1, typename E2>
-auto simplify(MatrixMultiplication<E1, E2> e) {
-    Matrix<scalar_type_t<decltype(e)>> tmp(e.size());
-
-
-    matrix_multiplication(tmp, simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
-
-    return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
-}
-
-template <typename T>
-const Matrix<T>& simplify(const MatrixExpression<Matrix<T>>& e) {
-    return static_cast<const Matrix<T>&>(e);
-}
-
-template <typename E>
-auto simplify(const MatrixExpression<E>& e) {
-    return simplify(static_cast<const E&>(e));
-}
-
-template <typename E1, typename E2>
-auto simplify(MatrixAddition<E1, E2> e) {
-    return MatrixAddition<detail::remove_cvref_t<decltype(simplify(simplify(std::declval<E1>())))>,
-                          detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>(simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
-}
-
-template <typename E1, typename E2>
-auto simplify(MatrixSubtraction<E1, E2> e) {
-    return MatrixSubtraction<detail::remove_cvref_t<decltype(simplify(simplify(std::declval<E1>())))>,
-                             detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>(simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
-}
-
-template <typename E1, typename E2>
-auto simplify(ElementMatrixMultiplication<E1, E2> e) {
-    return ElementMatrixMultiplication<detail::remove_cvref_t<decltype(simplify(simplify(std::declval<E1>())))>,
-                                       detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>(simplify(e.getLeftExpression()),
-                                                                                                       simplify(e.getRightExpression()));
-}
-
-template <typename E>
-auto simplify(MatrixNegation<E> e) {
-    return MatrixNegation<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
-}
-
-template <typename E>
-std::enable_if_t<vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTranspose<E>>>> simplify(MatrixTranspose<E> e) {
-    Matrix<scalar_type_t<MatrixTranspose<E>>> tmp(e.size());
-
-    e.evaluation(tmp);
-
-    return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
-}
-
-template <typename E>
-std::enable_if_t<!vectorizable_v<E>, MatrixTranspose<E>> simplify(MatrixTranspose<E> e) {
-    return e;
-}
-
-template <typename E>
-auto simplify(MatrixConjugate<E> e) {
-    return MatrixConjugate<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
-}
-
-template <typename E>
-auto simplify(MatrixAbs<E> e) {
-    return MatrixAbs<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
-}
-
-template <typename E, typename U>
-auto simplify(MatrixScalarMultiplication<E, U> e) {
-    return MatrixScalarMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>, U>(simplify(e.getExpression()), e.getScalar());
-}
-
-template <typename E, typename U>
-auto simplify(ScalarMatrixMultiplication<E, U> e) {
-    return ScalarMatrixMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>, U>(e.getScalar(), simplify(e.getExpression()));
-}
-
-template <typename E>
-auto simplify(SubMatrix<E> e) {
-    return SubMatrix<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
-}
-
-template <typename T, bool C>
-auto simplify(RefSubMatrix<T, C> e) {
-    return e;
-}
-
-// What we really simplify
-template <typename E1, typename E2>
-auto simplify(SubMatrix<MatrixMultiplication<E1, E2>> e) {
-    auto range = e.getBlockRange();
-    BlockRange left({range.start.x, 0}, {range.size.x, e.getExpression().getLeftExpression().columns()});
-    BlockRange right({0, range.start.y}, {e.getExpression().getRightExpression().rows(), range.size.y});
-
-    return MatrixMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<SubMatrix<E1>>()))>,
-                                detail::remove_cvref_t<decltype(simplify(std::declval<SubMatrix<E2>>()))>>(
-        simplify(e.getExpression().getLeftExpression().sub(left)), simplify(e.getExpression().getRightExpression().sub(right)));
-}
-
-template <typename E>
-expression_member_t<E> simplify(MatrixTranspose<MatrixTranspose<E>> e) {
-    return e.getExpression().getExpression();
-}
-
-template <typename E>
-expression_member_t<E> simplify(MatrixNegation<MatrixNegation<E>> e) {
-    return e.getExpression().getExpression();
-}
-
-template <typename E, typename U>
-std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, MatrixScalarMultiplication<E, U>>
-simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
-    return MatrixScalarMultiplication<E, U>(e.getExpression().getExpression(), e.getExpression().getScalar() * e.getScalar());
-}
-
-template <typename E, typename U>
-std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, ScalarMatrixMultiplication<E, U>>
-simplify(ScalarMatrixMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
-    return ScalarMatrixMultiplication<E, U>(e.getExpression().getScalar() * e.getScalar(), e.getExpression().getExpression());
-}
-
-template <typename E, typename U>
-std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, ScalarMatrixMultiplication<E, U>>
-simplify(ScalarMatrixMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
-    return ScalarMatrixMultiplication<E, U>(e.getScalar() * e.getExpression().getScalar(), e.getExpression().getExpression());
-}
-
-template <typename E, typename U>
-std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, MatrixScalarMultiplication<E, U>>
-simplify(MatrixScalarMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
-    return MatrixScalarMultiplication<E, U>(e.getExpression().getExpression(), e.getExpression().getScalar() * e.getScalar());
-}
-
-template <typename E, typename T>
-expression_member_t<E> simplify(MatrixMultiplication<E, IdentityMatrix<T>> e) {
-    assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
-    return e.getLeftExpression();
-}
-
-template <typename E, typename T>
-expression_member_t<E> simplify(MatrixMultiplication<IdentityMatrix<T>, E> e) {
-    assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
-    return e.getRightExpression();
-}
-
-template <typename T>
-IdentityMatrix<T> simplify(MatrixMultiplication<IdentityMatrix<T>, IdentityMatrix<T>> e) {
-    assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
-    return e.getLeftExpression();
-}
-
-
-namespace detail {
-
-// fallback function
-template <typename data_type>
-void transpose(std::array<Vc::simd<data_type, Vc::simd_abi::scalar>, 1>&) {
-    // Nothing to do in scalar case
-}
-
-#ifdef Vc_HAVE_SSE
-
-#ifdef _MM_TRANSPOSE4_PS
-
-// -- AVX float 8x8
-void transpose(std::array<Vc::simd<float, Vc::simd_abi::sse>, 4>& rows) {
-    // TODO: check if this is valid
-    _MM_TRANSPOSE4_PS(reinterpret_cast<__m128&>(rows[0]), reinterpret_cast<__m128&>(rows[1]), reinterpret_cast<__m128&>(rows[2]),
-                      reinterpret_cast<__m128&>(rows[3]));
-}
-
-#endif // _MM_TRANSPOSE4_PS
-
-#endif // Vc_HAVE_SSE
-
-#ifdef Vc_HAVE_AVX
-
-// -- AVX float 8x8
-void transpose(std::array<Vc::simd<float, Vc::simd_abi::avx>, 8>& rows) {
-    // TODO: check if this is valid
-    __m256& r1 = reinterpret_cast<__m256&>(rows[0]);
-    __m256& r2 = reinterpret_cast<__m256&>(rows[1]);
-    __m256& r3 = reinterpret_cast<__m256&>(rows[2]);
-    __m256& r4 = reinterpret_cast<__m256&>(rows[3]);
-    __m256& r5 = reinterpret_cast<__m256&>(rows[4]);
-    __m256& r6 = reinterpret_cast<__m256&>(rows[5]);
-    __m256& r7 = reinterpret_cast<__m256&>(rows[6]);
-    __m256& r8 = reinterpret_cast<__m256&>(rows[7]);
-
-    __m256 t1, t2, t3, t4, t5, t6, t7, t8;
-    __m256 u1, u2, u3, u4, u5, u6, u7, u8;
-
-
-    t1 = _mm256_unpacklo_ps(r1, r2);
-    t2 = _mm256_unpackhi_ps(r1, r2);
-    t3 = _mm256_unpacklo_ps(r3, r4);
-    t4 = _mm256_unpackhi_ps(r3, r4);
-    t5 = _mm256_unpacklo_ps(r5, r6);
-    t6 = _mm256_unpackhi_ps(r5, r6);
-    t7 = _mm256_unpacklo_ps(r7, r8);
-    t8 = _mm256_unpackhi_ps(r7, r8);
-
-    u1 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(1, 0, 1, 0));
-    u2 = _mm256_shuffle_ps(t1, t3, _MM_SHUFFLE(3, 2, 3, 2));
-    u3 = _mm256_shuffle_ps(t2, t4, _MM_SHUFFLE(1, 0, 1, 0));
-    u4 = _mm256_shuffle_ps(t2, t4, _MM_SHUFFLE(3, 2, 3, 2));
-    u5 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(1, 0, 1, 0));
-    u6 = _mm256_shuffle_ps(t5, t7, _MM_SHUFFLE(3, 2, 3, 2));
-    u7 = _mm256_shuffle_ps(t6, t8, _MM_SHUFFLE(1, 0, 1, 0));
-    u8 = _mm256_shuffle_ps(t6, t8, _MM_SHUFFLE(3, 2, 3, 2));
-
-
-    r1 = _mm256_permute2f128_ps(u1, u5, 0x20);
-    r2 = _mm256_permute2f128_ps(u2, u6, 0x20);
-    r3 = _mm256_permute2f128_ps(u3, u7, 0x20);
-    r4 = _mm256_permute2f128_ps(u4, u8, 0x20);
-    r5 = _mm256_permute2f128_ps(u1, u5, 0x31);
-    r6 = _mm256_permute2f128_ps(u2, u6, 0x31);
-    r7 = _mm256_permute2f128_ps(u3, u7, 0x31);
-    r8 = _mm256_permute2f128_ps(u4, u8, 0x31);
-}
-
-// -- AVX double 4x4
-void transpose(std::array<Vc::simd<double, Vc::simd_abi::avx>, 4>& rows) {
-    // TODO: check if this is valid
-    __m256d& r1 = reinterpret_cast<__m256d&>(rows[0]);
-    __m256d& r2 = reinterpret_cast<__m256d&>(rows[1]);
-    __m256d& r3 = reinterpret_cast<__m256d&>(rows[2]);
-    __m256d& r4 = reinterpret_cast<__m256d&>(rows[3]);
-
-    __m256d t1, t2, t3, t4;
-
-    t1 = _mm256_shuffle_pd(r1, r2, 0x0);
-    t2 = _mm256_shuffle_pd(r3, r4, 0x0);
-    t3 = _mm256_shuffle_pd(r1, r2, 0xF);
-    t4 = _mm256_shuffle_pd(r3, r4, 0xF);
-
-    r1 = _mm256_permute2f128_pd(t1, t2, 0x20);
-    r2 = _mm256_permute2f128_pd(t3, t4, 0x20);
-    r3 = _mm256_permute2f128_pd(t1, t2, 0x31);
-    r4 = _mm256_permute2f128_pd(t3, t4, 0x31);
-}
-
-
-// -- AVX int 8x8
-// -- TODO
-// void transpose(std::array<Vc::simd<int, Vc::simd_abi::avx>, 8>& rows) {
-// }
-
-#endif // Vc_HAVE_AVX
-
-// TODO: move
-template <typename Arg, typename _ = void>
-struct transpose_exists : std::false_type {};
-
-template <typename Arg>
-struct transpose_exists<Arg, void_t<decltype(transpose(std::declval<Arg&>()))>> : std::true_type {};
-
-template <typename Arg>
-constexpr bool transpose_exists_v = transpose_exists<Arg>::value;
-
-} // namespace detail
-
-template <typename simd_type>
-class SimdBlock {
-    // TODO: decide abi tag is_vectorizable exp
-    using T = typename simd_type::value_type;
-    using abi_type =
-        std::conditional_t<detail::transpose_exists_v<std::array<simd_type, simd_type::size()>>, typename simd_type::abi_type, Vc::simd_abi::scalar>;
-    using simd_t = Vc::simd<T, abi_type>;
-
-    static_assert(Vc::is_simd_v<simd_type>, "SimdBlock consists of SIMD vectors");
-
-public:
-    template <typename E>
-    SimdBlock(const MatrixExpression<E>& exp, point_type pos) {
-        for(coordinate_type i = 0; i < (coordinate_type)simd_t::size(); ++i) {
-            rows[i] = exp.template packet<simd_t>({pos.x + i, pos.y});
-        }
-    }
-
-    static point_type size() {
-        return {simd_t::size(), simd_t::size()};
-    }
-
-    void transpose() {
-        detail::transpose(rows);
-    }
-
-    void load_to(Matrix<T>& matrix, point_type pos) {
-        for(coordinate_type i = 0; i < (coordinate_type)simd_t::size(); ++i) {
-            rows[i].copy_to(&matrix[{pos.x + i, pos.y}], Vc::flags::element_aligned);
-        }
-    }
-
-private:
-    std::array<simd_t, simd_t::size()> rows;
-};
-
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace data
+} // namespace user
+} // namespace api
+} // namespace allscale

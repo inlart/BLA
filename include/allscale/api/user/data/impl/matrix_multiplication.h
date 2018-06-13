@@ -1,17 +1,17 @@
 #pragma once
 
-#include "allscale/api/user/data/impl/expressions.h"
-#include "allscale/api/user/data/impl/operators.h"
-#include "allscale/api/user/data/impl/types.h"
-
-#include "allscale/api/user/data/impl/forward.h"
-
 #include <allscale/api/core/prec.h>
 #include <allscale/api/user/algorithm/async.h>
 #include <allscale/api/user/algorithm/pfor.h>
 #include <allscale/api/user/data/grid.h>
 #include <allscale/utils/assert.h>
 #include <allscale/utils/vector.h>
+
+#include "allscale/api/user/data/impl/expressions.h"
+#include "allscale/api/user/data/impl/operators.h"
+#include "allscale/api/user/data/impl/types.h"
+
+#include "allscale/api/user/data/impl/forward.h"
 
 // -- Other
 #include <Vc/Vc>
