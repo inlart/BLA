@@ -86,4 +86,13 @@ if(BUILD_EXAMPLES)
   add_module_executable_folder("src/examples/" ".cc" "example_" "" "include" ON ${ALLSCALE_MATRIX_DEPENDENCIES})
 endif()
 
+if(BUILD_BENCHMARKS AND USE_ASSERT)
+  message(WARNING "Building benchmark executables with asserts will falsify the measured times")
+endif()
+
+string( TOLOWER "${CMAKE_BUILD_TYPE}" release_type_lower )
+if(BUILD_BENCHMARKS AND (NOT release_type_lower STREQUAL "release"))
+  message(WARNING "Building benchmark executables without cmake build type release will falsify the measured times")
+endif()
+
 add_test_folder("src/test/user/data" ".cc" "" "_test" "include" ON ${ALLSCALE_MATRIX_DEPENDENCIES})
