@@ -132,7 +132,7 @@ auto row(const MatrixExpression<E>& e, coordinate_type r) {
 template <typename T>
 auto row(Matrix<T>& e, coordinate_type r) {
     assert_lt(r, e.rows());
-    return sub<true>(e, {{r, 0}, {1, e.columns()}});
+    return sub(e, {{r, 0}, {1, e.columns()}});
 }
 
 template <typename T, bool C>
