@@ -49,7 +49,7 @@ std::enable_if_t<vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<T
 
         PacketScalar z(static_cast<T2>(value));
 
-        z.copy_to(&dst[p], Vc::flags::element_aligned);
+        z.copy_to(&dst[p], alignment_t<PacketScalar>{});
     });
 
     for(int i = aligned_end; i < total_size; i++) {
@@ -78,7 +78,7 @@ void set_value(const T1& value, RefSubMatrix<T2, true>& dst) {
 
         PacketScalar z(static_cast<T2>(value));
 
-        z.copy_to(std::addressof(dst[p]), Vc::flags::element_aligned);
+        z.copy_to(std::addressof(dst[p]), alignment_t<PacketScalar>{});
     });
 
     for(int i = aligned_end; i < total_size; i++) {
@@ -108,7 +108,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expressi
     algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
         int i = coord[0] * packet_size;
         point_type p{i / expr.columns(), i % expr.columns()};
-        expr.packet(p).copy_to(dst + i, Vc::flags::element_aligned);
+        expr.template packet<PacketScalar, alignment_t<PacketScalar>>(p).copy_to(dst + i, alignment_t<PacketScalar>{});
     });
 
     for(int i = aligned_end; i < total_size; i++) {
@@ -430,9 +430,9 @@ public:
         return LUDecomposition().inverse();
     }
 
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     std::enable_if_t<vectorizable_v<E>, simd_type> packet(point_type p) const {
-        return static_cast<const E&>(*this).template packet<simd_type>(p);
+        return static_cast<const E&>(*this).template packet<simd_type, align>(p);
     }
 
     auto eval() {
@@ -482,9 +482,9 @@ public:
         return lhs.columns();
     }
 
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
-        return lhs.template packet<simd_type>(p) + rhs.template packet<simd_type>(p);
+        return lhs.template packet<simd_type, align>(p) + rhs.template packet<simd_type, align>(p);
     }
 
     Exp1 getLeftExpression() const {
@@ -531,9 +531,9 @@ public:
         return lhs.columns();
     }
 
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
-        return lhs.template packet<simd_type>(p) - rhs.template packet<simd_type>(p);
+        return lhs.template packet<simd_type, align>(p) - rhs.template packet<simd_type, align>(p);
     }
 
     Exp1 getLeftExpression() const {
@@ -580,9 +580,9 @@ public:
         return lhs.columns();
     }
 
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
-        return lhs.template packet<simd_type>(p) * rhs.template packet<simd_type>(p);
+        return lhs.template packet<simd_type, align>(p) * rhs.template packet<simd_type, align>(p);
     }
 
     Exp1 getLeftExpression() const {
@@ -678,9 +678,9 @@ public:
     coordinate_type columns() const {
         return tmp.columns();
     }
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
-        return tmp.template packet<simd_type>(p);
+        return tmp.template packet<simd_type, align>(p);
     }
 
     //    EvaluatedExpression(const EvaluatedExpression&) = delete;
@@ -818,9 +818,9 @@ public:
         return expression.columns();
     }
 
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
-        return -expression.template packet<simd_type>(p);
+        return -expression.template packet<simd_type, align>(p);
     }
 
     Exp getExpression() const {
@@ -857,9 +857,9 @@ public:
         return expression.columns();
     }
 
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
-        return Vc::abs(expression.template packet<simd_type>(p));
+        return Vc::abs(expression.template packet<simd_type, align>(p));
     }
 
     Exp getExpression() const {
@@ -896,9 +896,9 @@ public:
         return expression.columns();
     }
 
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
-        return expression.template packet<simd_type>(p) * simd_type(scalar);
+        return expression.template packet<simd_type, align>(p) * simd_type(scalar);
     }
 
     const U& getScalar() const {
@@ -940,9 +940,9 @@ public:
         return expression.columns();
     }
 
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
-        return simd_type(scalar) * expression.template packet<simd_type>(p);
+        return simd_type(scalar) * expression.template packet<simd_type, align>(p);
     }
     const U& getScalar() const {
         return scalar;
@@ -1098,9 +1098,9 @@ public:
         return eigenSub({0, rows()});
     }
 
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
-        return simd_type(&operator[](p), Vc::flags::element_aligned);
+        return simd_type(&operator[](p), align{});
     }
 
     const Matrix<T>& eval() const {
@@ -1316,9 +1316,9 @@ public:
             other[pos] = tmp;
         });
     }
-    template <typename simd_type = PacketScalar>
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
-        return simd_type(&operator[](p), Vc::flags::element_aligned);
+        return simd_type(&operator[](p), align{});
     }
 
     Exp& getExpression() const {
