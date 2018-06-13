@@ -138,7 +138,7 @@ auto row(Matrix<T>& e, coordinate_type r) {
 template <typename T, bool C>
 auto row(const RefSubMatrix<T, C>& e, coordinate_type r) {
     assert_lt(r, e.rows());
-    return sub<C>(e, {{r, 0}, {1, e.columns()}});
+    return sub(e, {{r, 0}, {1, e.columns()}});
 }
 
 template <typename E>
@@ -153,8 +153,8 @@ auto column(Matrix<T>& e, coordinate_type c) {
     return sub(e, {{0, c}, {e.rows(), 1}});
 }
 
-template <typename T>
-auto column(const RefSubMatrix<T>& e, coordinate_type c) {
+template <typename T, bool C>
+auto column(const RefSubMatrix<T, C>& e, coordinate_type c) {
     assert_lt(c, e.columns());
     return sub(e, {{0, c}, {e.rows(), 1}});
 }
