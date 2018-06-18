@@ -45,7 +45,7 @@ std::enable_if_t<std::is_same<scalar_type_t<E1>, std::complex<double>>::value, b
     return true;
 }
 
-TEST(Matrix, Access) {
+TEST(Operation, Access) {
     Matrix<double> m({2, 2});
     m.zero();
     for(int i = 0; i < 2; ++i) {
@@ -55,7 +55,7 @@ TEST(Matrix, Access) {
     }
 }
 
-TEST(Utility, Equal) {
+TEST(Operation, Equal) {
     Matrix<double> m1({45, 59});
     Matrix<double> m2({45, 59});
 
