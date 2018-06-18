@@ -45,7 +45,7 @@ std::enable_if_t<std::is_same<scalar_type_t<E1>, std::complex<double>>::value, b
     return true;
 }
 
-TEST(Utility, Vectorizable) {
+TEST(Vectorizable, Matrix) {
     Matrix<double> m1({55, 56});
     Matrix<double> m2({55, 56});
 
@@ -69,9 +69,7 @@ TEST(Utility, Vectorizable) {
     ASSERT_FALSE((std::is_same<double, scalar_type_t<decltype(m4 + m5)>>::value));
 }
 
-
-// TODO: fix or remove this test?
-TEST(Utility, VectorizableRefSubMatrix) {
+TEST(Vectorizable, RefSubMatrix) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(-1, 1);
@@ -83,21 +81,25 @@ TEST(Utility, VectorizableRefSubMatrix) {
         m1.fill_seq(g);
         const Matrix<double> m2(m1);
 
-        //        auto refsub = m1.row(2);
+        auto refsub = m1.row(2);
         auto sub = m2.row(2);
 
-        //        ASSERT_TRUE(vectorizable_v<decltype(refsub)>);
+        ASSERT_FALSE(vectorizable_v<decltype(refsub)>);
         ASSERT_FALSE(vectorizable_v<decltype(sub)>);
 
         ASSERT_TRUE(isAlmostEqual((m1.row(2) + m1.row(3)).eval(), (m2.row(2) + m2.row(3)).eval()));
 
-        //        ASSERT_TRUE(vectorizable_v<decltype(m1.row(2) + m1.row(3))>);
+        ASSERT_FALSE(vectorizable_v<decltype(m1.row(2) + m1.row(3))>);
         ASSERT_FALSE(vectorizable_v<decltype(m2.row(2) + m2.row(3))>);
     }
 }
 
+TEST(OperationResult, IntAddition) {
+    ASSERT_TRUE((std::is_same<std::decay_t<operation_result_t<std::plus<>, int, int>>, int>::value));
+}
 
-TEST(Utility, OperationResult) {
+
+TEST(OperationResult, UserDefinedAddition) {
     struct A {
         int x;
     };
@@ -110,12 +112,19 @@ TEST(Utility, OperationResult) {
         }
     };
 
-    ASSERT_TRUE((std::is_same<std::decay_t<operation_result_t<std::plus<>, int, int>>, int>::value));
-
     ASSERT_TRUE((std::is_same<std::decay_t<operation_result_t<std::plus<>, B, A>>, B>::value));
 }
 
-TEST(Utility, ScalarType) {
+TEST(ScalarType, Matrix) {
+    const int size = 30;
+
+
+    Matrix<double> m1{{size, size}};
+
+    ASSERT_TRUE((std::is_same<scalar_type_t<decltype(m1)>, double>::value));
+}
+
+TEST(ScalarType, UserDefinedAddition) {
     const int size = 30;
 
     struct A {
@@ -129,10 +138,6 @@ TEST(Utility, ScalarType) {
             return B{a.x + this->x};
         }
     };
-
-    Matrix<double> m1{{size, size}};
-
-    ASSERT_TRUE((std::is_same<scalar_type_t<decltype(m1)>, double>::value));
 
     Matrix<A> ma{{size, size}};
     Matrix<B> mb{{size, size}};
@@ -140,16 +145,24 @@ TEST(Utility, ScalarType) {
     ASSERT_TRUE((std::is_same<scalar_type_t<decltype(mb + ma)>, B>::value));
 }
 
-TEST(Utility, ExpressionMember) {
+TEST(ExpressionMember, Matrix) {
     const int size = 30;
 
     Matrix<double> m1{{size, size}};
-    Matrix<double> m2{{size, size}};
 
     using matrix_member = expression_member_t<decltype(m1)>;
 
     // we keep matrices as references
     ASSERT_TRUE((std::is_lvalue_reference<matrix_member>::value));
+}
+
+
+TEST(ExpressionMember, Addition) {
+    const int size = 30;
+
+    Matrix<double> m1{{size, size}};
+    Matrix<double> m2{{size, size}};
+
 
     using add_member = expression_member_t<decltype(m1 + m2)>;
 
@@ -157,7 +170,11 @@ TEST(Utility, ExpressionMember) {
     ASSERT_FALSE((std::is_lvalue_reference<add_member>::value || std::is_rvalue_reference<add_member>::value));
 }
 
-TEST(Utility, TypeConsistent) {
+TEST(TypeConsistent, IntAddition) {
+    ASSERT_TRUE((type_consistent_v<std::plus<>, int>));
+}
+
+TEST(TypeConsistent, UserDefinedAddition) {
     struct A {
         int x;
     };
@@ -170,16 +187,24 @@ TEST(Utility, TypeConsistent) {
         }
     };
 
-    ASSERT_TRUE((type_consistent_v<std::plus<>, int>));
     ASSERT_FALSE((type_consistent_v<std::plus<>, B>));
 }
 
-TEST(Utility, IsValid) {
-    struct A {};
-
-    ASSERT_FALSE((is_valid_v<std::plus<>, A, A>));
+TEST(IsValid, Addition) {
     ASSERT_TRUE((is_valid_v<std::plus<>, int, int>));
     ASSERT_TRUE((is_valid_v<std::plus<>, int, double>));
+}
+
+TEST(IsValid, UserDefinedAdditionPlus) {
+    struct A {};
+    struct B {
+        B operator+(const B&) {
+            return B{};
+        }
+    };
+
+    ASSERT_FALSE((is_valid_v<std::plus<>, A, A>));
+    ASSERT_TRUE((is_valid_v<std::plus<>, B, B>));
 }
 
 } // end namespace impl
