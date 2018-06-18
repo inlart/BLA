@@ -139,7 +139,7 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u
 }
 
 template <typename T, bool C>
-RefSubMatrix<T, C>& operator/=(RefSubMatrix<T, C>& u, const T& v) {
+RefSubMatrix<T, C> operator/=(RefSubMatrix<T, C> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
 
