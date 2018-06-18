@@ -136,8 +136,6 @@ TEST(Operation, AssignAdditionRefSubMatrix) {
 
         ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(m1e.block(0, 0, 5, 76))));
         ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
-
-        ASSERT_FALSE((std::is_same<decltype(m1.sub({{0, 0}, {5, 76}})), decltype(m1.topRows(5))>::value));
     }
 }
 
@@ -205,8 +203,6 @@ TEST(Operation, AssignSubtractionRefSubMatrix) {
 
         ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(m1e.block(0, 0, 5, 76))));
         ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
-
-        ASSERT_FALSE((std::is_same<decltype(m1.sub({{0, 0}, {5, 76}})), decltype(m1.topRows(5))>::value));
     }
 }
 

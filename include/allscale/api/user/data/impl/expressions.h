@@ -219,11 +219,11 @@ public:
     }
 
     auto rowRange(range_type p) {
-        return detail::sub<true>(static_cast<E&>(*this), {{p.x, 0}, {p.y, columns()}});
+        return detail::sub<false>(static_cast<E&>(*this), {{p.x, 0}, {p.y, columns()}});
     }
 
     auto rowRange(range_type p) const {
-        return detail::sub<true>(static_cast<const E&>(*this), {{p.x, 0}, {p.y, columns()}});
+        return detail::sub<false>(static_cast<const E&>(*this), {{p.x, 0}, {p.y, columns()}});
     }
 
     auto columnRange(range_type p) {
