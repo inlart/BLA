@@ -257,6 +257,57 @@ TEST(Operation, AssignScalarMultiplicationRefSubMatrix) {
     }
 }
 
+TEST(Operation, AssignScalarDivision) {
+    Matrix<double> m1({123, 76});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&]() { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+
+        Eigen::MatrixXd m1e = m1.toEigenMatrix();
+
+        auto number = g();
+
+        m1 /= number;
+        m1e /= number;
+
+        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+    }
+}
+
+TEST(Operation, AssignScalarDivisionRefSubMatrix) {
+    Matrix<double> m1({123, 76});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&]() { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+
+        auto number = g();
+
+        Eigen::MatrixXd m1e = m1.toEigenMatrix();
+
+        m1.sub({{0, 0}, {5, 76}}) /= number;
+        m1e.block(0, 0, 5, 76) /= number;
+
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(m1e.block(0, 0, 5, 76))));
+        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+
+        number = g();
+
+        m1.topRows(5) /= number;
+        m1e.block(0, 0, 5, 76) /= number;
+
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(m1e.block(0, 0, 5, 76))));
+        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(m1e)));
+    }
+}
+
 TEST(Operation, Negation) {
     Matrix<double> m({100, 99});
     m.zero();
