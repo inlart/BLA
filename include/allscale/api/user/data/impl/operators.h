@@ -65,7 +65,32 @@ Matrix<T>& operator*=(Matrix<T>& u, const MatrixExpression<E>& v) {
 }
 
 template <typename T>
-Matrix<T>& operator*=(Matrix<T>& u, const T& v) {
+std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u, const T& v) {
+    // no aliasing because the result is written in a temporary matrix
+    using PacketScalar = typename Vc::native_simd<T>;
+
+
+    const int total_size = u.rows() * u.columns();
+    const int packet_size = PacketScalar::size();
+    const int aligned_end = total_size / packet_size * packet_size;
+
+    const PacketScalar simd_value(v);
+
+    algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
+        int i = coord[0] * packet_size;
+        point_type p{i / u.columns(), i % u.columns()};
+        (u.template packet<PacketScalar, detail::alignment_t<PacketScalar>>(p) * simd_value).copy_to(&u[p], detail::alignment_t<PacketScalar>{});
+    });
+
+    for(int i = aligned_end; i < total_size; i++) {
+        point_type p{i / u.columns(), i % u.columns()};
+        u[p] *= v;
+    }
+    return u;
+}
+
+template <typename T>
+std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
 
@@ -81,7 +106,40 @@ RefSubMatrix<T, C> operator*=(RefSubMatrix<T, C> u, const T& v) {
 }
 
 template <typename T>
-Matrix<T>& operator/=(Matrix<T>& u, const T& v) {
+std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u, const T& v) {
+    // no aliasing because the result is written in a temporary matrix
+    using PacketScalar = typename Vc::native_simd<T>;
+
+
+    const int total_size = u.rows() * u.columns();
+    const int packet_size = PacketScalar::size();
+    const int aligned_end = total_size / packet_size * packet_size;
+
+    const PacketScalar simd_value(v);
+
+    algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
+        int i = coord[0] * packet_size;
+        point_type p{i / u.columns(), i % u.columns()};
+        (u.template packet<PacketScalar, detail::alignment_t<PacketScalar>>(p) / simd_value).copy_to(&u[p], detail::alignment_t<PacketScalar>{});
+    });
+
+    for(int i = aligned_end; i < total_size; i++) {
+        point_type p{i / u.columns(), i % u.columns()};
+        u[p] /= v;
+    }
+    return u;
+}
+
+template <typename T>
+std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u, const T& v) {
+    // no aliasing because the result is written in a temporary matrix
+    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
+
+    return u;
+}
+
+template <typename T, bool C>
+RefSubMatrix<T, C>& operator/=(RefSubMatrix<T, C>& u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
 
