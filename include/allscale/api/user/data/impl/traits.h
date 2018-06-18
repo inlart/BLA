@@ -51,6 +51,18 @@ struct alignment
 template <typename T>
 using alignment_t = typename alignment<T>::type;
 
+template <typename E>
+struct eval_return : set_type<Matrix<typename scalar_type<E>::type>> {};
+
+template <typename T>
+struct eval_return<Matrix<T>> : set_type<Matrix<T>&> {};
+
+template <typename T>
+struct eval_return<const Matrix<T>> : set_type<const Matrix<T>&> {};
+
+template <typename E>
+using eval_return_t = typename eval_return<E>::type;
+
 } // end namespace detail
 
 

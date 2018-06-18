@@ -171,6 +171,15 @@ public:
     using T = scalar_type_t<E>;
     using PacketScalar = typename Vc::native_simd<T>;
 
+private:
+    E& impl() {
+        return static_cast<E&>(*this);
+    }
+
+    const E& impl() const {
+        return static_cast<const E&>(*this);
+    }
+
     /*
      * abstract class due to object slicing
      */
@@ -356,8 +365,8 @@ public:
     }
 
     // -- defined in evaluate.h
-    auto eval();
-    auto eval() const;
+    auto eval() -> detail::eval_return_t<std::remove_reference_t<decltype(impl())>>;
+    auto eval() const -> detail::eval_return_t<std::remove_reference_t<decltype(impl())>>;
 
     operator E&() {
         return impl();
@@ -365,15 +374,6 @@ public:
 
     operator const E&() const {
         return impl();
-    }
-
-private:
-    E& impl() {
-        return static_cast<E&>(*this);
-    }
-
-    const E& impl() const {
-        return static_cast<const E&>(*this);
     }
 };
 
