@@ -69,6 +69,14 @@ TEST(Vectorizable, Matrix) {
     ASSERT_FALSE((std::is_same<double, scalar_type_t<decltype(m4 + m5)>>::value));
 }
 
+TEST(Vectorizable, UserDefinedType) {
+    struct A {};
+
+    Matrix<A> m1({55, 56});
+
+    ASSERT_FALSE(vectorizable_v<decltype(m1)>);
+}
+
 TEST(Vectorizable, RefSubMatrix) {
     std::random_device rd;
     std::mt19937 gen(rd());
