@@ -183,19 +183,19 @@ public:
     T operator[](const point_type& pos) const {
         assert_lt(pos, size());
         assert_ge(pos, (point_type{0, 0}));
-        return static_cast<const E&>(*this)[pos];
+        return impl()[pos];
     }
 
     point_type size() const {
-        return static_cast<const E&>(*this).size();
+        return impl().size();
     }
 
     coordinate_type rows() const {
-        return static_cast<const E&>(*this).rows();
+        return impl().rows();
     }
 
     coordinate_type columns() const {
-        return static_cast<const E&>(*this).columns();
+        return impl().columns();
     }
 
     bool isSquare() const {
@@ -203,35 +203,35 @@ public:
     }
 
     auto row(coordinate_type r) {
-        return detail::row(static_cast<E&>(*this), r);
+        return detail::row(impl(), r);
     }
 
     auto row(coordinate_type r) const {
-        return detail::row(static_cast<const E&>(*this), r);
+        return detail::row(impl(), r);
     }
 
     auto column(coordinate_type c) {
-        return detail::column(static_cast<E&>(*this), c);
+        return detail::column(impl(), c);
     }
 
     auto column(coordinate_type c) const {
-        return detail::column(static_cast<const E&>(*this), c);
+        return detail::column(impl(), c);
     }
 
     auto rowRange(range_type p) {
-        return detail::sub<false>(static_cast<E&>(*this), {{p.x, 0}, {p.y, columns()}});
+        return detail::sub<false>(impl(), {{p.x, 0}, {p.y, columns()}});
     }
 
     auto rowRange(range_type p) const {
-        return detail::sub<false>(static_cast<const E&>(*this), {{p.x, 0}, {p.y, columns()}});
+        return detail::sub<false>(impl(), {{p.x, 0}, {p.y, columns()}});
     }
 
     auto columnRange(range_type p) {
-        return detail::sub<false>(static_cast<E&>(*this), {{0, p.x}, {rows(), p.y}});
+        return detail::sub<false>(impl(), {{0, p.x}, {rows(), p.y}});
     }
 
     auto columnRange(range_type p) const {
-        return detail::sub<false>(static_cast<const E&>(*this), {{0, p.x}, {rows(), p.y}});
+        return detail::sub<false>(impl(), {{0, p.x}, {rows(), p.y}});
     }
 
     auto topRows(coordinate_type row_count) {
@@ -268,13 +268,13 @@ public:
 
     template <typename E2>
     ElementMatrixMultiplication<E, E2> product(const MatrixExpression<E2>& e) const {
-        return ElementMatrixMultiplication<E, E2>(static_cast<const E&>(*this), e);
+        return ElementMatrixMultiplication<E, E2>(impl(), e);
     }
 
     MatrixTranspose<E> transpose() const;
 
     MatrixConjugate<E> conjugate() const {
-        return MatrixConjugate<E>(static_cast<const E&>(*this));
+        return MatrixConjugate<E>(impl());
     }
 
     MatrixTranspose<MatrixConjugate<E>> adjoint() const {
@@ -282,15 +282,15 @@ public:
     }
 
     auto sub(BlockRange block_range) {
-        return detail::sub(static_cast<E&>(*this), block_range);
+        return detail::sub(impl(), block_range);
     }
 
     auto sub(BlockRange block_range) const {
-        return detail::sub(static_cast<const E&>(*this), block_range);
+        return detail::sub(impl(), block_range);
     }
 
     MatrixAbs<E> abs() const {
-        return MatrixAbs<E>(static_cast<const E&>(*this));
+        return MatrixAbs<E>(impl());
     }
 
     T norm() const {
@@ -352,7 +352,7 @@ public:
 
     template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     std::enable_if_t<vectorizable_v<E>, simd_type> packet(point_type p) const {
-        return static_cast<const E&>(*this).template packet<simd_type, align>(p);
+        return impl().template packet<simd_type, align>(p);
     }
 
     // -- defined in evaluate.h
@@ -360,9 +360,19 @@ public:
     auto eval() const;
 
     operator E&() {
+        return impl();
+    }
+
+    operator const E&() const {
+        return impl();
+    }
+
+private:
+    E& impl() {
         return static_cast<E&>(*this);
     }
-    operator const E&() const {
+
+    const E& impl() const {
         return static_cast<const E&>(*this);
     }
 };
