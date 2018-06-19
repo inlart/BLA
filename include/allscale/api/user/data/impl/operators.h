@@ -16,14 +16,14 @@ namespace impl {
 template <typename T, typename E>
 Matrix<T>& operator+=(Matrix<T>& u, const MatrixExpression<E>& v) {
     // TODO: handle aliasing
-    detail::evaluate(MatrixAddition<Matrix<T>, E>(u, v), &u[{0, 0}]);
+    detail::evaluate(MatrixAddition<Matrix<T>, E>(u, v), u);
     return u;
 }
 
 template <typename T, typename E>
 RefSubMatrix<T, true> operator+=(RefSubMatrix<T, true> u, const MatrixExpression<E>& v) {
     // TODO: handle aliasing
-    detail::evaluate(MatrixAddition<RefSubMatrix<T, true>, E>(u, v), &u[{0, 0}]);
+    detail::evaluate(MatrixAddition<RefSubMatrix<T, true>, E>(u, v), u);
     return u;
 }
 
@@ -37,14 +37,14 @@ RefSubMatrix<T, false> operator+=(RefSubMatrix<T, false> u, const MatrixExpressi
 template <typename T, typename E>
 Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
     // TODO: handle aliasing
-    detail::evaluate(MatrixSubtraction<Matrix<T>, E>(u, v), &u[{0, 0}]);
+    detail::evaluate(MatrixSubtraction<Matrix<T>, E>(u, v), u);
     return u;
 }
 
 template <typename T, typename E>
 RefSubMatrix<T, true> operator-=(RefSubMatrix<T, true> u, const MatrixExpression<E>& v) {
     // TODO: handle aliasing
-    detail::evaluate(MatrixSubtraction<RefSubMatrix<T, true>, E>(u, v), &u[{0, 0}]);
+    detail::evaluate(MatrixSubtraction<RefSubMatrix<T, true>, E>(u, v), u);
     return u;
 }
 

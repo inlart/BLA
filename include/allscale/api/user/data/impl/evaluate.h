@@ -10,7 +10,7 @@ namespace detail {
 
 // -- evaluate a matrix expression using vectorization
 template <typename E>
-std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, scalar_type_t<E>* dst) {
+std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
     expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
     using T = scalar_type_t<E>;
@@ -22,24 +22,24 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expressi
     algorithm::pfor(point_type{expr.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
-        expr.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p).copy_to(dst + coord.x * expr.columns() + j, Vc::flags::element_aligned);
+        expr.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p).copy_to(&dst[p], Vc::flags::element_aligned);
     });
 
     for(int i = 0; i < expr.rows(); ++i) {
         for(int j = caligned_end; j < expr.columns(); ++j) {
-            dst[i * expr.columns() + j] = expr[{i, j}];
+            dst[{i, j}] = expr[{i, j}];
         }
     }
 }
 
 // -- evaluate a matrix expression by simply copying each value
-template <typename E, typename T>
-std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, T* dst) {
+template <typename E>
+std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
     expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
     algorithm::pfor(expr.size(), [&](const auto& pos) {
-        int i = pos.x * expr.columns() + pos.y;
-        dst[i] = expr[pos];
+        //        int i = pos.x * expr.columns() + pos.y;
+        dst[pos] = expr[pos];
     });
 }
 
@@ -48,7 +48,7 @@ auto eval(const MatrixExpression<E>& e) -> Matrix<scalar_type_t<E>> {
     using T = scalar_type_t<E>;
     Matrix<T> tmp(e.size());
 
-    detail::evaluate(e, &tmp[{0, 0}]);
+    detail::evaluate(e, tmp);
 
     return tmp;
 }
@@ -78,7 +78,7 @@ auto MatrixExpression<E>::eval() const -> detail::eval_return_t<std::remove_refe
 template <typename T>
 template <typename E>
 void Matrix<T>::evaluate(const MatrixExpression<E>& mat) {
-    detail::evaluate(mat, &(*this)[{0, 0}]);
+    detail::evaluate(mat, *this);
 }
 
 } // end namespace impl
