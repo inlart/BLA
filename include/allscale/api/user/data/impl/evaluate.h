@@ -16,20 +16,19 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expressi
     using T = scalar_type_t<E>;
     using PacketScalar = typename Vc::native_simd<T>;
 
-
-    const int total_size = expr.rows() * expr.columns();
     const int packet_size = PacketScalar::size();
-    const int aligned_end = total_size / packet_size * packet_size;
+    const int caligned_end = expr.columns() / packet_size * packet_size;
 
-    algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
-        int i = coord[0] * packet_size;
-        point_type p{i / expr.columns(), i % expr.columns()};
-        expr.template packet<PacketScalar, alignment_t<PacketScalar>>(p).copy_to(dst + i, alignment_t<PacketScalar>{});
+    algorithm::pfor(point_type{expr.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+        int j = coord.y * packet_size;
+        point_type p{coord.x, j};
+        expr.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p).copy_to(dst + coord.x * expr.columns() + j, Vc::flags::element_aligned);
     });
 
-    for(int i = aligned_end; i < total_size; i++) {
-        point_type p{i / expr.columns(), i % expr.columns()};
-        dst[i] = expr[p];
+    for(int i = 0; i < expr.rows(); ++i) {
+        for(int j = caligned_end; j < expr.columns(); ++j) {
+            dst[i * expr.columns() + j] = expr[{i, j}];
+        }
     }
 }
 

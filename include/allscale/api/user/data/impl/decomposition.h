@@ -17,6 +17,8 @@ using point_type = GridPoint<2>;
 // -- partial pivoting LU decomposition with PA = LU
 template <typename T>
 struct LUD {
+    static_assert(!std::numeric_limits<T>::is_integer, "Decomposition only for floating point types");
+
     LUD(const Matrix<T>& A) : P(A.rows()), LU(A) {
         using ct = coordinate_type;
         assert_eq(A.rows(), A.columns());
@@ -46,12 +48,12 @@ struct LUD {
                 LU.row(i).swap(LU.row(max_column));
             }
 
-            for(ct j = i + 1; j < A.rows(); ++j) {
-                LU[{j, i}] /= LU[{i, i}];
+            // TODO: both slow
+            LU.column(i).bottomRows(A.rows() - i - 1) /= LU[{i, i}];
 
-                for(ct k = i + 1; k < A.rows(); ++k) {
-                    LU[{j, k}] -= LU[{j, i}] * LU[{i, k}];
-                }
+            if(i < A.rows() - 1) {
+                LU.bottomRows(A.rows() - i - 1).bottomColumns(A.columns() - i - 1) -=
+                    LU.column(i).bottomRows(A.rows() - i - 1) * LU.row(i).bottomColumns(A.columns() - i - 1);
             }
         }
     }
@@ -163,6 +165,11 @@ struct LUD {
         }
 
         return x;
+    }
+
+private:
+    void lu_blocked() {
+        // TODO: implemenet blocked LU decomposition
     }
 
 private:

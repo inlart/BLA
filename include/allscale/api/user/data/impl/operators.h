@@ -98,7 +98,32 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u
 }
 
 template <typename T, bool C>
-RefSubMatrix<T, C> operator*=(RefSubMatrix<T, C> u, const T& v) {
+std::enable_if_t<vectorizable_v<RefSubMatrix<T, C>>, RefSubMatrix<T, C>> operator*=(RefSubMatrix<T, C> u, const T& v) {
+    using PacketScalar = typename Vc::native_simd<T>;
+
+    const int packet_size = PacketScalar::size();
+    const int caligned_end = u.columns() / packet_size * packet_size;
+
+    const PacketScalar simd_value(v);
+
+    algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+        int j = coord.y * packet_size;
+        point_type p{coord.x, j};
+        (u.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p) * simd_value).copy_to(&u[p], Vc::flags::element_aligned);
+    });
+
+    for(int i = 0; i < u.rows(); ++i) {
+        for(int j = caligned_end; j < u.columns(); ++j) {
+            u[{i, j}] *= v;
+        }
+    }
+
+
+    return u;
+}
+
+template <typename T, bool C>
+std::enable_if_t<!vectorizable_v<RefSubMatrix<T, C>>, RefSubMatrix<T, C>> operator*=(RefSubMatrix<T, C> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
 
@@ -139,8 +164,34 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u
 }
 
 template <typename T, bool C>
-RefSubMatrix<T, C> operator/=(RefSubMatrix<T, C> u, const T& v) {
+std::enable_if_t<vectorizable_v<RefSubMatrix<T, C>>, RefSubMatrix<T, C>> operator/=(RefSubMatrix<T, C> u, const T& v) {
+    using PacketScalar = typename Vc::native_simd<T>;
+
+    const int packet_size = PacketScalar::size();
+    const int caligned_end = u.columns() / packet_size * packet_size;
+
+    const PacketScalar simd_value(v);
+
+    algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+        int j = coord.y * packet_size;
+        point_type p{coord.x, j};
+        (u.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p) / simd_value).copy_to(&u[p], Vc::flags::element_aligned);
+    });
+
+    for(int i = 0; i < u.rows(); ++i) {
+        for(int j = caligned_end; j < u.columns(); ++j) {
+            u[{i, j}] /= v;
+        }
+    }
+
+
+    return u;
+}
+
+template <typename T, bool C>
+std::enable_if_t<!vectorizable_v<RefSubMatrix<T, C>>, RefSubMatrix<T, C>> operator/=(RefSubMatrix<T, C> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
+
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
 
     return u;

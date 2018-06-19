@@ -204,7 +204,7 @@ template <typename E>
 struct vectorizable<SubMatrix<E>> : public std::false_type {};
 
 template <typename T, bool C>
-struct vectorizable<RefSubMatrix<T, C>> : public std::integral_constant<bool, C> {};
+struct vectorizable<RefSubMatrix<T, C>> : public std::integral_constant<bool, true> {};
 
 
 template <typename T>

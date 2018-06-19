@@ -66,7 +66,7 @@ void set_value(const T1& value, RefSubMatrix<T2, true>& dst) {
 
         PacketScalar z(static_cast<T2>(value));
 
-        z.copy_to(std::addressof(dst[p]), alignment_t<PacketScalar>{});
+        z.copy_to(std::addressof(dst[p]), Vc::flags::element_aligned);
     });
 
     for(int i = aligned_end; i < total_size; i++) {
