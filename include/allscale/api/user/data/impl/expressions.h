@@ -1159,7 +1159,7 @@ public:
     template <typename E>
     RefSubMatrix& operator=(const MatrixExpression<E>& exp) {
         assert_eq(size(), exp.size());
-        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = exp[p]; });
+        evaluate(exp);
 
         return *this;
     }
@@ -1259,6 +1259,10 @@ public:
     }
 
 private:
+    template <typename E>
+    void evaluate(const MatrixExpression<E>&);
+
+
     Exp& expression;
     BlockRange block_range;
 };
