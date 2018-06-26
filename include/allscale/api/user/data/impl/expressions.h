@@ -1,5 +1,6 @@
 #pragma once
 
+#include "allscale/api/user/data/impl/iterator_wrapper.h"
 #include "allscale/api/user/data/impl/traits.h"
 #include "allscale/api/user/data/impl/types.h"
 
@@ -385,11 +386,11 @@ public:
             return !(*this < other);
         }
 
-        bool operator==(const Iterator& other) {
+        bool operator==(const Iterator& other) const {
             return std::addressof(expr()) == std::addressof(other.expr()) && pos == other.pos;
         }
 
-        bool operator!=(const Iterator& other) {
+        bool operator!=(const Iterator& other) const {
             return !(*this == other);
         }
 
@@ -426,7 +427,13 @@ public:
             .get();
     }
 
-    //    TODO: iterator_reduce()
+    template <typename Reducer>
+    Iterator iterator_reduce(Reducer f) const {
+        assert_gt(rows() * columns(), 0);
+        return algorithm::preduce(IteratorWrapper<Iterator>(begin() + 1), IteratorWrapper<Iterator>(end()),
+                                  [&](const Iterator& a, Iterator& b) { b = f(a, b); }, f, [&]() { return begin(); })
+            .get();
+    }
 
     T max() const {
         return reduce([](const T& a, const T& b) { return std::max(a, b); });
@@ -434,6 +441,14 @@ public:
 
     T min() const {
         return reduce([](const T& a, const T& b) { return std::min(a, b); });
+    }
+
+    Iterator max_element() const {
+        return iterator_reduce([](const Iterator& a, const Iterator& b) { return (*a < *b) ? b : a; });
+    }
+
+    Iterator min_element() const {
+        return iterator_reduce([](const Iterator& a, const Iterator& b) { return (*b < *a) ? b : a; });
     }
 
     // -- defined in decomposition.h

@@ -97,6 +97,44 @@ TEST(Matrix, Min) {
     ASSERT_EQ(m.min(), 0.);
 }
 
+TEST(Matrix, MaxElement) {
+    for(int i = 0; i < 20; ++i) {
+        const point_type s{256, 256};
+        Matrix<int> m(s);
+        m.identity();
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, m.rows() * m.columns());
+
+        int num = dis(gen);
+
+        m[{num / m.columns(), num % m.columns()}] = 2;
+
+
+        ASSERT_EQ(m.max_element(), m.begin() + num);
+    }
+}
+
+TEST(Matrix, MinElement) {
+    for(int i = 0; i < 20; ++i) {
+        const point_type s{256, 256};
+        Matrix<int> m(s);
+        m.identity();
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, m.rows() * m.columns());
+
+        int num = dis(gen);
+
+        m[{num / m.columns(), num % m.columns()}] = -1;
+
+
+        ASSERT_EQ(m.min_element(), m.begin() + num);
+    }
+}
+
 TEST(Matrix, Initializer) {
     const point_type s{4, 4};
 
