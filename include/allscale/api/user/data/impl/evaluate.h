@@ -47,7 +47,7 @@ std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& express
 }
 
 template <typename E, bool C>
-std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, RefSubMatrix<scalar_type_t<E>, C>& dst) {
+std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, RefSubMatrix<scalar_type_t<E>, C> dst) {
     expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
     using T = scalar_type_t<E>;
@@ -70,7 +70,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expressi
 }
 
 template <typename E, bool C>
-std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, RefSubMatrix<scalar_type_t<E>, C>& dst) {
+std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expression, RefSubMatrix<scalar_type_t<E>, C> dst) {
     expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
     algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
