@@ -1,5 +1,6 @@
 #pragma once
 
+#include "allscale/api/user/data/impl/iterator.h"
 #include "allscale/api/user/data/impl/iterator_wrapper.h"
 #include "allscale/api/user/data/impl/traits.h"
 #include "allscale/api/user/data/impl/types.h"
@@ -13,7 +14,6 @@
 #include <allscale/utils/assert.h>
 #include <allscale/utils/vector.h>
 #include <array>
-#include <boost/optional.hpp>
 #include <cmath>
 #include <complex>
 #include <functional>
@@ -315,101 +315,20 @@ public:
     QRD<T> QRDecomposition() const;
     SVD<T> SVDecomposition() const;
 
-    // TODO: keep this?
-    struct Iterator : public std::iterator<std::random_access_iterator_tag, scalar_type<E>> {
-        using difference_type = typename std::iterator<std::random_access_iterator_tag, scalar_type_t<E>>::difference_type;
-
-        // TODO: https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator
-
-
-        boost::optional<const MatrixExpression<E>&> back_ref;
-        coordinate_type pos;
-
-        Iterator(const MatrixExpression<E>& m, coordinate_type pos) : back_ref(m), pos(pos) {
-        }
-
-        Iterator() : pos(0) {
-        }
-
-        Iterator(const Iterator&) = default;
-        Iterator& operator=(const Iterator&) = default;
-
-        T operator*() const {
-            return expr()[pointPos()];
-        }
-
-        Iterator& operator++() {
-            ++pos;
-            return *this;
-        }
-
-        Iterator& operator--() {
-            --pos;
-            return *this;
-        }
-
-        auto operator-(const Iterator& other) const {
-            assert_eq(std::addressof(expr()), std::addressof(other.expr()));
-
-            return pos - other.pos;
-        }
-
-        Iterator& operator+=(difference_type v) {
-            pos += v;
-            return *this;
-        }
-
-        Iterator& operator-=(difference_type v) {
-            pos -= v;
-            return *this;
-        }
-
-        Iterator operator+(difference_type v) const {
-            Iterator it = *this;
-            return it += v;
-        }
-
-
-        bool operator<(const Iterator& other) const {
-            return (*this - other) > 0;
-        }
-
-        bool operator>(const Iterator& other) const {
-            return other < *this;
-        }
-
-        bool operator<=(const Iterator& other) const {
-            return !(*this > other);
-        }
-
-        bool operator>=(const Iterator& other) const {
-            return !(*this < other);
-        }
-
-        bool operator==(const Iterator& other) const {
-            return std::addressof(expr()) == std::addressof(other.expr()) && pos == other.pos;
-        }
-
-        bool operator!=(const Iterator& other) const {
-            return !(*this == other);
-        }
-
-    private:
-        point_type pointPos() const {
-            return {pos / expr().columns(), pos % expr().columns()};
-        }
-
-        const MatrixExpression<E>& expr() const {
-            return back_ref.get();
-        }
-    };
-
-    Iterator begin() const {
-        return Iterator(*this, 0);
+    Iterator<E> begin() const {
+        return cbegin();
     }
 
-    Iterator end() const {
-        return Iterator(*this, rows() * columns());
+    Iterator<E> end() const {
+        return cend();
+    }
+
+    Iterator<E> cbegin() const {
+        return Iterator<E>(*this, 0);
+    }
+
+    Iterator<E> cend() const {
+        return Iterator<E>(*this, rows() * columns());
     }
 
     template <typename Reducer>
@@ -428,10 +347,10 @@ public:
     }
 
     template <typename Reducer>
-    Iterator iterator_reduce(Reducer f) const {
+    Iterator<E> iterator_reduce(Reducer f) const {
         assert_gt(rows() * columns(), 0);
-        return algorithm::preduce(IteratorWrapper<Iterator>(begin() + 1), IteratorWrapper<Iterator>(end()),
-                                  [&](const Iterator& a, Iterator& b) { b = f(a, b); }, f, [&]() { return begin(); })
+        return algorithm::preduce(IteratorWrapper<Iterator<E>>(begin() + 1), IteratorWrapper<Iterator<E>>(end()),
+                                  [&](const Iterator<E>& a, Iterator<E>& b) { b = f(a, b); }, f, [&]() { return begin(); })
             .get();
     }
 
@@ -443,12 +362,12 @@ public:
         return reduce([](const T& a, const T& b) { return std::min(a, b); });
     }
 
-    Iterator max_element() const {
-        return iterator_reduce([](const Iterator& a, const Iterator& b) { return (*a < *b) ? b : a; });
+    Iterator<E> max_element() const {
+        return iterator_reduce([](const Iterator<E>& a, const Iterator<E>& b) { return (*a < *b) ? b : a; });
     }
 
-    Iterator min_element() const {
-        return iterator_reduce([](const Iterator& a, const Iterator& b) { return (*b < *a) ? b : a; });
+    Iterator<E> min_element() const {
+        return iterator_reduce([](const Iterator<E>& a, const Iterator<E>& b) { return (*b < *a) ? b : a; });
     }
 
     // -- defined in decomposition.h
