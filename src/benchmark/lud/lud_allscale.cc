@@ -17,8 +17,6 @@ static void benchmark_lud_allscale(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
-    Matrix lower({n, n});
-    Matrix upper({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -30,8 +28,6 @@ static void benchmark_lud_allscale(benchmark::State& state) {
 
     for(auto _ : state) {
         benchmark::DoNotOptimize(a.LUDecomposition());
-        //        benchmark::DoNotOptimize(lower = lud.lower());
-        //        benchmark::DoNotOptimize(upper = lud.upper());
     }
 }
 
