@@ -20,42 +20,9 @@ struct LUD {
     static_assert(!std::numeric_limits<T>::is_integer, "Decomposition only for floating point types");
 
     LUD(const Matrix<T>& A) : P(A.rows()), LU(A) {
-        using ct = coordinate_type;
         assert_eq(A.rows(), A.columns());
 
-        const T epsilon = static_cast<T>(1E-4);
-
-        // -- compute permutation matrix
-        for(ct i = 0; i < A.rows(); ++i) {
-            T max_value = static_cast<T>(0);
-            ct max_column = i;
-
-            for(ct k = i; k < A.rows(); ++k) {
-                T value = std::abs(LU[{k, i}]);
-                if(value > max_value) {
-                    max_value = value;
-                    max_column = k;
-                }
-            }
-
-            if(max_value < epsilon) {
-                assert_fail();
-                return;
-            }
-
-            if(max_column != i) {
-                P.swap(i, max_column);
-                LU.row(i).swap(LU.row(max_column));
-            }
-
-            // TODO: both slow
-            LU.column(i).bottomRows(A.rows() - i - 1) /= LU[{i, i}];
-
-            if(i < A.rows() - 1) {
-                LU.bottomRows(A.rows() - i - 1).bottomColumns(A.columns() - i - 1) -=
-                    LU.column(i).bottomRows(A.rows() - i - 1) * LU.row(i).bottomColumns(A.columns() - i - 1);
-            }
-        }
+        lu_unblocked();
     }
 
     LUD(const LUD<T>&) = delete;
@@ -168,6 +135,29 @@ struct LUD {
     }
 
 private:
+    void lu_unblocked() {
+        using ct = coordinate_type;
+
+        for(ct k = 0; k < LU.rows(); ++k) {
+            auto it = LU.column(k).bottomRows(LU.rows() - k).abs().max_element();
+            ct max_row = (it - LU.begin()) / LU.columns();
+            max_row += k;
+
+            P.swap(k, max_row);
+            if(*it != 0) {
+                if(k != it - LU.begin()) {
+                    LU.row(k).swap(LU.row(max_row));
+                }
+
+                LU.column(k).bottomRows(LU.rows() - k - 1) /= LU[{k, k}];
+            }
+            if(k < LU.rows() - 1) {
+                LU.bottomRows(LU.rows() - k - 1).bottomColumns(LU.columns() - k - 1) -=
+                    LU.column(k).bottomRows(LU.rows() - k - 1) * LU.row(k).bottomColumns(LU.columns() - k - 1);
+            }
+        }
+    }
+
     void lu_blocked() {
         // TODO: implemenet blocked LU decomposition
     }
