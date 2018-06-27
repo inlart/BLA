@@ -212,8 +212,8 @@ struct QRD {
 
             P = I - (v * v.transpose()) * 2.0;
 
-            R = P * R;
-            Q = Q * P;
+            R = (P * R).eval();
+            Q *= P;
         }
     }
 

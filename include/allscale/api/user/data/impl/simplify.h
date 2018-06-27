@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include "allscale/api/user/data/impl/evaluate.h"
 #include "allscale/api/user/data/impl/expressions.h"
 #include "allscale/api/user/data/impl/matrix_multiplication.h"
 #include "allscale/api/user/data/impl/traits.h"
@@ -41,10 +42,18 @@ template <typename E1, typename E2>
 auto simplify(MatrixMultiplication<E1, E2> e) {
     Matrix<scalar_type_t<decltype(e)>> tmp(e.size());
 
-
     matrix_multiplication(tmp, simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
 
     return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
+}
+
+template <typename E1, typename E2>
+Matrix<scalar_type_t<MatrixMultiplication<E1, E2>>>& simplify(MatrixMultiplication<E1, E2> e, Matrix<scalar_type_t<MatrixMultiplication<E1, E2>>>& m) {
+    assert_eq(e.size(), m.size());
+
+    matrix_multiplication(m, simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
+
+    return m;
 }
 
 template <typename T>
@@ -55,6 +64,18 @@ const Matrix<T>& simplify(const MatrixExpression<Matrix<T>>& e) {
 template <typename E>
 auto simplify(const MatrixExpression<E>& e) {
     return simplify(static_cast<const E&>(e));
+}
+
+template <typename E>
+auto simplify(const MatrixExpression<E>& e, Matrix<scalar_type_t<E>>& dst) {
+    expression_member_t<decltype(simplify(e))> exp = simplify(e);
+    detail::evaluate(exp, dst);
+}
+
+template <typename E, bool C>
+auto simplify(const MatrixExpression<E>& e, RefSubMatrix<scalar_type_t<E>, C>& dst) {
+    expression_member_t<decltype(simplify(e))> exp = simplify(e);
+    detail::evaluate(exp, dst);
 }
 
 template <typename E1, typename E2>
@@ -191,6 +212,74 @@ template <typename T>
 IdentityMatrix<T> simplify(MatrixMultiplication<IdentityMatrix<T>, IdentityMatrix<T>> e) {
     assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
     return e.getLeftExpression();
+}
+
+namespace detail {
+
+template <typename E>
+void evaluate_simplify(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
+    assert_eq(expression.size(), dst.size());
+
+    simplify(static_cast<const E&>(expression), dst);
+}
+
+template <typename E, bool C>
+void evaluate_simplify(const MatrixExpression<E>& expression, RefSubMatrix<scalar_type_t<E>, C>& dst) {
+    assert_eq(expression.size(), dst.size());
+
+    simplify(expression, dst);
+}
+
+template <typename E>
+auto eval(const MatrixExpression<E>& e) -> Matrix<scalar_type_t<E>> {
+    using T = scalar_type_t<E>;
+    Matrix<T> tmp(e.size());
+
+    detail::evaluate_simplify(e, tmp);
+
+    return tmp;
+}
+
+template <typename T>
+Matrix<T>& eval(Matrix<T>& m) {
+    return m;
+}
+
+template <typename T>
+const Matrix<T>& eval(const Matrix<T>& m) {
+    return m;
+}
+
+} // namespace detail
+
+
+template <typename E>
+auto MatrixExpression<E>::eval() -> detail::eval_return_t<std::remove_reference_t<decltype(impl())>> {
+    return detail::eval(impl());
+}
+
+template <typename E>
+auto MatrixExpression<E>::eval() const -> detail::eval_return_t<std::remove_reference_t<decltype(impl())>> {
+    return detail::eval(impl());
+}
+
+template <typename T>
+template <typename E>
+void Matrix<T>::evaluate(const MatrixExpression<E>& mat) {
+    detail::evaluate_simplify(mat, *this);
+}
+
+template <typename T, bool C>
+template <typename E>
+void RefSubMatrix<T, C>::evaluate(const MatrixExpression<E>& mat) {
+    detail::evaluate_simplify(mat, *this);
+}
+
+template <typename T, bool C>
+template <typename E2, bool C2>
+void RefSubMatrix<T, C>::swap(RefSubMatrix<E2, C2> other) {
+    assert_eq(size(), other.size());
+    detail::swap(*this, other);
 }
 
 } // end namespace impl

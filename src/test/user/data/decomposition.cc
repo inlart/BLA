@@ -83,6 +83,9 @@ TEST(Operation, QRDecomposition) {
 
         auto qr = m1.QRDecomposition();
 
+        std::cout << (qr.getQ()) << std::endl;
+        std::cout << (qr.getQ() * qr.getQ().transpose()) << std::endl;
+
         ASSERT_TRUE(isAlmostEqual(qr.getQ() * qr.getQ().transpose(), IdentityMatrix<double>(point_type{m1.rows(), m1.rows()})));
 
         ASSERT_TRUE(isAlmostEqual(m1, (qr.getQ() * qr.getR()).eval()));

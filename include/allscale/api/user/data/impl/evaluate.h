@@ -1,3 +1,5 @@
+#pragma once
+
 #include <type_traits>
 
 #include "expressions.h"
@@ -40,9 +42,8 @@ void swap(RefSubMatrix<T, C> a, RefSubMatrix<T, C> b) {
 
 // -- evaluate a matrix expression using vectorization
 template <typename E>
-std::enable_if_t<vectorizable_v<decltype(simplify(std::declval<E>()))>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
+std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
     assert_eq(expression.size(), dst.size());
-    expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
     using T = scalar_type_t<E>;
     using PacketScalar = typename Vc::native_simd<T>;
@@ -65,16 +66,12 @@ std::enable_if_t<vectorizable_v<decltype(simplify(std::declval<E>()))>> evaluate
 
 // -- evaluate a matrix expression by simply copying each value
 template <typename E>
-std::enable_if_t<!vectorizable_v<decltype(simplify(std::declval<E>()))>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
-    expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
-
+std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
     algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 
 template <typename E, bool C>
-std::enable_if_t<vectorizable_v<decltype(simplify(std::declval<E>()))>> evaluate(const MatrixExpression<E>& expression, RefSubMatrix<scalar_type_t<E>, C> dst) {
-    expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
-
+std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, RefSubMatrix<scalar_type_t<E>, C> dst) {
     using T = scalar_type_t<E>;
     using PacketScalar = typename Vc::native_simd<T>;
 
@@ -95,63 +92,12 @@ std::enable_if_t<vectorizable_v<decltype(simplify(std::declval<E>()))>> evaluate
 }
 
 template <typename E, bool C>
-std::enable_if_t<!vectorizable_v<decltype(simplify(std::declval<E>()))>> evaluate(const MatrixExpression<E>& expression,
-                                                                                  RefSubMatrix<scalar_type_t<E>, C> dst) {
-    expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
-
+std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, RefSubMatrix<scalar_type_t<E>, C> dst) {
     algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
-}
-
-template <typename E>
-auto eval(const MatrixExpression<E>& e) -> Matrix<scalar_type_t<E>> {
-    using T = scalar_type_t<E>;
-    Matrix<T> tmp(e.size());
-
-    detail::evaluate(e, tmp);
-
-    return tmp;
-}
-
-template <typename T>
-Matrix<T>& eval(Matrix<T>& m) {
-    return m;
-}
-
-template <typename T>
-const Matrix<T>& eval(const Matrix<T>& m) {
-    return m;
 }
 
 } // namespace detail
 
-template <typename E>
-auto MatrixExpression<E>::eval() -> detail::eval_return_t<std::remove_reference_t<decltype(impl())>> {
-    return detail::eval(impl());
-}
-
-template <typename E>
-auto MatrixExpression<E>::eval() const -> detail::eval_return_t<std::remove_reference_t<decltype(impl())>> {
-    return detail::eval(impl());
-}
-
-template <typename T>
-template <typename E>
-void Matrix<T>::evaluate(const MatrixExpression<E>& mat) {
-    detail::evaluate(mat, *this);
-}
-
-template <typename T, bool C>
-template <typename E>
-void RefSubMatrix<T, C>::evaluate(const MatrixExpression<E>& mat) {
-    detail::evaluate(mat, *this);
-}
-
-template <typename T, bool C>
-template <typename E2, bool C2>
-void RefSubMatrix<T, C>::swap(RefSubMatrix<E2, C2> other) {
-    assert_eq(size(), other.size());
-    detail::swap(*this, other);
-}
 
 } // end namespace impl
 } // end namespace data

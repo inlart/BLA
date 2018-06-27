@@ -60,6 +60,21 @@ TEST(Operation, Multiplication) {
     }
 }
 
+TEST(Operation, MultiplicationEval) {
+    Matrix<double> m1({45, 45});
+    Matrix<double> m2({m1.columns(), 45});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 4; ++i) {
+        m1.fill_seq(g);
+        m2.fill_seq(g);
+        ASSERT_TRUE(isAlmostEqual((m1 * m2).eval(), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
+    }
+}
+
 TEST(Operation, MultiplicationNoTransposeTranspose) {
     Matrix<double> m1({145, 43});
     Matrix<double> m2({59, m1.columns()});

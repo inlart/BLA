@@ -9,6 +9,7 @@
 
 #include "allscale/api/user/data/impl/expressions.h"
 #include "allscale/api/user/data/impl/operators.h"
+#include "allscale/api/user/data/impl/simplify.h"
 #include "allscale/api/user/data/impl/types.h"
 
 #include "allscale/api/user/data/impl/forward.h"
@@ -434,7 +435,7 @@ void matrix_multiplication(Matrix<T>& result, const PermutationMatrix<E1>& lhs, 
 
     algorithm::pfor(utils::Vector<coordinate_type, 1>(result.rows()), [&](const auto& pos) {
         const coordinate_type i = pos[0];
-        detail::evaluate(rhs.row(lhs.permutation(i)), result.row(i));
+        detail::evaluate_simplify(rhs.row(lhs.permutation(i)), result.row(i));
     });
 }
 

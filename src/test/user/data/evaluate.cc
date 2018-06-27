@@ -64,7 +64,7 @@ TEST(Evaluate, Vectorizable) {
         // otherwise the test would be useless
         ASSERT_TRUE(vectorizable_v<decltype(m1 + m2)>);
 
-        detail::evaluate(m1 + m2, m);
+        detail::evaluate_simplify(m1 + m2, m);
 
 
         ASSERT_TRUE(isAlmostEqual(m1 + m2, m));
@@ -119,7 +119,7 @@ TEST(Evaluate, NotVectorizable) {
         // otherwise the test would be useless
         ASSERT_FALSE(vectorizable_v<decltype(m1 + m2)>);
 
-        detail::evaluate(m1 + m2, m);
+        detail::evaluate_simplify(m1 + m2, m);
 
 
         ASSERT_TRUE(isAlmostEqual(m1 + m2, m));
