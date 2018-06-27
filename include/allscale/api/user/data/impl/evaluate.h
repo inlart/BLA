@@ -14,9 +14,34 @@ namespace impl {
 
 namespace detail {
 
+template <typename T, bool C>
+void swap(RefSubMatrix<T, C> a, RefSubMatrix<T, C> b) {
+    assert_eq(a.size(), b.size());
+    using PacketScalar = typename Vc::native_simd<T>;
+
+    const int packet_size = PacketScalar::size();
+    const int caligned_end = a.columns() / packet_size * packet_size;
+
+    algorithm::pfor(point_type{a.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+        int j = coord.y * packet_size;
+        point_type p{coord.x, j};
+
+        PacketScalar tmp = a.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p);
+        b.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p).copy_to(&a[p], Vc::flags::element_aligned);
+        tmp.copy_to(&b[p], Vc::flags::element_aligned);
+    });
+
+    for(int i = 0; i < a.rows(); ++i) {
+        for(int j = caligned_end; j < a.columns(); ++j) {
+            std::swap(a[{i, j}], b[{i, j}]);
+        }
+    }
+}
+
 // -- evaluate a matrix expression using vectorization
 template <typename E>
 std::enable_if_t<vectorizable_v<decltype(simplify(std::declval<E>()))>> evaluate(const MatrixExpression<E>& expression, Matrix<scalar_type_t<E>>& dst) {
+    assert_eq(expression.size(), dst.size());
     expression_member_t<decltype(simplify(expression))> expr = simplify(expression);
 
     using T = scalar_type_t<E>;
@@ -119,6 +144,13 @@ template <typename T, bool C>
 template <typename E>
 void RefSubMatrix<T, C>::evaluate(const MatrixExpression<E>& mat) {
     detail::evaluate(mat, *this);
+}
+
+template <typename T, bool C>
+template <typename E2, bool C2>
+void RefSubMatrix<T, C>::swap(RefSubMatrix<E2, C2> other) {
+    assert_eq(size(), other.size());
+    detail::swap(*this, other);
 }
 
 } // end namespace impl

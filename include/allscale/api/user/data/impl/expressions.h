@@ -1250,16 +1250,10 @@ public:
         eye();
     }
 
+    // -- defined in evaluate.h
     template <typename E2, bool C2>
-    void swap(RefSubMatrix<E2, C2> other) {
-        assert_eq(size(), other.size());
+    void swap(RefSubMatrix<E2, C2> other);
 
-        algorithm::pfor(size(), [&](const auto& pos) {
-            T tmp = (*this)[pos];
-            (*this)[pos] = other[pos];
-            other[pos] = tmp;
-        });
-    }
     template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
         return simd_type(&operator[](p), align{});
