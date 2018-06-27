@@ -174,7 +174,7 @@ struct vectorizable<ElementMatrixMultiplication<E1, E2>>
                                std::is_arithmetic<scalar_type_t<ElementMatrixMultiplication<E1, E2>>>::value> {};
 
 template <typename T>
-struct vectorizable<EvaluatedExpression<T>> : public std::true_type {};
+struct vectorizable<EvaluatedExpression<T>> : public std::is_arithmetic<T> {};
 
 template <typename E>
 struct vectorizable<MatrixNegation<E>> : public vectorizable<E> {};
@@ -195,7 +195,7 @@ template <typename T>
 struct vectorizable<Matrix<T>> : public std::is_arithmetic<T> {};
 
 template <typename E1, typename E2>
-struct vectorizable<MatrixMultiplication<E1, E2>> : public std::is_arithmetic<scalar_type_t<MatrixMultiplication<E1, E2>>> {};
+struct vectorizable<MatrixMultiplication<E1, E2>> : public std::false_type {};
 
 template <typename E>
 struct vectorizable<PermutationMatrix<E>> : public std::false_type {};

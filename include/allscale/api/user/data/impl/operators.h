@@ -41,17 +41,10 @@ Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
     return u;
 }
 
-template <typename T, typename E>
-RefSubMatrix<T, true> operator-=(RefSubMatrix<T, true> u, const MatrixExpression<E>& v) {
+template <typename T, typename E, bool C>
+RefSubMatrix<T, C> operator-=(RefSubMatrix<T, C> u, const MatrixExpression<E>& v) {
     // TODO: handle aliasing
-    detail::evaluate(MatrixSubtraction<RefSubMatrix<T, true>, E>(u, v), u);
-    return u;
-}
-
-template <typename T, typename E>
-RefSubMatrix<T, false> operator-=(RefSubMatrix<T, false> u, const MatrixExpression<E>& v) {
-    // TODO: handle aliasing
-    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] -= v[pos]; });
+    detail::evaluate(MatrixSubtraction<RefSubMatrix<T, C>, E>(u, v), u);
     return u;
 }
 

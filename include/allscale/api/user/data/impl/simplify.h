@@ -91,8 +91,12 @@ std::enable_if_t<vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTran
 }
 
 template <typename E>
-std::enable_if_t<!vectorizable_v<E>, MatrixTranspose<E>> simplify(MatrixTranspose<E> e) {
-    return e;
+std::enable_if_t<!vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTranspose<E>>>> simplify(MatrixTranspose<E> e) {
+    Matrix<scalar_type_t<MatrixTranspose<E>>> tmp(e.size());
+
+    algorithm::pfor(e.size(), [&](const auto& pos) { tmp[pos] = e[pos]; });
+
+    return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
 }
 
 template <typename E>
