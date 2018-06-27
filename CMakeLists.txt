@@ -73,6 +73,7 @@ if(COMPILER_SUPPORTS_MARCH_NATIVE)
 endif()
 
 include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 include_directories(SYSTEM ${Vc_INCLUDE_DIR})
 include_directories(SYSTEM ${OpenBLAS_INCLUDE_DIRS})
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
