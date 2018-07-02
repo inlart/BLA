@@ -43,7 +43,7 @@ void swap(RefSubMatrix<T, C> a, RefSubMatrix<T, C> b) {
 // -- evaluate a matrix expression using vectorization
 template <typename E>
 std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
-    assert_eq(expression.size(), dst.size());
+    assert_eq(expr.size(), dst.size());
 
     using T = scalar_type_t<E>;
     using PacketScalar = typename Vc::native_simd<T>;

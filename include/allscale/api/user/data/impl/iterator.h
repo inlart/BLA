@@ -87,6 +87,7 @@ struct Iterator : public std::iterator<std::random_access_iterator_tag, scalar_t
     }
 
     bool operator==(const Iterator& other) const {
+        if(!back_ref || !other.back_ref) return false;
         return std::addressof(expr()) == std::addressof(other.expr()) && pos == other.pos;
     }
 
