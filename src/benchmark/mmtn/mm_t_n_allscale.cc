@@ -19,8 +19,6 @@ static void benchmark_mmtn_allscale(benchmark::State& state) {
     Matrix a({n, n});
     Matrix b({n, n});
 
-    Matrix mult({n, n});
-
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(-1, 1);
@@ -31,7 +29,7 @@ static void benchmark_mmtn_allscale(benchmark::State& state) {
     b.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(mult = a.transpose() * b);
+        benchmark::DoNotOptimize((a.transpose() * b).eval());
     }
 }
 

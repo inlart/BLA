@@ -20,7 +20,6 @@ static void benchmark_add_allscale(benchmark::State& state) {
     Matrix b({n, n});
     Matrix c({n, n});
     Matrix d({n, n});
-    Matrix add({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -34,7 +33,7 @@ static void benchmark_add_allscale(benchmark::State& state) {
     d.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(add = a + b + c + d);
+        benchmark::DoNotOptimize((a + b + c + d).eval());
     }
 }
 

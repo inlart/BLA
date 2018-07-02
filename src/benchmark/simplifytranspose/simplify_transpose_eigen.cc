@@ -18,10 +18,9 @@ static void benchmark_stranspose_eigen(benchmark::State& state) {
 
     MatrixXd a = MatrixXd::Random(n, n);
     MatrixXd b = MatrixXd::Random(n, n);
-    MatrixXd result = MatrixXd::Zero(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(result = a * b.transpose().transpose());
+        benchmark::DoNotOptimize((a * b.transpose().transpose()).eval());
     }
 }
 

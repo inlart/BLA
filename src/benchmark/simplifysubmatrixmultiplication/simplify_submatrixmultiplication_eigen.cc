@@ -18,10 +18,9 @@ static void benchmark_submatrixmultiplication_eigen(benchmark::State& state) {
 
     MatrixXd a = MatrixXd::Random(n, n);
     MatrixXd b = MatrixXd::Random(n, n);
-    MatrixXd mult = MatrixXd::Zero(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(mult = (a * b).block(0, 0, n / 20, n / 20));
+        benchmark::DoNotOptimize(((a * b).block(0, 0, n / 20, n / 20)).eval());
     }
 }
 

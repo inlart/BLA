@@ -18,8 +18,6 @@ static void benchmark_scalarmultiplication_allscale(benchmark::State& state) {
 
     Matrix a({n, n});
 
-    Matrix result({n, n});
-
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(-1, 1);
@@ -29,7 +27,7 @@ static void benchmark_scalarmultiplication_allscale(benchmark::State& state) {
     a.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(result = a * 5 * 6 * 8);
+        benchmark::DoNotOptimize((a * 5 * 6 * 8).eval());
     }
 }
 

@@ -20,10 +20,9 @@ static void benchmark_add_eigen(benchmark::State& state) {
     MatrixXd b = MatrixXd::Random(n, n);
     MatrixXd c = MatrixXd::Random(n, n);
     MatrixXd d = MatrixXd::Random(n, n);
-    MatrixXd add = MatrixXd::Zero(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(add = a + b + c + d);
+        benchmark::DoNotOptimize((a + b + c + d).eval());
     }
 }
 

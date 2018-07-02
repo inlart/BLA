@@ -17,10 +17,9 @@ static void benchmark_scalarmultiplication_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
     MatrixXd a = MatrixXd::Random(n, n);
-    MatrixXd result = MatrixXd::Zero(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(result = a * 5 * 6 * 8);
+        benchmark::DoNotOptimize((a * 5 * 6 * 8).eval());
     }
 }
 

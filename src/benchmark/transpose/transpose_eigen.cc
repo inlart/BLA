@@ -17,10 +17,9 @@ static void benchmark_transpose_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
     MatrixXd a = MatrixXd::Random(n, n);
-    MatrixXd transpose = MatrixXd::Zero(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(transpose = a.transpose());
+        benchmark::DoNotOptimize((a.transpose()).eval());
     }
 }
 

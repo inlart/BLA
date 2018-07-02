@@ -26,7 +26,7 @@ static void benchmark_x_eigen(benchmark::State& state) {
     }
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(b = a + 0.0001 * (b + b * b));
+        benchmark::DoNotOptimize((a + 0.0001 * (b + b * b)).eval());
     }
 }
 

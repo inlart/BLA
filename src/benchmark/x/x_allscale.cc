@@ -22,7 +22,7 @@ static void benchmark_x_allscale(benchmark::State& state) {
     allscale::api::user::algorithm::pfor(b.size(), [&](auto p) { b[p] = (p[0] + p[1] + 1) / (double)(n * n); });
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(b = a + 0.0001 * (b + b * b));
+        benchmark::DoNotOptimize((a + 0.0001 * (b + b * b)).eval());
     }
 }
 

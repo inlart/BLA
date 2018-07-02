@@ -18,10 +18,9 @@ static void benchmark_mm_eigen(benchmark::State& state) {
 
     MatrixXd a = MatrixXd::Random(n, n);
     MatrixXd b = MatrixXd::Random(n, n);
-    MatrixXd mult = MatrixXd::Zero(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(mult = a * b);
+        benchmark::DoNotOptimize((a * b).eval());
     }
 }
 
