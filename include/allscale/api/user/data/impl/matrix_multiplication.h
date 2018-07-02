@@ -346,6 +346,53 @@ void matrix_multiplication_pbblas(Matrix<T>& result, const Matrix<T>& lhs, const
     multiplication_rec(BlockRange{{0, 0}, result.size()}).wait();
 }
 
+// -- parallel blocked blas using pointers
+template <bool transLHS = false, bool transRHS = false, typename T, typename Func>
+void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f, coordinate_type m, coordinate_type n, coordinate_type k, coordinate_type lda, coordinate_type ldb, coordinate_type ldc) {
+//    assert_eq((transLHS ? lhs.rows() : lhs.columns()), (transRHS ? rhs.columns() : rhs.rows()));
+
+//    const auto k = transLHS ? lhs.rows() : lhs.columns();
+
+    const CBLAS_TRANSPOSE tlhs = transLHS ? CblasTrans : CblasNoTrans;
+    const CBLAS_TRANSPOSE trhs = transRHS ? CblasTrans : CblasNoTrans;
+
+    auto blas_multiplication = [&](const BlockRange& r) {
+        assert_ge(r.size, (point_type{0, 0}));
+
+        const point_type l_start = transLHS ? point_type{0, r.start.x} : point_type{r.start.x, 0};
+        const point_type r_start = transRHS ? point_type{r.start.y, 0} : point_type{0, r.start.y};
+
+        f(CblasRowMajor, tlhs, trhs, r.size.x, r.size.y, k, 1.0, lhs + l_start.x * lda + l_start.y, lda, rhs + r_start.x * ldb + r_start.y, ldb, 0.0,
+          result + r.start.x * ldc + r.start.y, ldc);
+    };
+
+    auto multiplication_rec = prec(
+        // base case test
+        [&](const BlockRange& r) { return r.area() <= 128 * 128; },
+        // base case
+        blas_multiplication,
+        core::pick(
+            // parallel recursive split
+            [&](const BlockRange& r, const auto& rec) {
+                auto mid = r.start + r.size / 2;
+
+
+                BlockRange top_left{r.start, mid - r.start};
+                BlockRange top_right{{r.start.x, mid.y}, {mid.x - r.start.x, r.start.y + r.size.y - mid.y}};
+                BlockRange bottom_left{{mid.x, r.start.y}, {r.start.x + r.size.x - mid.x, mid.y - r.start.y}};
+                BlockRange bottom_right{mid, r.start + r.size - mid};
+
+                return core::parallel(core::parallel(rec(top_left), rec(top_right)), core::parallel(rec(bottom_left), rec(bottom_right)));
+            },
+            // BLAS multiplication if no further parallelism can be exploited
+            [&](const BlockRange& r, const auto&) {
+                blas_multiplication(r);
+                return core::done();
+            }));
+
+    multiplication_rec(BlockRange{{0, 0}, {m, n}}).wait();
+}
+
 // -- parallel matrix * matrix multiplication using the Eigen multiplication as base case
 template <typename T>
 void matrix_multiplication_peigen(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
@@ -424,7 +471,7 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
 
 // -- default matrix * matrix multiplication
 template <typename T, typename E1, typename E2>
-void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const MatrixExpression<E2>& rhs) {
+std::enable_if_t<!(direct_or_transpose_v<E1> && direct_or_transpose_v<E2>)> matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const MatrixExpression<E2>& rhs) {
     matrix_multiplication(result, lhs.eval(), rhs.eval());
 }
 
@@ -448,44 +495,20 @@ void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, c
 }
 
 template <typename T>
-void matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+std::enable_if_t<!std::is_same<double, T>::value && ! std::is_same<float, T>::value> matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
     matrix_multiplication_peigen(result, lhs, rhs);
 }
 
 // -- double
-template <>
-void matrix_multiplication(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
-    matrix_multiplication_pbblas<false, false>(result, lhs, rhs, cblas_dgemm);
-}
-
-void matrix_multiplication(Matrix<double>& result, const MatrixTranspose<Matrix<double>>& lhs, const Matrix<double>& rhs) {
-    matrix_multiplication_pbblas<true, false>(result, lhs.getExpression(), rhs, cblas_dgemm);
-}
-
-void matrix_multiplication(Matrix<double>& result, const Matrix<double>& lhs, const MatrixTranspose<Matrix<double>>& rhs) {
-    matrix_multiplication_pbblas<false, true>(result, lhs, rhs.getExpression(), cblas_dgemm);
-}
-
-void matrix_multiplication(Matrix<double>& result, const MatrixTranspose<Matrix<double>>& lhs, const MatrixTranspose<Matrix<double>>& rhs) {
-    matrix_multiplication_pbblas<true, true>(result, lhs.getExpression(), rhs.getExpression(), cblas_dgemm);
+template <typename E1, typename E2>
+std::enable_if_t<direct_or_transpose_v<E1> && direct_or_transpose_v<E2>> matrix_multiplication(Matrix<double>& result, const MatrixExpression<E1>& lhs, const MatrixExpression<E2>& rhs) {
+    matrix_multiplication_pbblas<is_transpose_v<E1>, is_transpose_v<E2>>(&result[{0, 0}], &static_cast<const E1&>(lhs)[{0, 0}], &static_cast<const E2&>(rhs)[{0, 0}], cblas_dgemm, result.rows(), result.columns(), lhs.columns(), static_cast<const E1&>(lhs).stride(), static_cast<const E2&>(rhs).stride(), result.stride());
 }
 
 // -- float
-template <>
-void matrix_multiplication(Matrix<float>& result, const Matrix<float>& lhs, const Matrix<float>& rhs) {
-    matrix_multiplication_pbblas<false, false>(result, lhs, rhs, cblas_sgemm);
-}
-
-void matrix_multiplication(Matrix<float>& result, const MatrixTranspose<Matrix<float>>& lhs, const Matrix<float>& rhs) {
-    matrix_multiplication_pbblas<true, false>(result, lhs.getExpression(), rhs, cblas_sgemm);
-}
-
-void matrix_multiplication(Matrix<float>& result, const Matrix<float>& lhs, const MatrixTranspose<Matrix<float>>& rhs) {
-    matrix_multiplication_pbblas<false, true>(result, lhs, rhs.getExpression(), cblas_sgemm);
-}
-
-void matrix_multiplication(Matrix<float>& result, const MatrixTranspose<Matrix<float>>& lhs, const MatrixTranspose<Matrix<float>>& rhs) {
-    matrix_multiplication_pbblas<true, true>(result, lhs.getExpression(), rhs.getExpression(), cblas_sgemm);
+template <typename E1, typename E2>
+std::enable_if_t<direct_or_transpose_v<E1> && direct_or_transpose_v<E2>> matrix_multiplication(Matrix<float>& result, const MatrixExpression<E1>& lhs, const MatrixExpression<E2>& rhs) {
+    matrix_multiplication_pbblas<is_transpose_v<E1>, is_transpose_v<E2>>(result, lhs.eval(), rhs.eval(), cblas_sgemm);
 }
 
 } // end namespace impl

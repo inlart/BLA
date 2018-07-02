@@ -46,8 +46,8 @@ std::enable_if_t<std::is_same<scalar_type_t<E1>, std::complex<double>>::value, b
 }
 
 TEST(Operation, Multiplication) {
-    Matrix<double> m1({45, 45});
-    Matrix<double> m2({m1.columns(), 45});
+    Matrix<double> m1({169, 45});
+    Matrix<double> m2({m1.columns(), 97});
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(-1, 1);
@@ -56,7 +56,23 @@ TEST(Operation, Multiplication) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual(m1 * m2, Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
+        ASSERT_TRUE(isAlmostEqual((m1 * m2).eval(), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
+    }
+}
+
+
+TEST(Operation, MultiplicationRefSub) {
+    Matrix<double> m1({169, 45});
+    Matrix<double> m2({m1.columns(), 97});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 4; ++i) {
+        m1.fill_seq(g);
+        m2.fill_seq(g);
+        ASSERT_TRUE(isAlmostEqual((m1.sub({{13, 7}, {39, 13}}) * m2.sub({{3, 17}, {13, 27}})).eval(), Matrix<double>((m1.toEigenMatrix().block(13, 7, 39, 13) * m2.toEigenMatrix().block(3, 17, 13, 27)).eval())));
     }
 }
 

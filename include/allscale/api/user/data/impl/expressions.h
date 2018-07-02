@@ -35,11 +35,11 @@ std::enable_if_t<vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<T
     const int packet_size = PacketScalar::size();
     const int aligned_end = total_size / packet_size * packet_size;
 
+    PacketScalar z(static_cast<T2>(value));
+
     algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
         int i = coord[0] * packet_size;
         point_type p{i / dst.columns(), i % dst.columns()};
-
-        PacketScalar z(static_cast<T2>(value));
 
         z.copy_to(&dst[p], alignment_t<PacketScalar>{});
     });
@@ -1051,6 +1051,10 @@ public:
         return *this;
     }
 
+    coordinate_type stride() const {
+        return columns();
+    }
+
 private:
     template <typename E>
     void evaluate(const MatrixExpression<E>&);
@@ -1148,6 +1152,10 @@ public:
 
     BlockRange getBlockRange() const {
         return block_range;
+    }
+
+    coordinate_type stride() const {
+        return expression.stride();
     }
 
 private:
@@ -1257,6 +1265,10 @@ public:
     template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
         return simd_type(&operator[](p), align{});
+    }
+
+    coordinate_type stride() const {
+        return expression.stride();
     }
 
     Exp& getExpression() const {

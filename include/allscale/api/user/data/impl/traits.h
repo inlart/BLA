@@ -247,6 +247,34 @@ struct is_associative<float> : public std::true_type {};
 
 #endif
 
+// -- checks if expression allows direct matrix access
+template <typename E>
+struct direct_access : public std::false_type {};
+
+template <typename T>
+struct direct_access<Matrix<T>> : public std::true_type {};
+
+template <typename T>
+struct direct_access<RefSubMatrix<T>> : public std::true_type {};
+
+template <typename E>
+constexpr bool direct_access_v = direct_access<E>::value;
+
+// -- checks if the expression is a transpose of a matrix
+template <typename E>
+struct is_transpose : public std::false_type {};
+
+template <typename T>
+struct is_transpose<MatrixTranspose<Matrix<T>>> : public std::true_type {};
+
+template <typename E>
+constexpr bool is_transpose_v = is_transpose<E>::value;
+
+template <typename E>
+constexpr bool direct_or_transpose_v = direct_access_v<E> || is_transpose_v<E>;
+
+//TODO: Transpose of RefSubMatrix
+
 template <typename T>
 constexpr bool is_associative_v = is_associative<T>::value;
 

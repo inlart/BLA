@@ -129,6 +129,14 @@ struct type_consistent;
 template <typename Functor, typename T1, typename T2>
 struct operation_result;
 
+// -- checks if E has direct access to the data
+template <typename E>
+struct direct_access;
+
+// -- checks if the expression is a transpose of a matrix
+template <typename E>
+struct is_transpose;
+
 /*
  * Types
  * Defined in types.h
