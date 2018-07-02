@@ -243,7 +243,7 @@ TEST(Operation, MultiplicationFloat) {
         Matrix<float> m3({m1.rows(), m2.columns()});
         m3 = m1 * m2;
 
-        ASSERT_EQ(m3, Matrix<float>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval()));
+        ASSERT_TRUE(isAlmostEqual(m3, Matrix<float>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
     }
 }
 
