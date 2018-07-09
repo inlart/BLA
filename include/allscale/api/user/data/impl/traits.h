@@ -257,6 +257,9 @@ struct direct_access<Matrix<T>> : public std::true_type {};
 template <typename T>
 struct direct_access<RefSubMatrix<T>> : public std::true_type {};
 
+template <typename T>
+struct direct_access<SubMatrix<T>> : public std::true_type {};
+
 template <typename E>
 constexpr bool direct_access_v = direct_access<E>::value;
 
@@ -266,6 +269,12 @@ struct is_transpose : public std::false_type {};
 
 template <typename T>
 struct is_transpose<MatrixTranspose<Matrix<T>>> : public std::true_type {};
+
+template <typename T>
+struct is_transpose<MatrixTranspose<RefSubMatrix<T>>> : public std::true_type {};
+
+template <typename T>
+struct is_transpose<MatrixTranspose<SubMatrix<T>>> : public std::true_type {};
 
 template <typename E>
 constexpr bool is_transpose_v = is_transpose<E>::value;

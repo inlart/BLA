@@ -16,6 +16,7 @@
 #include <array>
 #include <cmath>
 #include <complex>
+#include <type_traits>
 #include <functional>
 
 namespace allscale {
@@ -1132,6 +1133,50 @@ public:
     }
 
     T operator[](const point_type& pos) const {
+        return expression[pos + block_range.start];
+    }
+
+    point_type size() const {
+        return block_range.size;
+    }
+    coordinate_type rows() const {
+        return block_range.size[0];
+    }
+
+    coordinate_type columns() const {
+        return block_range.size[1];
+    }
+
+    Exp getExpression() const {
+        return expression;
+    }
+
+    BlockRange getBlockRange() const {
+        return block_range;
+    }
+
+    coordinate_type stride() const {
+        return expression.stride();
+    }
+
+private:
+    Exp expression;
+    BlockRange block_range;
+};
+
+// TODO: is there a better way to do this?
+template <typename T>
+class SubMatrix<Matrix<T>> : public MatrixExpression<SubMatrix<Matrix<T>>> {
+    using Exp = expression_member_t<Matrix<T>>;
+
+public:
+    SubMatrix(Exp v, BlockRange block_range) : expression(v), block_range(block_range) {
+        assert_ge(block_range.start, (point_type{0, 0}));
+        assert_ge(block_range.size, (point_type{0, 0}));
+        assert_le(block_range.start + block_range.size, expression.size());
+    }
+
+    const T& operator[](const point_type& pos) const {
         return expression[pos + block_range.start];
     }
 
