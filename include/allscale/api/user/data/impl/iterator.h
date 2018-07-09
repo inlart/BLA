@@ -5,6 +5,7 @@
 
 #include "allscale/api/user/data/impl/forward.h"
 
+#include <allscale/utils/assert.h>
 #include <boost/optional.hpp>
 #include <iterator>
 
@@ -28,13 +29,14 @@ struct Iterator : public std::iterator<std::random_access_iterator_tag, scalar_t
     Iterator(const MatrixExpression<E>& m, coordinate_type pos) : back_ref(m), pos(pos) {
     }
 
-    Iterator() : pos(0) {
+    Iterator() : back_ref(), pos(0) {
     }
 
     Iterator(const Iterator&) = default;
     Iterator& operator=(const Iterator&) = default;
 
     T operator*() const {
+        assert_true(back_ref);
         return expr()[pointPos()];
     }
 
