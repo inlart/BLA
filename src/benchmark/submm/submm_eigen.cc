@@ -18,18 +18,11 @@ static void benchmark_submm_eigen(benchmark::State& state) {
 
     MatrixXd a = MatrixXd::Random(n, n);
     MatrixXd b = MatrixXd::Random(n, n);
-    MatrixXd mult = MatrixXd::Zero(n, n);
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> udis(0, n - 1);
-
-    int k = udis(gen);
+    int k = n / 2;
 
     for(auto _ : state) {
         benchmark::DoNotOptimize((a.col(k).tail(n - k - 1) * b.row(k).tail(n - k - 1)).eval());
-//        benchmark::DoNotOptimize(mult.bottomRightCorner(n - k - 1, n - k - 1) -=
-//                a.col(k).tail(n - k - 1) * b.row(k).tail(n - k - 1));
     }
 }
 
