@@ -508,7 +508,7 @@ std::enable_if_t<direct_or_transpose_v<E1> && direct_or_transpose_v<E2>> matrix_
 // -- float
 template <typename E1, typename E2>
 std::enable_if_t<direct_or_transpose_v<E1> && direct_or_transpose_v<E2>> matrix_multiplication(Matrix<float>& result, const MatrixExpression<E1>& lhs, const MatrixExpression<E2>& rhs) {
-    matrix_multiplication_pbblas<is_transpose_v<E1>, is_transpose_v<E2>>(result, lhs.eval(), rhs.eval(), cblas_sgemm);
+    matrix_multiplication_pbblas<is_transpose_v<E1>, is_transpose_v<E2>>(&result[{0, 0}], &static_cast<const E1&>(lhs)[{0, 0}], &static_cast<const E2&>(rhs)[{0, 0}], cblas_sgemm, result.rows(), result.columns(), lhs.columns(), static_cast<const E1&>(lhs).stride(), static_cast<const E2&>(rhs).stride(), result.stride());
 }
 
 } // end namespace impl
