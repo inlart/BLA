@@ -234,7 +234,7 @@ TEST(Operation, MultiplicationFloat) {
     Matrix<float> m2({m1.columns(), 84});
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(1, 10);
+    std::uniform_real_distribution<float> dis(-1, 1);
 
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 4; ++i) {
