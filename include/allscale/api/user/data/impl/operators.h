@@ -39,9 +39,8 @@ template <typename T, typename E>
 RefSubMatrix<T> operator-=(RefSubMatrix<T> u, const MatrixExpression<E>& v) {
     // TODO: handle aliasing
 
-    detail::evaluate_simplify(MatrixSubtraction<RefSubMatrix<T>, E>(u, v), u);
-//    expression_member_t<decltype(simplify(v))> exp = simplify(v);
-//    detail::subtraction_evaluate(exp, u);
+    detail::evaluate_simplify(u - v, u);
+
     return u;
 }
 
