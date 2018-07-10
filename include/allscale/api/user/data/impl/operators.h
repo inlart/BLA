@@ -22,16 +22,9 @@ Matrix<T>& operator+=(Matrix<T>& u, const MatrixExpression<E>& v) {
 }
 
 template <typename T, typename E>
-RefSubMatrix<T, true> operator+=(RefSubMatrix<T, true> u, const MatrixExpression<E>& v) {
+RefSubMatrix<T> operator+=(RefSubMatrix<T> u, const MatrixExpression<E>& v) {
     // TODO: handle aliasing
-    detail::evaluate_simplify(MatrixAddition<RefSubMatrix<T, true>, E>(u, v), u);
-    return u;
-}
-
-template <typename T, typename E>
-RefSubMatrix<T, false> operator+=(RefSubMatrix<T, false> u, const MatrixExpression<E>& v) {
-    // TODO: handle aliasing
-    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] += v[pos]; });
+    detail::evaluate_simplify(MatrixAddition<RefSubMatrix<T>, E>(u, v), u);
     return u;
 }
 
@@ -42,12 +35,13 @@ Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
     return u;
 }
 
-template <typename T, typename E, bool C>
-RefSubMatrix<T, C> operator-=(RefSubMatrix<T, C> u, const MatrixExpression<E>& v) {
+template <typename T, typename E>
+RefSubMatrix<T> operator-=(RefSubMatrix<T> u, const MatrixExpression<E>& v) {
     // TODO: handle aliasing
 
-    expression_member_t<decltype(simplify(v))> exp = simplify(v);
-    detail::subtraction_evaluate(exp, u);
+    detail::evaluate_simplify(MatrixSubtraction<RefSubMatrix<T>, E>(u, v), u);
+//    expression_member_t<decltype(simplify(v))> exp = simplify(v);
+//    detail::subtraction_evaluate(exp, u);
     return u;
 }
 
@@ -93,8 +87,8 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u
     return u;
 }
 
-template <typename T, bool C>
-std::enable_if_t<vectorizable_v<RefSubMatrix<T, C>>, RefSubMatrix<T, C>> operator*=(RefSubMatrix<T, C> u, const T& v) {
+template <typename T>
+std::enable_if_t<vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator*=(RefSubMatrix<T> u, const T& v) {
     using PacketScalar = typename Vc::native_simd<T>;
 
     const int packet_size = PacketScalar::size();
@@ -118,8 +112,8 @@ std::enable_if_t<vectorizable_v<RefSubMatrix<T, C>>, RefSubMatrix<T, C>> operato
     return u;
 }
 
-template <typename T, bool C>
-std::enable_if_t<!vectorizable_v<RefSubMatrix<T, C>>, RefSubMatrix<T, C>> operator*=(RefSubMatrix<T, C> u, const T& v) {
+template <typename T>
+std::enable_if_t<!vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator*=(RefSubMatrix<T> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
 
@@ -159,8 +153,8 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u
     return u;
 }
 
-template <typename T, bool C>
-std::enable_if_t<vectorizable_v<RefSubMatrix<T, C>>, RefSubMatrix<T, C>> operator/=(RefSubMatrix<T, C> u, const T& v) {
+template <typename T>
+std::enable_if_t<vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator/=(RefSubMatrix<T> u, const T& v) {
     using PacketScalar = typename Vc::native_simd<T>;
 
     const int packet_size = PacketScalar::size();
@@ -184,8 +178,8 @@ std::enable_if_t<vectorizable_v<RefSubMatrix<T, C>>, RefSubMatrix<T, C>> operato
     return u;
 }
 
-template <typename T, bool C>
-std::enable_if_t<!vectorizable_v<RefSubMatrix<T, C>>, RefSubMatrix<T, C>> operator/=(RefSubMatrix<T, C> u, const T& v) {
+template <typename T>
+std::enable_if_t<!vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator/=(RefSubMatrix<T> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
 
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });

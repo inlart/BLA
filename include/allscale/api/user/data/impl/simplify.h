@@ -72,9 +72,10 @@ auto simplify(const MatrixExpression<E>& e, Matrix<scalar_type_t<E>>& dst) {
     detail::evaluate(exp, dst);
 }
 
-template <typename E, bool C>
-auto simplify(const MatrixExpression<E>& e, RefSubMatrix<scalar_type_t<E>, C>& dst) {
+template <typename E>
+auto simplify(const MatrixExpression<E>& e, RefSubMatrix<scalar_type_t<E>> dst) {
     expression_member_t<decltype(simplify(e))> exp = simplify(e);
+
     detail::evaluate(exp, dst);
 }
 
@@ -145,8 +146,8 @@ auto simplify(SubMatrix<E> e) {
     return SubMatrix<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
 }
 
-template <typename T, bool C>
-auto simplify(RefSubMatrix<T, C> e) {
+template <typename T>
+auto simplify(RefSubMatrix<T> e) {
     return e;
 }
 
@@ -223,11 +224,12 @@ void evaluate_simplify(const MatrixExpression<E>& expression, Matrix<scalar_type
     simplify(static_cast<const E&>(expression), dst);
 }
 
-template <typename E, bool C>
-void evaluate_simplify(const MatrixExpression<E>& expression, RefSubMatrix<scalar_type_t<E>, C>& dst) {
+template <typename E>
+void evaluate_simplify(const MatrixExpression<E>& expression, RefSubMatrix<scalar_type_t<E>> dst) {
     assert_eq(expression.size(), dst.size());
 
-    simplify(expression, dst);
+    simplify(static_cast<const E&>(expression), dst);
+
 }
 
 template <typename E>
@@ -269,15 +271,15 @@ void Matrix<T>::evaluate(const MatrixExpression<E>& mat) {
     detail::evaluate_simplify(mat, *this);
 }
 
-template <typename T, bool C>
+template <typename T>
 template <typename E>
-void RefSubMatrix<T, C>::evaluate(const MatrixExpression<E>& mat) {
+void RefSubMatrix<T>::evaluate(const MatrixExpression<E>& mat) {
     detail::evaluate_simplify(mat, *this);
 }
 
-template <typename T, bool C>
-template <typename E2, bool C2>
-void RefSubMatrix<T, C>::swap(RefSubMatrix<E2, C2> other) {
+template <typename T>
+template <typename E2>
+void RefSubMatrix<T>::swap(RefSubMatrix<E2> other) {
     assert_eq(size(), other.size());
     detail::swap(*this, other);
 }

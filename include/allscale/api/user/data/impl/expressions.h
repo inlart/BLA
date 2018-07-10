@@ -57,32 +57,26 @@ std::enable_if_t<!vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<
 }
 
 template <typename T1, typename T2>
-void set_value(const T1& value, RefSubMatrix<T2, true>& dst) {
+void set_value(const T1& value, RefSubMatrix<T2>& dst) {
     using PacketScalar = typename Vc::native_simd<T2>;
 
-
-    const int total_size = dst.rows() * dst.columns();
     const int packet_size = PacketScalar::size();
-    const int aligned_end = total_size / packet_size * packet_size;
+    const int caligned_end = dst.columns() / packet_size * packet_size;
 
-    algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
-        int i = coord[0] * packet_size;
-        point_type p{i / dst.columns(), i % dst.columns()};
+    PacketScalar z(static_cast<T2>(value));
 
-        PacketScalar z(static_cast<T2>(value));
-
-        z.copy_to(std::addressof(dst[p]), Vc::flags::element_aligned);
+    algorithm::pfor(point_type{dst.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+        int j = coord.y * packet_size;
+        point_type p{coord.x, j};
+        z.copy_to(&dst[p], Vc::flags::element_aligned);
     });
 
-    for(int i = aligned_end; i < total_size; i++) {
-        point_type p{i / dst.columns(), i % dst.columns()};
-        dst[p] = static_cast<T2>(value);
+    for(int i = 0; i < dst.rows(); ++i) {
+        for(int j = caligned_end; j < dst.columns(); ++j) {
+            point_type p{i, j};
+            dst[p] = static_cast<T2>(value);
+        }
     }
-}
-
-template <typename T1, typename T2>
-void set_value(const T1& value, RefSubMatrix<T2, false>& dst) {
-    algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<T2>(value); });
 }
 
 
@@ -96,17 +90,17 @@ std::complex<T> conj(const std::complex<T>& x) {
     return std::conj(x);
 }
 
-template <bool Contiguous = false, typename E>
+template <typename E>
 auto sub(const MatrixExpression<E>& e, const BlockRange& br) {
     return SubMatrix<E>(e, br);
 }
 
-template <bool Contiguous = false, typename T>
+template <typename T>
 auto sub(Matrix<T>& e, const BlockRange& br) {
-    return RefSubMatrix<T, Contiguous>(e, br);
+    return RefSubMatrix<T>(e, br);
 }
 
-template <bool Contiguous = false, typename T>
+template <typename T>
 auto sub(const RefSubMatrix<T>& e, BlockRange block_range) {
     assert_ge(block_range.start, (point_type{0, 0}));
     assert_le(block_range.start + block_range.size, e.getBlockRange().size);
@@ -114,11 +108,12 @@ auto sub(const RefSubMatrix<T>& e, BlockRange block_range) {
     BlockRange new_range;
     new_range.start = e.getBlockRange().start + block_range.start;
     new_range.size = block_range.size;
-    return RefSubMatrix<T, Contiguous>(e.getExpression(), new_range);
+    return RefSubMatrix<T>(e.getExpression(), new_range);
 }
 
-template <bool Contiguous = false, typename E>
+template <typename E>
 auto sub(const SubMatrix<E>& e, BlockRange block_range) {
+
     assert_ge(block_range.start, (point_type{0, 0}));
     assert_le(block_range.start + block_range.size, e.getBlockRange().size);
 
@@ -140,8 +135,8 @@ auto row(Matrix<T>& e, coordinate_type r) {
     return sub(e, {{r, 0}, {1, e.columns()}});
 }
 
-template <typename T, bool C>
-auto row(const RefSubMatrix<T, C>& e, coordinate_type r) {
+template <typename T>
+auto row(const RefSubMatrix<T>& e, coordinate_type r) {
     assert_lt(r, e.rows());
     return sub(e, {{r, 0}, {1, e.columns()}});
 }
@@ -158,8 +153,8 @@ auto column(Matrix<T>& e, coordinate_type c) {
     return sub(e, {{0, c}, {e.rows(), 1}});
 }
 
-template <typename T, bool C>
-auto column(const RefSubMatrix<T, C>& e, coordinate_type c) {
+template <typename T>
+auto column(const RefSubMatrix<T>& e, coordinate_type c) {
     assert_lt(c, e.columns());
     return sub(e, {{0, c}, {e.rows(), 1}});
 }
@@ -233,19 +228,19 @@ public:
     }
 
     auto rowRange(range_type p) {
-        return detail::sub<false>(impl(), {{p.x, 0}, {p.y, columns()}});
+        return detail::sub(impl(), {{p.x, 0}, {p.y, columns()}});
     }
 
     auto rowRange(range_type p) const {
-        return detail::sub<false>(impl(), {{p.x, 0}, {p.y, columns()}});
+        return detail::sub(impl(), {{p.x, 0}, {p.y, columns()}});
     }
 
     auto columnRange(range_type p) {
-        return detail::sub<false>(impl(), {{0, p.x}, {rows(), p.y}});
+        return detail::sub(impl(), {{0, p.x}, {rows(), p.y}});
     }
 
     auto columnRange(range_type p) const {
-        return detail::sub<false>(impl(), {{0, p.x}, {rows(), p.y}});
+        return detail::sub(impl(), {{0, p.x}, {rows(), p.y}});
     }
 
     auto topRows(coordinate_type row_count) {
@@ -1216,9 +1211,9 @@ private:
     BlockRange block_range;
 };
 
-template <typename T, bool Contiguous>
-class RefSubMatrix : public MatrixExpression<RefSubMatrix<T, Contiguous>> {
-    using typename MatrixExpression<RefSubMatrix<T, Contiguous>>::PacketScalar;
+template <typename T>
+class RefSubMatrix : public MatrixExpression<RefSubMatrix<T>> {
+    using typename MatrixExpression<RefSubMatrix<T>>::PacketScalar;
 
     using Exp = detail::remove_cvref_t<Matrix<T>>;
 
@@ -1312,8 +1307,8 @@ public:
     }
 
     // -- defined in evaluate.h
-    template <typename E2, bool C2>
-    void swap(RefSubMatrix<E2, C2> other);
+    template <typename E2>
+    void swap(RefSubMatrix<E2> other);
 
     template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
