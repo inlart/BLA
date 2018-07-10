@@ -364,7 +364,15 @@ public:
     }
 
     Iterator<E> max_element() const {
-        return iterator_reduce([](const Iterator<E>& a, const Iterator<E>& b) { return (*a < *b) ? b : a; });
+        Iterator<E> max = begin();
+
+        for(auto it = begin(); it != end(); ++it) {
+            if(*it > *max)
+                max = it;
+        }
+
+            return max;
+//        return iterator_reduce([](const Iterator<E>& a, const Iterator<E>& b) { return (*a < *b) ? b : a; });
     }
 
     Iterator<E> min_element() const {
