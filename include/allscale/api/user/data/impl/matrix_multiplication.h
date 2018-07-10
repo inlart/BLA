@@ -368,7 +368,7 @@ void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f,
 
     auto multiplication_rec = prec(
         // base case test
-        [&](const BlockRange& r) { return r.area() <= 128 * 128; },
+        [&](const BlockRange& r) { return r.area() <= 128 * 128 || r.size.x <= 32 || r.size.y <= 32; },
         // base case
         blas_multiplication,
         core::pick(
