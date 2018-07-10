@@ -16,29 +16,25 @@ namespace impl {
 
 template <typename T, typename E>
 Matrix<T>& operator+=(Matrix<T>& u, const MatrixExpression<E>& v) {
-    // TODO: handle aliasing
-    detail::evaluate_simplify(MatrixAddition<Matrix<T>, E>(u, v), u);
+    detail::evaluate_simplify(u + v, u);
     return u;
 }
 
 template <typename T, typename E>
 RefSubMatrix<T> operator+=(RefSubMatrix<T> u, const MatrixExpression<E>& v) {
-    // TODO: handle aliasing
-    detail::evaluate_simplify(MatrixAddition<RefSubMatrix<T>, E>(u, v), u);
+    detail::evaluate_simplify(u + v, u);
     return u;
 }
 
 template <typename T, typename E>
 Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
-    // TODO: handle aliasing
-    detail::evaluate_simplify(MatrixSubtraction<Matrix<T>, E>(u, v), u);
+    detail::evaluate_simplify(u - v, u);
+
     return u;
 }
 
 template <typename T, typename E>
 RefSubMatrix<T> operator-=(RefSubMatrix<T> u, const MatrixExpression<E>& v) {
-    // TODO: handle aliasing
-
     detail::evaluate_simplify(u - v, u);
 
     return u;
