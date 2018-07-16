@@ -287,6 +287,31 @@ TEST(Operation, MultiplicationColumnPermutation) {
     }
 }
 
+TEST(Operation, MultiplicationVectorVector) {
+    const int n = 278;
+    Matrix<double> a({n, n});
+    Matrix<double> b({n, n});
+
+
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&]() { return dis(gen); };
+
+    a.fill_seq(g);
+    b.fill_seq(g);
+
+    Eigen::MatrixXd a_eigen = a.toEigenMatrix();
+    Eigen::MatrixXd b_eigen = b.toEigenMatrix();
+
+    int k = n / 2;
+
+    ASSERT_TRUE(isAlmostEqual((a.column(k).bottomRows(n - k - 1) * b.row(k).bottomColumns(n - k - 1)).eval(), Matrix<double>((a_eigen.col(k).tail(n - k - 1) * b_eigen.row(k).tail(n - k - 1)).eval())));
+
+}
+
 } // end namespace impl
 } // end namespace data
 } // end namespace user
