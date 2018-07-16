@@ -16,7 +16,7 @@ using Eigen::MatrixXd;
 static void benchmark_lud_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
-    MatrixXd a = MatrixXd::Random(n, n);
+    const MatrixXd a = MatrixXd::Random(n, n);
 
     for(auto _ : state) {
         benchmark::DoNotOptimize(a.lu());
