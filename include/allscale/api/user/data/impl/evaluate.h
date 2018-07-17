@@ -16,8 +16,8 @@ namespace impl {
 
 namespace detail {
 
-template <typename T>
-void swap(SubMatrix<Matrix<T>> a, SubMatrix<Matrix<T>> b) {
+template <typename T, bool V1, bool V2>
+void swap(SubMatrix<Matrix<T>, V1> a, SubMatrix<Matrix<T>, V2> b) {
     assert_eq(a.size(), b.size());
     using PacketScalar = typename Vc::native_simd<T>;
 

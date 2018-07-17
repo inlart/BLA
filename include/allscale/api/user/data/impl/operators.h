@@ -20,8 +20,8 @@ Matrix<T>& operator+=(Matrix<T>& u, const MatrixExpression<E>& v) {
     return u;
 }
 
-template <typename T, typename E>
-SubMatrix<Matrix<T>> operator+=(SubMatrix<Matrix<T>> u, const MatrixExpression<E>& v) {
+template <typename T, typename E, bool V>
+SubMatrix<Matrix<T>, V> operator+=(SubMatrix<Matrix<T>, V> u, const MatrixExpression<E>& v) {
     detail::evaluate_simplify(u + v, u);
     return u;
 }
@@ -33,8 +33,8 @@ Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
     return u;
 }
 
-template <typename T, typename E>
-SubMatrix<Matrix<T>> operator-=(SubMatrix<Matrix<T>> u, const MatrixExpression<E>& v) {
+template <typename T, typename E, bool V>
+SubMatrix<Matrix<T>, V> operator-=(SubMatrix<Matrix<T>, V> u, const MatrixExpression<E>& v) {
     detail::evaluate_simplify(u - v, u);
 
     return u;
@@ -82,8 +82,8 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u
     return u;
 }
 
-template <typename T>
-std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator*=(SubMatrix<Matrix<T>> u, const T& v) {
+template <typename T, bool V>
+std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>>> operator*=(SubMatrix<Matrix<T>, V> u, const T& v) {
     using PacketScalar = typename Vc::native_simd<T>;
 
     const int packet_size = PacketScalar::size();
@@ -107,8 +107,8 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> ope
     return u;
 }
 
-template <typename T>
-std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator*=(SubMatrix<Matrix<T>> u, const T& v) {
+template <typename T, bool V>
+std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, V>> operator*=(SubMatrix<Matrix<T>, V> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
 
@@ -148,8 +148,8 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u
     return u;
 }
 
-template <typename T>
-std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator/=(SubMatrix<Matrix<T>> u, const T& v) {
+template <typename T, bool V>
+std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, V>> operator/=(SubMatrix<Matrix<T>, V> u, const T& v) {
     using PacketScalar = typename Vc::native_simd<T>;
 
     const int packet_size = PacketScalar::size();
@@ -173,8 +173,8 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> ope
     return u;
 }
 
-template <typename T>
-std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator/=(SubMatrix<Matrix<T>> u, const T& v) {
+template <typename T, bool V>
+std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, V>> operator/=(SubMatrix<Matrix<T>, V> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
 
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });

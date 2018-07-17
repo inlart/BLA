@@ -48,6 +48,11 @@ auto simplify(MatrixMultiplication<E1, E2> e) {
 }
 
 template <typename E1, typename E2>
+auto simplify(MatrixMultiplication<SubMatrix<E1, true>, SubMatrix<E2, true>> e) {
+    return simplify(e.getLeftExpression()) * simplify(e.getRightExpression());
+}
+
+template <typename E1, typename E2>
 Matrix<scalar_type_t<MatrixMultiplication<E1, E2>>>& simplify(MatrixMultiplication<E1, E2> e, Matrix<scalar_type_t<MatrixMultiplication<E1, E2>>>& m) {
     assert_eq(e.size(), m.size());
 
@@ -134,8 +139,8 @@ auto simplify(ScalarMatrixMultiplication<E, U> e) {
     return ScalarMatrixMultiplication<std::remove_reference_t<decltype(simplify(std::declval<E>()))>, U>(e.getScalar(), simplify(e.getExpression()));
 }
 
-template <typename E>
-auto simplify(SubMatrix<E> e) {
+template <typename E, bool V>
+auto simplify(SubMatrix<E, V> e) {
     return SubMatrix<std::remove_reference_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
 }
 
@@ -259,9 +264,9 @@ void AccessBase<E>::evaluate(const MatrixExpression<E2>& mat) {
 }
 
 
-template <typename T>
-template <typename T2>
-void SubMatrix<Matrix<T>>::swap(SubMatrix<Matrix<T2>> other) {
+template <typename T, bool V>
+template <typename T2, bool V2>
+void SubMatrix<Matrix<T>, V>::swap(SubMatrix<Matrix<T2>, V2> other) {
     assert_eq(size(), other.size());
     detail::swap(*this, other);
 }

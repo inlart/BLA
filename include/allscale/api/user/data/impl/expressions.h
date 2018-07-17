@@ -56,8 +56,8 @@ std::enable_if_t<!vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<
     algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<T2>(value); });
 }
 
-template <typename T1, typename T2>
-void set_value(const T1& value, SubMatrix<Matrix<T2>>& dst) {
+template <typename T1, typename T2, bool V>
+void set_value(const T1& value, SubMatrix<Matrix<T2>, V>& dst) {
     using PacketScalar = typename Vc::native_simd<T2>;
 
     const int packet_size = PacketScalar::size();
@@ -100,39 +100,63 @@ auto sub(Matrix<T>& e, const BlockRange& br) {
     return SubMatrix<Matrix<T>>(e, br);
 }
 
-template <typename E>
-auto sub(const SubMatrix<E>& e, BlockRange block_range) {
+template <typename E, bool V>
+auto sub(const SubMatrix<E, V>& e, BlockRange block_range) {
     assert_ge(block_range.start, (point_type{0, 0}));
     assert_le(block_range.start + block_range.size, e.getBlockRange().size);
 
     BlockRange new_range;
     new_range.start = e.getBlockRange().start + block_range.start;
     new_range.size = block_range.size;
-    return SubMatrix<E>(e.getExpression(), new_range);
+    return SubMatrix<E, V>(e.getExpression(), new_range);
 }
 
 template <typename E>
 auto row(const MatrixExpression<E>& e, coordinate_type r) {
     assert_lt(r, e.rows());
-    return sub(static_cast<const E&>(e), {{r, 0}, {1, e.columns()}});
+    return SubMatrix<E, true>(sub(static_cast<const E&>(e), {{r, 0}, {1, e.columns()}}));
+}
+
+template <typename T>
+auto row(SubMatrix<Matrix<T>> e, coordinate_type r) {
+    assert_lt(r, e.rows());
+    return SubMatrix<Matrix<T>, true>(sub(e, {{r, 0}, {1, e.columns()}}));
 }
 
 template <typename T>
 auto row(Matrix<T>& e, coordinate_type r) {
     assert_lt(r, e.rows());
-    return sub(e, {{r, 0}, {1, e.columns()}});
+    return SubMatrix<Matrix<T>, true>(sub(e, {{r, 0}, {1, e.columns()}}));
+}
+
+template <typename T>
+auto row(const Matrix<T>& e, coordinate_type r) {
+    assert_lt(r, e.rows());
+    return SubMatrix<const Matrix<T>, true>(sub(e, {{r, 0}, {1, e.columns()}}));
 }
 
 template <typename E>
 auto column(const MatrixExpression<E>& e, coordinate_type c) {
     assert_lt(c, e.columns());
-    return sub(static_cast<const E&>(e), {{0, c}, {e.rows(), 1}});
+    return SubMatrix<E, true>(sub(static_cast<const E&>(e), {{0, c}, {e.rows(), 1}}));
+}
+
+template <typename T>
+auto column(SubMatrix<Matrix<T>> e, coordinate_type c) {
+    assert_lt(c, e.columns());
+    return SubMatrix<Matrix<T>, true>(sub(e, {{0, c}, {e.rows(), 1}}));
 }
 
 template <typename T>
 auto column(Matrix<T>& e, coordinate_type c) {
     assert_lt(c, e.columns());
-    return sub(e, {{0, c}, {e.rows(), 1}});
+    return SubMatrix<Matrix<T>, true>(sub(e, {{0, c}, {e.rows(), 1}}));
+}
+
+template <typename T>
+auto column(const Matrix<T>& e, coordinate_type c) {
+    assert_lt(c, e.columns());
+    return SubMatrix<const Matrix<T>, true>(sub(e, {{0, c}, {e.rows(), 1}}));
 }
 
 } // end namespace detail
@@ -1134,17 +1158,23 @@ private:
     int swaps;
 };
 
-template <typename E>
-class SubMatrix : public MatrixExpression<SubMatrix<E>> {
-    using typename MatrixExpression<SubMatrix<E>>::T;
+template <typename E, bool V>
+class SubMatrix : public MatrixExpression<SubMatrix<E, V>> {
+    using typename MatrixExpression<SubMatrix<E, V>>::T;
 
     using Exp = expression_member_t<E>;
 
 public:
+    static constexpr bool is_vector = V;
+
     SubMatrix(Exp v, BlockRange block_range) : expression(v), block_range(block_range) {
         assert_ge(block_range.start, (point_type{0, 0}));
         assert_ge(block_range.size, (point_type{0, 0}));
         assert_le(block_range.start + block_range.size, expression.size());
+    }
+
+    template <bool V2>
+    SubMatrix(SubMatrix<E, V2> sub) : expression(sub.getExpression()), block_range(sub.getBlockRange()) {
     }
 
     T operator[](const point_type& pos) const {
@@ -1180,16 +1210,22 @@ private:
 };
 
 // TODO: is there a better way to do this?
-template <typename T>
-class SubMatrix<const Matrix<T>> : public MatrixExpression<SubMatrix<const Matrix<T>>> {
-    using typename MatrixExpression<SubMatrix<const Matrix<T>>>::PacketScalar;
+template <typename T, bool V>
+class SubMatrix<const Matrix<T>, V> : public MatrixExpression<SubMatrix<const Matrix<T>, V>> {
+    using typename MatrixExpression<SubMatrix<const Matrix<T>, V>>::PacketScalar;
     using Exp = expression_member_t<const Matrix<T>>;
 
 public:
+    static constexpr bool is_vector = V;
+
     SubMatrix(Exp v, BlockRange block_range) : expression(v), block_range(block_range) {
         assert_ge(block_range.start, (point_type{0, 0}));
         assert_ge(block_range.size, (point_type{0, 0}));
         assert_le(block_range.start + block_range.size, expression.size());
+    }
+
+    template <bool V2>
+    SubMatrix(SubMatrix<const Matrix<T>, V2> sub) : expression(sub.getExpression()), block_range(sub.getBlockRange()) {
     }
 
     const T& operator[](const point_type& pos) const {
@@ -1229,12 +1265,14 @@ private:
     BlockRange block_range;
 };
 
-template <typename T>
-class SubMatrix<Matrix<T>> : public AccessBase<SubMatrix<Matrix<T>>> {
-    using typename MatrixExpression<SubMatrix<Matrix<T>>>::PacketScalar;
+template <typename T, bool V>
+class SubMatrix<Matrix<T>, V> : public AccessBase<SubMatrix<Matrix<T>, V>> {
+    using typename MatrixExpression<SubMatrix<Matrix<T>, V>>::PacketScalar;
     using Exp = expression_member_t<Matrix<T>>;
 
 public:
+    static constexpr bool is_vector = V;
+
     SubMatrix(Exp& m) : expression(m), block_range({{0, 0}, {m.size()}}) {
     }
 
@@ -1242,6 +1280,10 @@ public:
         assert_ge(block_range.start, (point_type{0, 0}));
         assert_ge(block_range.size, (point_type{0, 0}));
         assert_le(block_range.start + block_range.size, expression.size());
+    }
+
+    template <bool V2>
+    SubMatrix(SubMatrix<Matrix<T>, V2> sub) : expression(sub.getExpression()), block_range(sub.getBlockRange()) {
     }
 
     template <typename E2>
@@ -1271,8 +1313,8 @@ public:
     }
 
     // -- defined in evaluate.h
-    template <typename T2>
-    void swap(SubMatrix<Matrix<T2>> other);
+    template <typename T2, bool V2>
+    void swap(SubMatrix<Matrix<T2>, V2> other);
 
     template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {

@@ -136,8 +136,8 @@ struct scalar_type<IdentityMatrix<T>> : public detail::set_type<T> {};
 template <typename T>
 struct scalar_type<PermutationMatrix<T>> : public detail::set_type<T> {};
 
-template <typename E>
-struct scalar_type<SubMatrix<E>> : public detail::set_type<typename scalar_type<E>::type> {};
+template <typename E, bool V>
+struct scalar_type<SubMatrix<E, V>> : public detail::set_type<typename scalar_type<E>::type> {};
 
 template <typename Expr>
 using scalar_type_t = typename scalar_type<Expr>::type;
@@ -197,14 +197,14 @@ struct vectorizable<MatrixMultiplication<E1, E2>> : public std::false_type {};
 template <typename E>
 struct vectorizable<PermutationMatrix<E>> : public std::false_type {};
 
-template <typename E>
-struct vectorizable<SubMatrix<E>> : public std::false_type {};
+template <typename E, bool V>
+struct vectorizable<SubMatrix<E, V>> : public std::false_type {};
 
-template <typename T>
-struct vectorizable<SubMatrix<Matrix<T>>> : public std::true_type {};
+template <typename T, bool V>
+struct vectorizable<SubMatrix<Matrix<T>, V>> : public std::true_type {};
 
-template <typename T>
-struct vectorizable<SubMatrix<const Matrix<T>>> : public std::true_type {};
+template <typename T, bool V>
+struct vectorizable<SubMatrix<const Matrix<T>, V>> : public std::true_type {};
 
 template <typename T>
 struct vectorizable<IdentityMatrix<T>> : public std::false_type {};
@@ -271,11 +271,11 @@ struct direct_access : public std::false_type {};
 template <typename T>
 struct direct_access<Matrix<T>> : public std::true_type {};
 
-template <typename T>
-struct direct_access<SubMatrix<Matrix<T>>> : public std::true_type {};
+template <typename T, bool V>
+struct direct_access<SubMatrix<Matrix<T>, V>> : public std::true_type {};
 
-template <typename T>
-struct direct_access<SubMatrix<const Matrix<T>>> : public std::true_type {};
+template <typename T, bool V>
+struct direct_access<SubMatrix<const Matrix<T>, V>> : public std::true_type {};
 
 template <typename E>
 constexpr bool direct_access_v = direct_access<E>::value;
