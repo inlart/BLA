@@ -876,91 +876,52 @@ private:
     Exp expression;
 };
 
-template <typename T>
-class Matrix : public MatrixExpression<Matrix<T>> {
-    using map_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
-    using cmap_type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
+template <typename E>
+class AccessBase : public MatrixExpression<E> {
+    using T = scalar_type_t<E>;
+    using PacketScalar = typename MatrixExpression<E>::PacketScalar;
 
-    using typename MatrixExpression<Matrix<T>>::PacketScalar;
+protected:
+private:
+    E& impl() {
+        return static_cast<E&>(*this);
+    }
+
+    const E& impl() const {
+        return static_cast<const E&>(*this);
+    }
 
 public:
-    Matrix(const point_type& size) : m_data(size) {
-    }
-
-    template <typename E>
-    Matrix(const MatrixExpression<E>& mat) : m_data(mat.size()) {
-        evaluate(mat);
-    }
-
-    template <typename Derived>
-    Matrix(const Eigen::MatrixBase<Derived>& matrix) : m_data({matrix.rows(), matrix.cols()}) {
-        algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = matrix(p.x, p.y); });
-    }
-
-    Matrix(const Matrix& mat) : MatrixExpression<Matrix<T>>(), m_data(mat.size()) {
-        evaluate(mat);
-    }
-
-    Matrix(Matrix&&) = default;
-
-    Matrix& operator=(const Matrix& mat) {
-        evaluate(mat);
-
-        return *this;
-    }
-
-    Matrix& operator=(Matrix&&) = default;
-
-    Matrix& operator=(const T& value) {
-        fill(value);
-        return (*this);
-    }
-
-    template <typename E>
-    Matrix& operator=(MatrixExpression<E> const& mat) {
-        evaluate(mat);
-
-        return *this;
-    }
-
-    T& operator[](const point_type& pos) {
-        return m_data[pos];
-    }
-
-    const T& operator[](const point_type& pos) const {
-        return m_data[pos];
-    }
-
     point_type size() const {
-        return m_data.size();
+        return impl().size();
     }
 
     coordinate_type rows() const {
-        return m_data.size()[0];
+        return impl().rows();
     }
 
     coordinate_type columns() const {
-        return m_data.size()[1];
+        return impl().columns();
     }
 
-    map_type eigenSub(const range_type& r) {
-        return map_type(&m_data[{r.x, 0}], r.y, columns());
+    T& operator[](const point_type& pos) {
+        return impl()[pos];
     }
 
-    cmap_type eigenSub(const range_type& r) const {
-        return cmap_type(&m_data[{r.x, 0}], r.y, columns());
+    const T& operator[](const point_type& pos) const {
+        return impl()[pos];
     }
 
     void fill(const T& value) {
-        detail::set_value(value, *this);
+        detail::set_value(value, static_cast<E&>(*this));
     }
 
     void fill(std::function<T(point_type)> f) {
-        algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = f(p); });
+        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(p); });
     }
 
     void fill(std::function<T()> f) {
-        algorithm::pfor(m_data.size(), [&](const point_type& p) { m_data[p] = f(); });
+        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(); });
     }
 
     void fill_seq(const T& value) {
@@ -1003,6 +964,91 @@ public:
         eye();
     }
 
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
+    simd_type packet(point_type p) const {
+        return simd_type(&operator[](p), align{});
+    }
+
+protected:
+    template <typename E2>
+    void evaluate(const MatrixExpression<E2>&);
+};
+
+template <typename T>
+class Matrix : public AccessBase<Matrix<T>> { // MatrixExpression<Matrix<T>> {
+    using map_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
+    using cmap_type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
+
+    using typename MatrixExpression<Matrix<T>>::PacketScalar;
+
+public:
+    Matrix(const point_type& size) : m_data(size) {
+    }
+
+    template <typename E>
+    Matrix(const MatrixExpression<E>& mat) : m_data(mat.size()) {
+        AccessBase<Matrix<T>>::evaluate(mat);
+    }
+
+    template <typename Derived>
+    Matrix(const Eigen::MatrixBase<Derived>& matrix) : m_data({matrix.rows(), matrix.cols()}) {
+        algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = matrix(p.x, p.y); });
+    }
+
+    Matrix(const Matrix& mat) : m_data(mat.size()) {
+        AccessBase<Matrix<T>>::evaluate(mat);
+    }
+
+    Matrix(Matrix&&) = default;
+
+    Matrix& operator=(const Matrix& mat) {
+        AccessBase<Matrix<T>>::evaluate(mat);
+
+        return *this;
+    }
+
+    template <typename E2>
+    Matrix& operator=(const MatrixExpression<E2>& mat) {
+        AccessBase<Matrix<T>>::evaluate(mat);
+
+        return *this;
+    }
+
+    Matrix& operator=(Matrix&&) = default;
+
+    Matrix& operator=(const T& value) {
+        fill(value);
+        return (*this);
+    }
+
+    T& operator[](const point_type& pos) {
+        return m_data[pos];
+    }
+
+    const T& operator[](const point_type& pos) const {
+        return m_data[pos];
+    }
+
+    point_type size() const {
+        return m_data.size();
+    }
+
+    coordinate_type rows() const {
+        return m_data.size()[0];
+    }
+
+    coordinate_type columns() const {
+        return m_data.size()[1];
+    }
+
+    map_type eigenSub(const range_type& r) {
+        return map_type(&m_data[{r.x, 0}], r.y, columns());
+    }
+
+    cmap_type eigenSub(const range_type& r) const {
+        return cmap_type(&m_data[{r.x, 0}], r.y, columns());
+    }
+
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> toEigenMatrix() {
         Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> result(rows(), columns());
         algorithm::pfor(size(), [&](const point_type& p) { result(p.x, p.y) = m_data[p]; });
@@ -1017,11 +1063,6 @@ public:
         return eigenSub({0, rows()});
     }
 
-    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
-    simd_type packet(point_type p) const {
-        return simd_type(&operator[](p), align{});
-    }
-
     const Matrix<T>& eval() const {
         return *this;
     }
@@ -1034,9 +1075,6 @@ public:
     }
 
 private:
-    template <typename E>
-    void evaluate(const MatrixExpression<E>&);
-
     data::Grid<T, 2> m_data;
 };
 
@@ -1192,7 +1230,7 @@ private:
 };
 
 template <typename T>
-class SubMatrix<Matrix<T>> : public MatrixExpression<SubMatrix<Matrix<T>>> {
+class SubMatrix<Matrix<T>> : public AccessBase<SubMatrix<Matrix<T>>> {
     using typename MatrixExpression<SubMatrix<Matrix<T>>>::PacketScalar;
     using Exp = expression_member_t<Matrix<T>>;
 
@@ -1206,10 +1244,9 @@ public:
         assert_le(block_range.start + block_range.size, expression.size());
     }
 
-    template <typename E>
-    SubMatrix& operator=(const MatrixExpression<E>& exp) {
-        assert_eq(size(), exp.size());
-        evaluate(exp);
+    template <typename E2>
+    SubMatrix<Matrix<T>>& operator=(const MatrixExpression<E2>& mat) {
+        AccessBase<SubMatrix<Matrix<T>>>::evaluate(mat);
 
         return *this;
     }
@@ -1231,58 +1268,6 @@ public:
 
     coordinate_type columns() const {
         return block_range.size[1];
-    }
-
-    void fill(const T& value) {
-        detail::set_value(value, *this);
-    }
-
-    void fill(std::function<T(point_type)> f) {
-        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(p); });
-    }
-
-    void fill(std::function<T()> f) {
-        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(); });
-    }
-
-    void fill_seq(const T& value) {
-        using ct = coordinate_type;
-        for(ct i = 0; i < rows(); ++i) {
-            for(ct j = 0; j < columns(); ++j) {
-                (*this)[{i, j}] = value;
-            }
-        }
-    }
-
-    void fill_seq(std::function<T(point_type)> f) {
-        using ct = coordinate_type;
-        for(ct i = 0; i < rows(); ++i) {
-            for(ct j = 0; j < columns(); ++j) {
-                (*this)[{i, j}] = f(point_type{i, j});
-            }
-        }
-    }
-
-    void fill_seq(std::function<T()> f) {
-        using ct = coordinate_type;
-        for(ct i = 0; i < rows(); ++i) {
-            for(ct j = 0; j < columns(); ++j) {
-                (*this)[{i, j}] = f();
-            }
-        }
-    }
-
-    void zero() {
-        fill(static_cast<T>(0));
-    }
-
-    void eye() {
-        fill([](const auto& pos) { return pos.x == pos.y ? static_cast<T>(1) : static_cast<T>(0); });
-    }
-
-    void identity() {
-        assert_eq(rows(), columns());
-        eye();
     }
 
     // -- defined in evaluate.h
@@ -1307,9 +1292,6 @@ public:
     }
 
 private:
-    template <typename E>
-    void evaluate(const MatrixExpression<E>&);
-
     Exp expression;
     BlockRange block_range;
 };

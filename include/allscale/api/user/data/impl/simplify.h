@@ -252,17 +252,12 @@ auto MatrixExpression<E>::eval() const -> detail::eval_return_t<std::remove_refe
     return detail::eval(impl());
 }
 
-template <typename T>
 template <typename E>
-void Matrix<T>::evaluate(const MatrixExpression<E>& mat) {
-    detail::evaluate_simplify(mat, *this);
+template <typename E2>
+void AccessBase<E>::evaluate(const MatrixExpression<E2>& mat) {
+    detail::evaluate_simplify(mat, static_cast<E&>(*this));
 }
 
-template <typename T>
-template <typename E>
-void SubMatrix<Matrix<T>>::evaluate(const MatrixExpression<E>& mat) {
-    detail::evaluate_simplify(mat, *this);
-}
 
 template <typename T>
 template <typename T2>
