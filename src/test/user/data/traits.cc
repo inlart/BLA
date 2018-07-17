@@ -92,13 +92,15 @@ TEST(Vectorizable, RefSubMatrix) {
         auto refsub = m1.row(2);
         auto sub = m2.row(2);
 
+        ASSERT_FALSE((std::is_same<decltype(refsub), decltype(sub)>::value));
+
         ASSERT_TRUE(vectorizable_v<decltype(refsub)>);
-        ASSERT_FALSE(vectorizable_v<decltype(sub)>);
+        ASSERT_TRUE(vectorizable_v<decltype(sub)>);
 
         ASSERT_TRUE(isAlmostEqual((m1.row(2) + m1.row(3)).eval(), (m2.row(2) + m2.row(3)).eval()));
 
         ASSERT_TRUE(vectorizable_v<decltype(m1.row(2) + m1.row(3))>);
-        ASSERT_FALSE(vectorizable_v<decltype(m2.row(2) + m2.row(3))>);
+        ASSERT_TRUE(vectorizable_v<decltype(m2.row(2) + m2.row(3))>);
     }
 }
 

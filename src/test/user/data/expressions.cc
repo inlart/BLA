@@ -408,7 +408,7 @@ TEST(Expression, RefSubMatrixConversion) {
 
     algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], 5); });
 
-    RefSubMatrix<int> m2 = m1;
+    SubMatrix<Matrix<int>> m2 = m1;
 
     ASSERT_EQ(m1.size(), m2.size());
 

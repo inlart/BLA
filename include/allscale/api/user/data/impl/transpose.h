@@ -166,8 +166,8 @@ private:
 };
 
 template <typename E>
-MatrixTranspose<E> MatrixExpression<E>::transpose() const {
-    return MatrixTranspose<E>(static_cast<const E&>(*this));
+MatrixTranspose<expression_tree_t<const E>> MatrixExpression<E>::transpose() const {
+    return MatrixTranspose<expression_tree_t<const E>>(static_cast<const E&>(*this));
 }
 
 

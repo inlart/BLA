@@ -16,8 +16,8 @@
 #include <array>
 #include <cmath>
 #include <complex>
-#include <type_traits>
 #include <functional>
+#include <type_traits>
 
 namespace allscale {
 namespace api {
@@ -57,7 +57,7 @@ std::enable_if_t<!vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<
 }
 
 template <typename T1, typename T2>
-void set_value(const T1& value, RefSubMatrix<T2>& dst) {
+void set_value(const T1& value, SubMatrix<Matrix<T2>>& dst) {
     using PacketScalar = typename Vc::native_simd<T2>;
 
     const int packet_size = PacketScalar::size();
@@ -92,28 +92,16 @@ std::complex<T> conj(const std::complex<T>& x) {
 
 template <typename E>
 auto sub(const MatrixExpression<E>& e, const BlockRange& br) {
-    return SubMatrix<E>(e, br);
+    return SubMatrix<expression_tree_t<const E>>(e, br);
 }
 
 template <typename T>
 auto sub(Matrix<T>& e, const BlockRange& br) {
-    return RefSubMatrix<T>(e, br);
-}
-
-template <typename T>
-auto sub(const RefSubMatrix<T>& e, BlockRange block_range) {
-    assert_ge(block_range.start, (point_type{0, 0}));
-    assert_le(block_range.start + block_range.size, e.getBlockRange().size);
-
-    BlockRange new_range;
-    new_range.start = e.getBlockRange().start + block_range.start;
-    new_range.size = block_range.size;
-    return RefSubMatrix<T>(e.getExpression(), new_range);
+    return SubMatrix<Matrix<T>>(e, br);
 }
 
 template <typename E>
 auto sub(const SubMatrix<E>& e, BlockRange block_range) {
-
     assert_ge(block_range.start, (point_type{0, 0}));
     assert_le(block_range.start + block_range.size, e.getBlockRange().size);
 
@@ -126,7 +114,7 @@ auto sub(const SubMatrix<E>& e, BlockRange block_range) {
 template <typename E>
 auto row(const MatrixExpression<E>& e, coordinate_type r) {
     assert_lt(r, e.rows());
-    return sub(e, {{r, 0}, {1, e.columns()}});
+    return sub(static_cast<const E&>(e), {{r, 0}, {1, e.columns()}});
 }
 
 template <typename T>
@@ -135,16 +123,10 @@ auto row(Matrix<T>& e, coordinate_type r) {
     return sub(e, {{r, 0}, {1, e.columns()}});
 }
 
-template <typename T>
-auto row(const RefSubMatrix<T>& e, coordinate_type r) {
-    assert_lt(r, e.rows());
-    return sub(e, {{r, 0}, {1, e.columns()}});
-}
-
 template <typename E>
 auto column(const MatrixExpression<E>& e, coordinate_type c) {
     assert_lt(c, e.columns());
-    return sub(e, {{0, c}, {e.rows(), 1}});
+    return sub(static_cast<const E&>(e), {{0, c}, {e.rows(), 1}});
 }
 
 template <typename T>
@@ -153,19 +135,11 @@ auto column(Matrix<T>& e, coordinate_type c) {
     return sub(e, {{0, c}, {e.rows(), 1}});
 }
 
-template <typename T>
-auto column(const RefSubMatrix<T>& e, coordinate_type c) {
-    assert_lt(c, e.columns());
-    return sub(e, {{0, c}, {e.rows(), 1}});
-}
-
-
 } // end namespace detail
 
 template <typename E>
 class MatrixExpression {
-    static_assert(std::is_same<E, detail::remove_cvref_t<E>>::value, "A MatrixExpression type may not be cv qualified.");
-
+    static_assert(std::is_same<E, std::remove_reference_t<E>>::value, "A MatrixExpression type may not be a reference type.");
 
 public:
     using T = scalar_type_t<E>;
@@ -276,17 +250,17 @@ public:
     }
 
     template <typename E2>
-    ElementMatrixMultiplication<E, E2> product(const MatrixExpression<E2>& e) const {
-        return ElementMatrixMultiplication<E, E2>(impl(), e);
+    ElementMatrixMultiplication<expression_tree_t<const E>, expression_tree_t<const E2>> product(const MatrixExpression<E2>& e) const {
+        return ElementMatrixMultiplication<expression_tree_t<const E>, expression_tree_t<const E2>>(impl(), e);
     }
 
-    MatrixTranspose<E> transpose() const;
+    MatrixTranspose<expression_tree_t<const E>> transpose() const;
 
-    MatrixConjugate<E> conjugate() const {
-        return MatrixConjugate<E>(impl());
+    MatrixConjugate<expression_tree_t<const E>> conjugate() const {
+        return MatrixConjugate<expression_tree_t<const E>>(impl());
     }
 
-    MatrixTranspose<MatrixConjugate<E>> adjoint() const {
+    MatrixTranspose<MatrixConjugate<const E>> adjoint() const {
         return this->conjugate().transpose();
     }
 
@@ -298,8 +272,8 @@ public:
         return detail::sub(impl(), block_range);
     }
 
-    MatrixAbs<E> abs() const {
-        return MatrixAbs<E>(impl());
+    MatrixAbs<expression_tree_t<const E>> abs() const {
+        return MatrixAbs<expression_tree_t<const E>>(impl());
     }
 
     T norm() const {
@@ -366,8 +340,8 @@ public:
                 max = it;
         }
 
-            return max;
-//        return iterator_reduce([](const Iterator<E>& a, const Iterator<E>& b) { return (*a < *b) ? b : a; });
+        return max;
+        //        return iterator_reduce([](const Iterator<E>& a, const Iterator<E>& b) { return (*a < *b) ? b : a; });
     }
 
     Iterator<E> min_element() const {
@@ -1169,8 +1143,9 @@ private:
 
 // TODO: is there a better way to do this?
 template <typename T>
-class SubMatrix<Matrix<T>> : public MatrixExpression<SubMatrix<Matrix<T>>> {
-    using Exp = expression_member_t<Matrix<T>>;
+class SubMatrix<const Matrix<T>> : public MatrixExpression<SubMatrix<const Matrix<T>>> {
+    using typename MatrixExpression<SubMatrix<const Matrix<T>>>::PacketScalar;
+    using Exp = expression_member_t<const Matrix<T>>;
 
 public:
     SubMatrix(Exp v, BlockRange block_range) : expression(v), block_range(block_range) {
@@ -1206,29 +1181,33 @@ public:
         return expression.stride();
     }
 
+    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
+    simd_type packet(point_type p) const {
+        return simd_type(&operator[](p), align{});
+    }
+
 private:
     Exp expression;
     BlockRange block_range;
 };
 
 template <typename T>
-class RefSubMatrix : public MatrixExpression<RefSubMatrix<T>> {
-    using typename MatrixExpression<RefSubMatrix<T>>::PacketScalar;
-
-    using Exp = detail::remove_cvref_t<Matrix<T>>;
+class SubMatrix<Matrix<T>> : public MatrixExpression<SubMatrix<Matrix<T>>> {
+    using typename MatrixExpression<SubMatrix<Matrix<T>>>::PacketScalar;
+    using Exp = expression_member_t<Matrix<T>>;
 
 public:
-    RefSubMatrix(Exp& m) : expression(m), block_range({{0, 0}, {m.size()}}) {
+    SubMatrix(Exp& m) : expression(m), block_range({{0, 0}, {m.size()}}) {
     }
 
-    RefSubMatrix(Exp& v, BlockRange block_range) : expression(v), block_range(block_range) {
+    SubMatrix(Exp& v, BlockRange block_range) : expression(v), block_range(block_range) {
         assert_ge(block_range.start, (point_type{0, 0}));
         assert_ge(block_range.size, (point_type{0, 0}));
         assert_le(block_range.start + block_range.size, expression.size());
     }
 
     template <typename E>
-    RefSubMatrix& operator=(const MatrixExpression<E>& exp) {
+    SubMatrix& operator=(const MatrixExpression<E>& exp) {
         assert_eq(size(), exp.size());
         evaluate(exp);
 
@@ -1307,8 +1286,8 @@ public:
     }
 
     // -- defined in evaluate.h
-    template <typename E2>
-    void swap(RefSubMatrix<E2> other);
+    template <typename T2>
+    void swap(SubMatrix<Matrix<T2>> other);
 
     template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
     simd_type packet(point_type p) const {
@@ -1331,8 +1310,7 @@ private:
     template <typename E>
     void evaluate(const MatrixExpression<E>&);
 
-
-    Exp& expression;
+    Exp expression;
     BlockRange block_range;
 };
 

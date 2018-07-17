@@ -56,51 +56,44 @@ Matrix<scalar_type_t<MatrixMultiplication<E1, E2>>>& simplify(MatrixMultiplicati
     return m;
 }
 
-template <typename T>
-const Matrix<T>& simplify(const MatrixExpression<Matrix<T>>& e) {
-    return static_cast<const Matrix<T>&>(e);
-}
-
-template <typename E>
-auto simplify(const MatrixExpression<E>& e) {
-    return simplify(static_cast<const E&>(e));
-}
-
 template <typename E>
 auto simplify(const MatrixExpression<E>& e, Matrix<scalar_type_t<E>>& dst) {
-    expression_member_t<decltype(simplify(e))> exp = simplify(e);
+    const E& mexpr = static_cast<const E&>(e);
+    expression_member_t<decltype(simplify(mexpr))> exp = simplify(mexpr);
     detail::evaluate(exp, dst);
 }
 
 template <typename E>
-auto simplify(const MatrixExpression<E>& e, RefSubMatrix<scalar_type_t<E>> dst) {
-    expression_member_t<decltype(simplify(e))> exp = simplify(e);
+auto simplify(const MatrixExpression<E>& e, SubMatrix<Matrix<scalar_type_t<E>>> dst) {
+    const E& mexpr = static_cast<const E&>(e);
+    expression_member_t<decltype(simplify(mexpr))> exp = simplify(mexpr);
 
     detail::evaluate(exp, dst);
 }
 
 template <typename E1, typename E2>
 auto simplify(MatrixAddition<E1, E2> e) {
-    return MatrixAddition<detail::remove_cvref_t<decltype(simplify(simplify(std::declval<E1>())))>,
-                          detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>(simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
+    return MatrixAddition<std::remove_reference_t<decltype(simplify(simplify(std::declval<E1>())))>,
+                          std::remove_reference_t<decltype(simplify(std::declval<E2>()))>>(simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
 }
 
 template <typename E1, typename E2>
 auto simplify(MatrixSubtraction<E1, E2> e) {
-    return MatrixSubtraction<detail::remove_cvref_t<decltype(simplify(simplify(std::declval<E1>())))>,
-                             detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>(simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
+    return MatrixSubtraction<std::remove_reference_t<decltype(simplify(simplify(std::declval<E1>())))>,
+                             std::remove_reference_t<decltype(simplify(std::declval<E2>()))>>(simplify(e.getLeftExpression()),
+                                                                                              simplify(e.getRightExpression()));
 }
 
 template <typename E1, typename E2>
 auto simplify(ElementMatrixMultiplication<E1, E2> e) {
-    return ElementMatrixMultiplication<detail::remove_cvref_t<decltype(simplify(simplify(std::declval<E1>())))>,
-                                       detail::remove_cvref_t<decltype(simplify(std::declval<E2>()))>>(simplify(e.getLeftExpression()),
-                                                                                                       simplify(e.getRightExpression()));
+    return ElementMatrixMultiplication<std::remove_reference_t<decltype(simplify(simplify(std::declval<E1>())))>,
+                                       std::remove_reference_t<decltype(simplify(std::declval<E2>()))>>(simplify(e.getLeftExpression()),
+                                                                                                        simplify(e.getRightExpression()));
 }
 
 template <typename E>
 auto simplify(MatrixNegation<E> e) {
-    return MatrixNegation<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+    return MatrixNegation<std::remove_reference_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E>
@@ -123,32 +116,27 @@ std::enable_if_t<!vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTra
 
 template <typename E>
 auto simplify(MatrixConjugate<E> e) {
-    return MatrixConjugate<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+    return MatrixConjugate<std::remove_reference_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E>
 auto simplify(MatrixAbs<E> e) {
-    return MatrixAbs<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
+    return MatrixAbs<std::remove_reference_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
 template <typename E, typename U>
 auto simplify(MatrixScalarMultiplication<E, U> e) {
-    return MatrixScalarMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>, U>(simplify(e.getExpression()), e.getScalar());
+    return MatrixScalarMultiplication<std::remove_reference_t<decltype(simplify(std::declval<E>()))>, U>(simplify(e.getExpression()), e.getScalar());
 }
 
 template <typename E, typename U>
 auto simplify(ScalarMatrixMultiplication<E, U> e) {
-    return ScalarMatrixMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>, U>(e.getScalar(), simplify(e.getExpression()));
+    return ScalarMatrixMultiplication<std::remove_reference_t<decltype(simplify(std::declval<E>()))>, U>(e.getScalar(), simplify(e.getExpression()));
 }
 
 template <typename E>
 auto simplify(SubMatrix<E> e) {
-    return SubMatrix<detail::remove_cvref_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
-}
-
-template <typename T>
-auto simplify(RefSubMatrix<T> e) {
-    return e;
+    return SubMatrix<std::remove_reference_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()), e.getBlockRange());
 }
 
 // What we really simplify
@@ -158,18 +146,18 @@ auto simplify(SubMatrix<MatrixMultiplication<E1, E2>> e) {
     BlockRange left({range.start.x, 0}, {range.size.x, e.getExpression().getLeftExpression().columns()});
     BlockRange right({0, range.start.y}, {e.getExpression().getRightExpression().rows(), range.size.y});
 
-    return MatrixMultiplication<detail::remove_cvref_t<decltype(simplify(std::declval<SubMatrix<E1>>()))>,
-                                detail::remove_cvref_t<decltype(simplify(std::declval<SubMatrix<E2>>()))>>(
+    return MatrixMultiplication<std::remove_reference_t<decltype(simplify(std::declval<SubMatrix<E1>>()))>,
+                                std::remove_reference_t<decltype(simplify(std::declval<SubMatrix<E2>>()))>>(
         simplify(e.getExpression().getLeftExpression().sub(left)), simplify(e.getExpression().getRightExpression().sub(right)));
 }
 
 template <typename E>
-expression_member_t<E> simplify(MatrixTranspose<MatrixTranspose<E>> e) {
+expression_member_t<E>& simplify(MatrixTranspose<MatrixTranspose<E>> e) {
     return e.getExpression().getExpression();
 }
 
 template <typename E>
-expression_member_t<E> simplify(MatrixNegation<MatrixNegation<E>> e) {
+expression_member_t<E>& simplify(MatrixNegation<MatrixNegation<E>> e) {
     return e.getExpression().getExpression();
 }
 
@@ -225,11 +213,10 @@ void evaluate_simplify(const MatrixExpression<E>& expression, Matrix<scalar_type
 }
 
 template <typename E>
-void evaluate_simplify(const MatrixExpression<E>& expression, RefSubMatrix<scalar_type_t<E>> dst) {
+void evaluate_simplify(const MatrixExpression<E>& expression, SubMatrix<Matrix<scalar_type_t<E>>> dst) {
     assert_eq(expression.size(), dst.size());
 
     simplify(static_cast<const E&>(expression), dst);
-
 }
 
 template <typename E>
@@ -273,13 +260,13 @@ void Matrix<T>::evaluate(const MatrixExpression<E>& mat) {
 
 template <typename T>
 template <typename E>
-void RefSubMatrix<T>::evaluate(const MatrixExpression<E>& mat) {
+void SubMatrix<Matrix<T>>::evaluate(const MatrixExpression<E>& mat) {
     detail::evaluate_simplify(mat, *this);
 }
 
 template <typename T>
-template <typename E2>
-void RefSubMatrix<T>::swap(RefSubMatrix<E2> other) {
+template <typename T2>
+void SubMatrix<Matrix<T>>::swap(SubMatrix<Matrix<T2>> other) {
     assert_eq(size(), other.size());
     detail::swap(*this, other);
 }

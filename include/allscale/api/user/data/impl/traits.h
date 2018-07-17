@@ -139,9 +139,6 @@ struct scalar_type<PermutationMatrix<T>> : public detail::set_type<T> {};
 template <typename E>
 struct scalar_type<SubMatrix<E>> : public detail::set_type<typename scalar_type<E>::type> {};
 
-template <typename T>
-struct scalar_type<RefSubMatrix<T>> : public detail::set_type<T> {};
-
 template <typename Expr>
 using scalar_type_t = typename scalar_type<Expr>::type;
 
@@ -204,8 +201,10 @@ template <typename E>
 struct vectorizable<SubMatrix<E>> : public std::false_type {};
 
 template <typename T>
-struct vectorizable<RefSubMatrix<T>> : public std::integral_constant<bool, true> {};
+struct vectorizable<SubMatrix<Matrix<T>>> : public std::true_type {};
 
+template <typename T>
+struct vectorizable<SubMatrix<const Matrix<T>>> : public std::true_type {};
 
 template <typename T>
 struct vectorizable<IdentityMatrix<T>> : public std::false_type {};
@@ -217,10 +216,25 @@ template <typename E>
 struct expression_member : public detail::set_type<const E> {};
 
 template <typename T>
-struct expression_member<Matrix<T>> : public detail::set_type<const Matrix<T>&> {};
+struct expression_member<Matrix<T>> : public detail::set_type<Matrix<T>&> {};
+
+template <typename T>
+struct expression_member<const Matrix<T>> : public detail::set_type<const Matrix<T>&> {};
 
 template <typename E>
 using expression_member_t = typename expression_member<E>::type;
+
+template <typename E>
+struct expression_tree : public std::remove_cv<E> {};
+
+template <typename T>
+struct expression_tree<Matrix<T>> : public detail::set_type<Matrix<T>> {};
+
+template <typename T>
+struct expression_tree<const Matrix<T>> : public detail::set_type<const Matrix<T>> {};
+
+template <typename E>
+using expression_tree_t = typename expression_tree<E>::type;
 
 template <typename T>
 struct is_associative : public std::false_type {};
@@ -247,6 +261,9 @@ struct is_associative<float> : public std::true_type {};
 
 #endif
 
+template <typename T>
+constexpr bool is_associative_v = is_associative<T>::value;
+
 // -- checks if expression allows direct matrix access
 template <typename E>
 struct direct_access : public std::false_type {};
@@ -255,10 +272,10 @@ template <typename T>
 struct direct_access<Matrix<T>> : public std::true_type {};
 
 template <typename T>
-struct direct_access<RefSubMatrix<T>> : public std::true_type {};
+struct direct_access<SubMatrix<Matrix<T>>> : public std::true_type {};
 
 template <typename T>
-struct direct_access<SubMatrix<T>> : public std::true_type {};
+struct direct_access<SubMatrix<const Matrix<T>>> : public std::true_type {};
 
 template <typename E>
 constexpr bool direct_access_v = direct_access<E>::value;
@@ -267,25 +284,14 @@ constexpr bool direct_access_v = direct_access<E>::value;
 template <typename E>
 struct is_transpose : public std::false_type {};
 
-template <typename T>
-struct is_transpose<MatrixTranspose<Matrix<T>>> : public std::true_type {};
-
-template <typename T>
-struct is_transpose<MatrixTranspose<RefSubMatrix<T>>> : public std::true_type {};
-
-template <typename T>
-struct is_transpose<MatrixTranspose<SubMatrix<T>>> : public std::true_type {};
+template <typename E>
+struct is_transpose<MatrixTranspose<E>> : public direct_access<E> {};
 
 template <typename E>
 constexpr bool is_transpose_v = is_transpose<E>::value;
 
 template <typename E>
 constexpr bool direct_or_transpose_v = direct_access_v<E> || is_transpose_v<E>;
-
-//TODO: Transpose of RefSubMatrix
-
-template <typename T>
-constexpr bool is_associative_v = is_associative<T>::value;
 
 template <typename F, typename T>
 struct type_consistent : public std::is_same<T, operation_result_t<F, T, T>> {};

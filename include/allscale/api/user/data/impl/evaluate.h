@@ -17,7 +17,7 @@ namespace impl {
 namespace detail {
 
 template <typename T>
-void swap(RefSubMatrix<T> a, RefSubMatrix<T> b) {
+void swap(SubMatrix<Matrix<T>> a, SubMatrix<Matrix<T>> b) {
     assert_eq(a.size(), b.size());
     using PacketScalar = typename Vc::native_simd<T>;
 
@@ -71,7 +71,7 @@ std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, M
 }
 
 template <typename E>
-std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, RefSubMatrix<scalar_type_t<E>> dst) {
+std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>> dst) {
     using T = scalar_type_t<E>;
     using PacketScalar = typename Vc::native_simd<T>;
 
@@ -92,7 +92,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Re
 }
 
 template <typename E>
-std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, RefSubMatrix<scalar_type_t<E>> dst) {
+std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>> dst) {
     algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 

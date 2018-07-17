@@ -68,10 +68,6 @@ class Matrix;
 template <typename E>
 class SubMatrix;
 
-// -- Represents a part of a Matrix
-template <typename T>
-class RefSubMatrix;
-
 // -- Represents an identity matrix
 template <typename T>
 class IdentityMatrix;

@@ -21,7 +21,7 @@ Matrix<T>& operator+=(Matrix<T>& u, const MatrixExpression<E>& v) {
 }
 
 template <typename T, typename E>
-RefSubMatrix<T> operator+=(RefSubMatrix<T> u, const MatrixExpression<E>& v) {
+SubMatrix<Matrix<T>> operator+=(SubMatrix<Matrix<T>> u, const MatrixExpression<E>& v) {
     detail::evaluate_simplify(u + v, u);
     return u;
 }
@@ -34,7 +34,7 @@ Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
 }
 
 template <typename T, typename E>
-RefSubMatrix<T> operator-=(RefSubMatrix<T> u, const MatrixExpression<E>& v) {
+SubMatrix<Matrix<T>> operator-=(SubMatrix<Matrix<T>> u, const MatrixExpression<E>& v) {
     detail::evaluate_simplify(u - v, u);
 
     return u;
@@ -83,7 +83,7 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u
 }
 
 template <typename T>
-std::enable_if_t<vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator*=(RefSubMatrix<T> u, const T& v) {
+std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator*=(SubMatrix<Matrix<T>> u, const T& v) {
     using PacketScalar = typename Vc::native_simd<T>;
 
     const int packet_size = PacketScalar::size();
@@ -108,7 +108,7 @@ std::enable_if_t<vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator*=(Re
 }
 
 template <typename T>
-std::enable_if_t<!vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator*=(RefSubMatrix<T> u, const T& v) {
+std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator*=(SubMatrix<Matrix<T>> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
 
@@ -149,7 +149,7 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u
 }
 
 template <typename T>
-std::enable_if_t<vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator/=(RefSubMatrix<T> u, const T& v) {
+std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator/=(SubMatrix<Matrix<T>> u, const T& v) {
     using PacketScalar = typename Vc::native_simd<T>;
 
     const int packet_size = PacketScalar::size();
@@ -174,7 +174,7 @@ std::enable_if_t<vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator/=(Re
 }
 
 template <typename T>
-std::enable_if_t<!vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator/=(RefSubMatrix<T> u, const T& v) {
+std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator/=(SubMatrix<Matrix<T>> u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
 
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
@@ -185,38 +185,40 @@ std::enable_if_t<!vectorizable_v<RefSubMatrix<T>>, RefSubMatrix<T>> operator/=(R
 
 // -- matrix matrix addition
 template <typename E1, typename E2>
-MatrixAddition<E1, E2> const operator+(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
-    return MatrixAddition<E1, E2>(u, v);
+MatrixAddition<expression_tree_t<const E1>, expression_tree_t<const E2>> const operator+(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
+    return MatrixAddition<expression_tree_t<const E1>, expression_tree_t<const E2>>(u, v);
 }
 
 // -- matrix matrix subtraction
 template <typename E1, typename E2>
-MatrixSubtraction<E1, E2> const operator-(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
-    return MatrixSubtraction<E1, E2>(u, v);
+MatrixSubtraction<expression_tree_t<const E1>, expression_tree_t<const E2>> const operator-(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
+    return MatrixSubtraction<expression_tree_t<const E1>, expression_tree_t<const E2>>(u, v);
 }
 
 // -- matrix negation
 template <typename E>
-MatrixNegation<E> const operator-(const MatrixExpression<E>& e) {
-    return MatrixNegation<E>(e);
+MatrixNegation<expression_tree_t<const E>> const operator-(const MatrixExpression<E>& e) {
+    return MatrixNegation<expression_tree_t<const E>>(e);
 }
 
 // -- scalar * matrix multiplication
 // Note: without the std::enable_if a matrix * matrix multiplication would be ambiguous
 template <typename E, typename U>
-std::enable_if_t<!std::is_base_of<MatrixExpression<U>, U>::value, ScalarMatrixMultiplication<E, U>> operator*(const U& u, const MatrixExpression<E>& v) {
-    return ScalarMatrixMultiplication<E, U>(u, v);
+std::enable_if_t<!std::is_base_of<MatrixExpression<U>, U>::value, ScalarMatrixMultiplication<expression_tree_t<const E>, U>>
+operator*(const U& u, const MatrixExpression<E>& v) {
+    return ScalarMatrixMultiplication<expression_tree_t<const E>, U>(u, v);
 }
 
 template <typename E, typename U>
-std::enable_if_t<!std::is_base_of<MatrixExpression<U>, U>::value, MatrixScalarMultiplication<E, U>> operator*(const MatrixExpression<E>& v, const U& u) {
-    return MatrixScalarMultiplication<E, U>(v, u);
+std::enable_if_t<!std::is_base_of<MatrixExpression<U>, U>::value, MatrixScalarMultiplication<expression_tree_t<const E>, U>>
+operator*(const MatrixExpression<E>& v, const U& u) {
+    return MatrixScalarMultiplication<expression_tree_t<const E>, U>(v, u);
 }
 
 // -- matrix * matrix multiplication
 template <typename E1, typename E2>
-MatrixMultiplication<E1, E2> operator*(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
-    return MatrixMultiplication<E1, E2>(u, v);
+auto operator*(const MatrixExpression<E1>& u, const MatrixExpression<E2>& v) {
+    return MatrixMultiplication<expression_tree_t<const E1>, expression_tree_t<const E2>>(u, v);
 }
 
 template <typename E1, typename E2>
