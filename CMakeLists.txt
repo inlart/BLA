@@ -20,7 +20,7 @@ include(dependencies/pthread)
 find_package(Boost REQUIRED)
 
 #GTest
-add_subdirectory(${PROJECT_SOURCE_DIR}/googletest/googletest)
+include(dependencies/googletest)
 
 set(GTEST_LIBRARIES gtest)
 set(GTEST_MAIN_LIBRARIES gtest_main)
@@ -33,24 +33,23 @@ find_package(benchmark)
 
 
 #Vc master
-if(EXISTS ${PROJECT_SOURCE_DIR}/Vc)
-  set(Vc_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/Vc)
-  message(STATUS "Vc include dir: ${Vc_INCLUDE_DIR}")
+if(EXISTS ${Vc_INCLUDE_DIR}/Vc)
+  message(STATUS "Vc_INCLUDE_DIR = ${Vc_INCLUDE_DIR}")
 else()
-  message(FATAL_ERROR "Vc submodule not found. Did you clone with \"git clone --recursive <url>\"?")
+  message(FATAL_ERROR "Vc folder not found. Please set \"Vc_INCLUDE_DIR\"=${Vc_INCLUDE_DIR} correctly.")
 endif()
 
 #Eigen 3.3
-if(EXISTS ${PROJECT_SOURCE_DIR}/eigen/Eigen)
-  set(EIGEN3_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/eigen)
+if(EXISTS ${EIGEN3_INCLUDE_DIR}/Eigen)
+  message(STATUS "EIGEN3_INCLUDE_DIR = ${EIGEN3_INCLUDE_DIR}")
 else()
-  message(FATAL_ERROR "Eigen submodule not found. Did you clone with \"git clone --recursive <url>\"?")
+  message(FATAL_ERROR "Eigen3 folder not found. Please set \"EIGEN3_INCLUDE_DIR\"=${EIGEN3_INCLUDE_DIR} correctly.")
 endif()
 
 #OpenBLAS
 find_package(OpenBLAS)
 if(NOT OpenBLAS_FOUND)
-  message(STATUS "Adding OpenBLAS as third party dependency")
+  message(WARNING "Adding OpenBLAS as third party dependency. This will rebuild OpenBLAS each time you clean the build directory.")
   include(dependencies/openblas)
 endif()
 
