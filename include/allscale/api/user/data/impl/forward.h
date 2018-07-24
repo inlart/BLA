@@ -1,5 +1,7 @@
 #pragma once
 
+#include "allscale/api/user/data/impl/types.h"
+
 namespace allscale {
 namespace api {
 namespace user {
@@ -75,6 +77,10 @@ class IdentityMatrix;
 // -- A permutation matrix
 template <typename T>
 class PermutationMatrix;
+
+// -- A view on a Matrix
+template <typename E, ViewType View>
+class MatrixView;
 
 template <typename T>
 class SimdBlock;

@@ -325,6 +325,86 @@ TEST(Expression, PermutationMatrix) {
     });
 }
 
+TEST(Expression, MatrixViewLower) {
+    Matrix<double> m1({23, 45});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 4; ++i) {
+        m1.fill_seq(g);
+
+        algorithm::pfor(m1.size(), [&](const auto& pos) {
+            if(pos.x > pos.y)
+                ASSERT_EQ(m1.view<ViewType::Lower>()[pos], m1[pos]);
+            else
+                ASSERT_EQ(m1.view<ViewType::Lower>()[pos], 0.);
+        });
+    }
+}
+
+TEST(Expression, MatrixViewUnitLower) {
+    Matrix<double> m1({23, 45});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 4; ++i) {
+        m1.fill_seq(g);
+
+        algorithm::pfor(m1.size(), [&](const auto& pos) {
+            if(pos.x > pos.y)
+                ASSERT_EQ(m1.view<ViewType::UnitLower>()[pos], m1[pos]);
+            else if(pos.x == pos.y)
+                ASSERT_EQ(m1.view<ViewType::UnitLower>()[pos], 1.);
+            else
+                ASSERT_EQ(m1.view<ViewType::UnitLower>()[pos], 0.);
+        });
+    }
+}
+
+TEST(Expression, MatrixViewUpper) {
+    Matrix<double> m1({23, 45});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 4; ++i) {
+        m1.fill_seq(g);
+
+        algorithm::pfor(m1.size(), [&](const auto& pos) {
+            if(pos.x < pos.y)
+                ASSERT_EQ(m1.view<ViewType::Upper>()[pos], m1[pos]);
+            else
+                ASSERT_EQ(m1.view<ViewType::Upper>()[pos], 0.);
+        });
+    }
+}
+
+TEST(Expression, MatrixViewUnitUpper) {
+    Matrix<double> m1({23, 45});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 4; ++i) {
+        m1.fill_seq(g);
+
+        algorithm::pfor(m1.size(), [&](const auto& pos) {
+            if(pos.x < pos.y)
+                ASSERT_EQ(m1.view<ViewType::UnitUpper>()[pos], m1[pos]);
+            else if(pos.x == pos.y)
+                ASSERT_EQ(m1.view<ViewType::UnitUpper>()[pos], 1.);
+            else
+                ASSERT_EQ(m1.view<ViewType::UnitUpper>()[pos], 0.);
+        });
+    }
+}
+
 TEST(Expression, SubMatrix) {
     const int n = 8;
     const int nh = n / 2;

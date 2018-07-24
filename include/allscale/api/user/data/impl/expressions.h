@@ -16,3 +16,4 @@
 #include "allscale/api/user/data/impl/expressions/sub.h"
 #include "allscale/api/user/data/impl/expressions/subtraction.h"
 #include "allscale/api/user/data/impl/expressions/transpose.h"
+#include "allscale/api/user/data/impl/expressions/view.h"

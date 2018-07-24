@@ -2,6 +2,7 @@
 
 #include "allscale/api/user/data/impl/expressions/expression.h"
 #include "allscale/api/user/data/impl/forward.h"
+#include "allscale/api/user/data/impl/transpositions.h"
 #include "allscale/api/user/data/impl/types.h"
 
 namespace allscale {
@@ -24,6 +25,20 @@ public:
     }
 
     PermutationMatrix(PermutationMatrix<T>&&) = default;
+
+    PermutationMatrix(const Transpositions& t) : swaps(0) {
+        for(coordinate_type i = 0; i < t.length(); ++i) {
+            swap(i, t[i]);
+        }
+    }
+
+    PermutationMatrix& operator=(const Transpositions& t) {
+        for(coordinate_type i = 0; i < t.length(); ++i) {
+            swap(i, t[i]);
+        }
+
+        return *this;
+    }
 
     T operator[](const point_type& pos) const {
         assert_lt(pos, size());

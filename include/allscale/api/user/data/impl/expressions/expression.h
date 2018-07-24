@@ -293,6 +293,11 @@ public:
         return MatrixAbs<expression_tree_t<const E>>(impl());
     }
 
+    template <ViewType View>
+    MatrixView<expression_tree_t<const E>, View> view() {
+        return MatrixView<expression_tree_t<const E>, View>(impl());
+    }
+
     T norm() const {
         return std::sqrt(product(*this).reduce(0, std::plus<T>{}));
     }

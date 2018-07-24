@@ -33,6 +33,8 @@ struct BlockRange {
     }
 };
 
+enum class ViewType { Lower, UnitLower, Upper, UnitUpper };
+
 } // end namespace impl
 } // end namespace data
 } // end namespace user

@@ -1,10 +1,14 @@
 #pragma once
 
+#include <algorithm>
 #include <allscale/api/user/data/grid.h>
 #include <allscale/utils/assert.h>
+#include <limits>
 
 #include "allscale/api/user/data/impl/expressions.h"
+#include "allscale/api/user/data/impl/forward.h"
 #include "allscale/api/user/data/impl/traits.h"
+#include "allscale/api/user/data/impl/transpositions.h"
 
 namespace allscale {
 namespace api {
@@ -21,8 +25,9 @@ struct LUD {
 
     LUD(const Matrix<T>& A) : P(A.rows()), LU(A) {
         assert_eq(A.rows(), A.columns());
-
-        lu_unblocked();
+        Transpositions t(LU.columns());
+        compute_blocked(LU, t);
+        P = t;
     }
 
     LUD(const LUD<T>&) = delete;
@@ -110,56 +115,118 @@ struct LUD {
     }
 
     // -- Solve A * x = b for x
-    Matrix<T> solve(const Matrix<T>& b) {
-        assert_eq(b.size(), (point_type{LU.rows(), 1}));
+    Matrix<T> solve(SubMatrix<Matrix<T>> b) {
+        assert_eq(b.rows(), LU.columns());
         using ct = coordinate_type;
         Matrix<T> x(b.size());
 
-        for(ct i = 0; i < LU.rows(); ++i) {
-            x[{i, 0}] = b[{P.permutation(i), 0}];
+        // TODO: pfor
+        for(ct ii = 0; ii < x.columns(); ++ii) {
+            for(ct i = 0; i < LU.rows(); ++i) {
+                x[{i, ii}] = b[{P.permutation(i), ii}];
 
-            for(ct k = 0; k < i; ++k) {
-                x[{i, 0}] -= LU[{i, k}] * x[{k, 0}];
+                for(ct k = 0; k < i; ++k) {
+                    x[{i, ii}] -= LU[{i, k}] * x[{k, ii}];
+                }
             }
-        }
+            for(ct i = LU.rows() - 1; i >= 0; --i) {
+                for(ct k = i + 1; k < LU.rows(); ++k) {
+                    x[{i, ii}] -= LU[{i, k}] * x[{k, ii}];
+                }
 
-        for(ct i = LU.rows() - 1; i >= 0; --i) {
-            for(ct k = i + 1; k < LU.rows(); ++k) {
-                x[{i, 0}] -= LU[{i, k}] * x[{k, 0}];
+                x[{i, ii}] /= LU[{i, i}];
             }
-
-            x[{i, 0}] /= LU[{i, i}];
         }
 
         return x;
     }
 
 private:
-    void lu_unblocked() {
+    void compute_unblocked(SubMatrix<Matrix<T>> loup, Transpositions& t) {
         using ct = coordinate_type;
 
-        for(ct k = 0; k < LU.rows(); ++k) {
-            auto it = LU.column(k).bottomRows(LU.rows() - k).abs().max_element();
-            ct max_row = (it - LU.begin()) / LU.columns();
-            max_row += k;
+        const ct size = std::min(loup.rows(), loup.columns());
 
-            P.swap(k, max_row);
+        const ct start_row = loup.getBlockRange().start.x;
+
+
+        for(ct k = 0; k < size; ++k) {
+            auto it = loup.column(k).bottomRows(loup.rows() - k).abs().max_element();
+
+            ct max_row = it - loup.begin();
+
+            max_row += k;
+            t[k + start_row] = max_row + start_row;
             if(*it != 0) {
-                if(k != it - LU.begin()) {
-                    LU.row(k).swap(LU.row(max_row));
+                if(k != max_row) {
+                    loup.row(k).swap(loup.row(max_row));
                 }
 
-                LU.column(k).bottomRows(LU.rows() - k - 1) /= LU[{k, k}];
+                loup.column(k).bottomRows(loup.rows() - k - 1) /= loup[{k, k}];
             }
-            if(k < LU.rows() - 1) {
-                LU.bottomRows(LU.rows() - k - 1).bottomColumns(LU.columns() - k - 1) -=
-                    LU.column(k).bottomRows(LU.rows() - k - 1) * LU.row(k).bottomColumns(LU.columns() - k - 1);
+            if(k < loup.rows() - 1) {
+                loup.bottomRows(loup.rows() - k - 1).bottomColumns(loup.columns() - k - 1) -=
+                    loup.column(k).bottomRows(loup.rows() - k - 1) * loup.row(k).bottomColumns(loup.columns() - k - 1);
             }
         }
     }
 
-    void lu_blocked() {
-        // TODO: implemenet blocked LU decomposition
+    void compute_blocked(SubMatrix<Matrix<T>> loup, Transpositions& t) {
+        using ct = coordinate_type;
+
+        const ct maxBlockSize = 256;
+
+        const ct size = std::min(loup.rows(), loup.columns());
+        const ct rows = loup.rows();
+
+        if(size <= 16) {
+            compute_unblocked(loup, t);
+            return;
+        }
+
+        ct blockSize;
+        blockSize = size / 8;
+        blockSize = (blockSize / 16) * 16;
+        blockSize = std::min(std::max(blockSize, ct(8)), maxBlockSize);
+
+        for(ct k = 0; k < size; k += blockSize) {
+            ct bs = std::min(size - k, blockSize); // actual size of the block
+            ct trows = rows - k - bs;              // trailing rows
+            ct tsize = size - k - bs;              // trailing size
+
+            // partition the matrix:
+            //                          A00 | A01 | A02
+            // lu  = A_0 | A_1 | A_2 =  A10 | A11 | A12
+            //                          A20 | A21 | A22
+            auto A_0 = loup.sub({{0, 0}, {rows, k}});
+            auto A_2 = loup.sub({{0, k + bs}, {rows, tsize}});
+            auto A11 = loup.sub({{k, k}, {bs, bs}});
+            auto A12 = loup.sub({{k, k + bs}, {bs, tsize}});
+            auto A21 = loup.sub({{k + bs, k}, {trows, bs}});
+            auto A22 = loup.sub({{k + bs, k + bs}, {trows, tsize}});
+
+
+            compute_blocked(loup.sub({{k, k}, {trows + bs, bs}}), t);
+
+            // update permutations and apply them to A_0
+            for(ct i = k; i < k + bs; ++i) {
+                A_0.row(i).swap(A_0.row(t[i + loup.getBlockRange().start.x] - loup.getBlockRange().start.x));
+            }
+
+            if(trows) {
+                // apply permutations to A_2
+                for(ct i = k; i < k + bs; ++i) {
+                    A_2.row(i).swap(A_2.row(t[i + loup.getBlockRange().start.x] - loup.getBlockRange().start.x));
+                }
+
+                // TODO: improve this
+                auto x = A11.template view<ViewType::UnitLower>().LUDecomposition();
+                A12 = x.solve(A12);
+                // A12 = A11^-1 A12
+                //                A11.template triangularView<UnitLower>().solveInPlace(A12);
+                A22 -= A21 * A12;
+            }
+        }
     }
 
 private:
@@ -290,8 +357,8 @@ Matrix<scalar_type_t<E>> MatrixExpression<E>::inverse() const {
 }
 
 
-} // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
+} // namespace impl
+} // namespace data
+} // namespace user
+} // namespace api
 } // end namespace allscale

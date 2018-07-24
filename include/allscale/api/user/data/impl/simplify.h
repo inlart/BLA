@@ -101,6 +101,11 @@ auto simplify(MatrixNegation<E> e) {
     return MatrixNegation<std::remove_reference_t<decltype(simplify(std::declval<E>()))>>(simplify(e.getExpression()));
 }
 
+template <typename E, ViewType View>
+auto simplify(MatrixView<E, View> e) {
+    return MatrixView<std::remove_reference_t<decltype(simplify(std::declval<E>()))>, View>(simplify(e.getExpression()));
+}
+
 template <typename E>
 std::enable_if_t<vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTranspose<E>>>> simplify(MatrixTranspose<E> e) {
     Matrix<scalar_type_t<MatrixTranspose<E>>> tmp(e.size());
