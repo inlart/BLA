@@ -64,12 +64,17 @@ TEST(Simplify, Transpose) {
 
     m3 = m1 + m2;
 
-    m4 = simplify(m1 + m2);
+    m4 = m1 + m2;
 
     ASSERT_EQ(m3, m4);
 
-    m3 = m1.transpose().transpose();
+    m3 = (m1.transpose()).eval().transpose();
     m4 = simplify(m1.transpose().transpose());
+
+    ASSERT_EQ(m3, m4);
+
+    m3 = (m1 + m2).transpose().transpose();
+    m4 = m1 + m2;
 
     ASSERT_EQ(m3, m4);
 }
@@ -255,10 +260,6 @@ TEST(Simplify, SubMatrixMultiplication) {
     Matrix<double> result = m1 * m2;
 
     ASSERT_TRUE(isAlmostEqual(result.sub(range), (m1 * m2).sub(range)));
-
-    ASSERT_TRUE((std::is_same<std::decay_t<decltype(static_cast<const Matrix<double>&>(m1).sub(std::declval<BlockRange>())
-                                                    * static_cast<const Matrix<double>&>(m2).sub(std::declval<BlockRange>()))>,
-                              std::decay_t<decltype(simplify((m1 * m2).sub(std::declval<BlockRange>())))>>::value));
 }
 
 } // end namespace impl
