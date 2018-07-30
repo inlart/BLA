@@ -75,6 +75,9 @@ class SubMatrix<const Matrix<T>, V> : public MatrixExpression<SubMatrix<const Ma
 public:
     static constexpr bool is_vector = V;
 
+    SubMatrix(Exp m) : expression(m), block_range({{0, 0}, {m.size()}}) {
+    }
+
     SubMatrix(Exp v, BlockRange block_range) : expression(v), block_range(block_range) {
         assert_ge(block_range.start, (point_type{0, 0}));
         assert_ge(block_range.size, (point_type{0, 0}));

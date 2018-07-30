@@ -32,30 +32,33 @@ using triple_type = GridPoint<3>;
 namespace detail {
 
 template <int Depth = 1024, typename T>
-void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordinate_type size) {
+void strassen_rec(SubMatrix<const Matrix<T>> A, SubMatrix<const Matrix<T>> B, SubMatrix<Matrix<T>> C) {
+    assert_eq(A.size(), B.size());
+    assert_eq(B.size(), C.size());
+
     static_assert(Depth > 0, "strassen depth has to be > 0");
-    if(size <= Depth) {
-        matrix_multiplication(C, A, B);
+    if(A.rows() <= Depth) {
+        C = A * B;
         return;
     }
 
-    coordinate_type m = size / 2;
+    coordinate_type m = A.rows() / 2;
     point_type size_m{m, m};
 
-    const Matrix<T> a11 = A.sub({{0, 0}, size_m});
-    const Matrix<T> a12 = A.sub({{0, m}, size_m});
-    const Matrix<T> a21 = A.sub({{m, 0}, size_m});
-    const Matrix<T> a22 = A.sub({size_m, size_m});
+    SubMatrix<const Matrix<T>> a11 = A.sub({{0, 0}, size_m});
+    SubMatrix<const Matrix<T>> a12 = A.sub({{0, m}, size_m});
+    SubMatrix<const Matrix<T>> a21 = A.sub({{m, 0}, size_m});
+    SubMatrix<const Matrix<T>> a22 = A.sub({size_m, size_m});
 
-    const Matrix<T> b11 = B.sub({{0, 0}, size_m});
-    const Matrix<T> b12 = B.sub({{0, m}, size_m});
-    const Matrix<T> b21 = B.sub({{m, 0}, size_m});
-    const Matrix<T> b22 = B.sub({size_m, size_m});
+    SubMatrix<const Matrix<T>> b11 = B.sub({{0, 0}, size_m});
+    SubMatrix<const Matrix<T>> b12 = B.sub({{0, m}, size_m});
+    SubMatrix<const Matrix<T>> b21 = B.sub({{m, 0}, size_m});
+    SubMatrix<const Matrix<T>> b22 = B.sub({size_m, size_m});
 
-    Matrix<T> c11 = C.sub({{0, 0}, size_m});
-    Matrix<T> c12 = C.sub({{0, m}, size_m});
-    Matrix<T> c21 = C.sub({{m, 0}, size_m});
-    Matrix<T> c22 = C.sub({size_m, size_m});
+    auto c11 = C.sub({{0, 0}, size_m});
+    auto c12 = C.sub({{0, m}, size_m});
+    auto c21 = C.sub({{m, 0}, size_m});
+    auto c22 = C.sub({size_m, size_m});
 
     Matrix<T> u1(size_m);
     Matrix<T> u2(size_m);
@@ -93,19 +96,19 @@ void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordina
     t3 = b22 - b12;
     t4 = t2 - b21;
 
-    auto p1_async = algorithm::async([&]() { strassen_rec(a11, b11, p1, m); });
+    auto p1_async = algorithm::async([&]() { strassen_rec(a11, b11, SubMatrix<Matrix<T>>(p1)); });
 
-    auto p2_async = algorithm::async([&]() { strassen_rec(a12, b21, p2, m); });
+    auto p2_async = algorithm::async([&]() { strassen_rec(a12, b21, SubMatrix<Matrix<T>>(p2)); });
 
-    auto p3_async = algorithm::async([&]() { strassen_rec(s4, b22, p3, m); });
+    auto p3_async = algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s4), b22, SubMatrix<Matrix<T>>(p3)); });
 
-    auto p4_async = algorithm::async([&]() { strassen_rec(a22, t4, p4, m); });
+    auto p4_async = algorithm::async([&]() { strassen_rec(a22, SubMatrix<const Matrix<T>>(t4), SubMatrix<Matrix<T>>(p4)); });
 
-    auto p5_async = algorithm::async([&]() { strassen_rec(s1, t1, p5, m); });
+    auto p5_async = algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s1), SubMatrix<const Matrix<T>>(t1), SubMatrix<Matrix<T>>(p5)); });
 
-    auto p6_async = algorithm::async([&]() { strassen_rec(s2, t2, p6, m); });
+    auto p6_async = algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s2), SubMatrix<const Matrix<T>>(t2), SubMatrix<Matrix<T>>(p6)); });
 
-    auto p7_async = algorithm::async([&]() { strassen_rec(s3, t3, p7, m); });
+    auto p7_async = algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s3), SubMatrix<const Matrix<T>>(t3), SubMatrix<Matrix<T>>(p7)); });
 
     p1_async.wait();
     p2_async.wait();
@@ -124,10 +127,10 @@ void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordina
     u7 = u3 + p5;
 
     algorithm::pfor(size_m, [&](const point_type& p) {
-        C[p] = u1[p];
-        C[{p[0], p[1] + m}] = u5[p];
-        C[{p[0] + m, p[1]}] = u6[p];
-        C[{p[0] + m, p[1] + m}] = u7[p];
+        c11[p] = u1[p];
+        c12[p] = u5[p];
+        c21[p] = u6[p];
+        c22[p] = u7[p];
     });
 }
 
@@ -447,7 +450,7 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
         // no need to resize
         Matrix<T> result(size);
 
-        detail::strassen_rec<Depth>(A, B, result, m);
+        detail::strassen_rec<Depth>(SubMatrix<const Matrix<T>>(A), SubMatrix<const Matrix<T>>(B), SubMatrix<Matrix<T>>(result));
 
         return result;
     } else {
@@ -462,10 +465,11 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
 
         Matrix<T> result_padded(size);
 
-        detail::strassen_rec<Depth>(A_padded, B_padded, result_padded, m);
+        detail::strassen_rec<Depth>(SubMatrix<const Matrix<T>>(A_padded), SubMatrix<const Matrix<T>>(B_padded), SubMatrix<Matrix<T>>(result_padded));
 
         Matrix<T> result({A.rows(), B.columns()});
 
+        // TODO: vectorize
         algorithm::pfor(result.size(), [&](const point_type& p) { result[p] = result_padded[p]; });
 
         return result;
