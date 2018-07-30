@@ -72,7 +72,8 @@ TEST(Operation, MultiplicationRefSub) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual((m1.sub({{13, 7}, {39, 13}}) * m2.sub({{3, 17}, {13, 27}})).eval(), Matrix<double>((m1.toEigenMatrix().block(13, 7, 39, 13) * m2.toEigenMatrix().block(3, 17, 13, 27)).eval())));
+        ASSERT_TRUE(isAlmostEqual((m1.sub({{13, 7}, {39, 13}}) * m2.sub({{3, 17}, {13, 27}})).eval(),
+                                  Matrix<double>((m1.toEigenMatrix().block(13, 7, 39, 13) * m2.toEigenMatrix().block(3, 17, 13, 27)).eval())));
     }
 }
 
@@ -159,8 +160,8 @@ TEST(Operation, AssignMultiplication) {
 }
 
 TEST(Operation, MultiplicationStrassen) {
-    Matrix<double> m1({8, 8});
-    Matrix<double> m2({m1.columns(), 8});
+    Matrix<double> m1({128, 128});
+    Matrix<double> m2({m1.columns(), 128});
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(-1, 1);
@@ -169,7 +170,22 @@ TEST(Operation, MultiplicationStrassen) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual(strassen(m1, m2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
+        ASSERT_TRUE(isAlmostEqual(strassen<1>(m1, m2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
+    }
+}
+
+TEST(Operation, MultiplicationStrassenPadded) {
+    Matrix<double> m1({9, 9});
+    Matrix<double> m2({m1.columns(), 17});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 4; ++i) {
+        m1.fill_seq(g);
+        m2.fill_seq(g);
+        ASSERT_TRUE(isAlmostEqual(strassen<1>(m1, m2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
     }
 }
 
@@ -293,7 +309,6 @@ TEST(Operation, MultiplicationVectorVector) {
     Matrix<double> b({n, n});
 
 
-
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(-1, 1);
@@ -308,8 +323,8 @@ TEST(Operation, MultiplicationVectorVector) {
 
     int k = n / 2;
 
-    ASSERT_TRUE(isAlmostEqual((a.column(k).bottomRows(n - k - 1) * b.row(k).bottomColumns(n - k - 1)).eval(), Matrix<double>((a_eigen.col(k).tail(n - k - 1) * b_eigen.row(k).tail(n - k - 1)).eval())));
-
+    ASSERT_TRUE(isAlmostEqual((a.column(k).bottomRows(n - k - 1) * b.row(k).bottomColumns(n - k - 1)).eval(),
+                              Matrix<double>((a_eigen.col(k).tail(n - k - 1) * b_eigen.row(k).tail(n - k - 1)).eval())));
 }
 
 } // end namespace impl

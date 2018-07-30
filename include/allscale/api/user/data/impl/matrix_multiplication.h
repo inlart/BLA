@@ -458,10 +458,8 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
         Matrix<T> A_padded(size);
         Matrix<T> B_padded(size);
 
-        algorithm::pfor(A.size(), [&](const point_type& p) {
-            A_padded[p] = p[0] < A.rows() && p[1] < A.columns() ? A[p] : 0;
-            B_padded[p] = p[0] < B.rows() && p[1] < B.columns() ? B[p] : 0;
-        });
+        A_padded.sub({{0, 0}, A.size()}) = A;
+        B_padded.sub({{0, 0}, B.size()}) = B;
 
         Matrix<T> result_padded(size);
 
@@ -469,8 +467,7 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
 
         Matrix<T> result({A.rows(), B.columns()});
 
-        // TODO: vectorize
-        algorithm::pfor(result.size(), [&](const point_type& p) { result[p] = result_padded[p]; });
+        result = result_padded.sub({{0, 0}, result.size()});
 
         return result;
     }
