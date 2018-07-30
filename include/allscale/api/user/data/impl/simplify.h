@@ -252,12 +252,12 @@ const Matrix<T>& eval(const Matrix<T>& m) {
 
 
 template <typename E>
-auto MatrixExpression<E>::eval() -> detail::eval_return_t<std::remove_reference_t<decltype(impl())>> {
+auto MatrixExpression<E>::eval() -> eval_return_t<std::remove_reference_t<decltype(impl())>> {
     return detail::eval(impl());
 }
 
 template <typename E>
-auto MatrixExpression<E>::eval() const -> detail::eval_return_t<std::remove_reference_t<decltype(impl())>> {
+auto MatrixExpression<E>::eval() const -> eval_return_t<std::remove_reference_t<decltype(impl())>> {
     return detail::eval(impl());
 }
 

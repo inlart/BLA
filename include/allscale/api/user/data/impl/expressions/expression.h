@@ -380,8 +380,8 @@ public:
     }
 
     // -- defined in evaluate.h
-    auto eval() -> detail::eval_return_t<std::remove_reference_t<decltype(impl())>>;
-    auto eval() const -> detail::eval_return_t<std::remove_reference_t<decltype(impl())>>;
+    auto eval() -> eval_return_t<std::remove_reference_t<decltype(impl())>>;
+    auto eval() const -> eval_return_t<std::remove_reference_t<decltype(impl())>>;
 
     operator E&() {
         return impl();

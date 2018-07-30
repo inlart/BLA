@@ -51,20 +51,7 @@ struct alignment
 template <typename T>
 using alignment_t = typename alignment<T>::type;
 
-template <typename E>
-struct eval_return : set_type<Matrix<typename scalar_type<E>::type>> {};
-
-template <typename T>
-struct eval_return<Matrix<T>> : set_type<Matrix<T>&> {};
-
-template <typename T>
-struct eval_return<const Matrix<T>> : set_type<const Matrix<T>&> {};
-
-template <typename E>
-using eval_return_t = typename eval_return<E>::type;
-
-} // end namespace detail
-
+} // namespace detail
 
 template <typename Functor, typename T1, typename T2>
 struct operation_result : public detail::set_type<decltype(std::declval<Functor>()(std::declval<T1>(), std::declval<T2>()))> {};
@@ -72,175 +59,319 @@ struct operation_result : public detail::set_type<decltype(std::declval<Functor>
 template <typename Functor, typename T1, typename T2>
 using operation_result_t = typename operation_result<Functor, T1, T2>::type;
 
-template <typename Expr>
-struct scalar_type;
+template <typename E>
+struct expression_traits;
 
-template <typename Expr>
-struct scalar_type<const Expr> : public detail::set_type<typename scalar_type<Expr>::type> {};
+template <typename T>
+struct expression_traits<Matrix<T>> {
+    // -- types
+    using scalar_type = T;
+    using eval_return_type = Matrix<T>&;
+    using expression_member_type = Matrix<T>&;
+    using expression_tree_type = Matrix<T>;
 
-template <typename Expr>
-struct scalar_type<volatile Expr> : public detail::set_type<typename scalar_type<Expr>::type> {};
+    // -- values
+    static constexpr bool vectorizable = std::is_arithmetic<T>::value;
+};
 
-template <typename Expr>
-struct scalar_type<const volatile Expr> : public detail::set_type<typename scalar_type<Expr>::type> {};
+template <typename T>
+struct expression_traits<const Matrix<T>> {
+    // -- types
+    using scalar_type = T;
+    using eval_return_type = const Matrix<T>&;
+    using expression_member_type = const Matrix<T>&;
+    using expression_tree_type = const Matrix<T>;
 
-template <typename Expr>
-struct scalar_type<MatrixExpression<Expr>> : public detail::set_type<typename scalar_type<Expr>::type> {};
+    // -- values
+    static constexpr bool vectorizable = std::is_arithmetic<T>::value;
+};
 
 template <typename E1, typename E2>
-struct scalar_type<MatrixAddition<E1, E2>>
-    : public detail::set_type<operation_result_t<std::plus<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>> {};
+struct expression_traits<MatrixAddition<E1, E2>> {
+private:
+    using expr1_t = expression_traits<E1>;
+    using expr2_t = expression_traits<E2>;
+
+public:
+    // -- types
+    using scalar_type = operation_result_t<std::plus<>, typename expr1_t::scalar_type, typename expr2_t::scalar_type>;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = MatrixAddition<E1, E2>;
+    using expression_tree_type = MatrixAddition<E1, E2>;
+
+    // -- values
+    static constexpr bool vectorizable =
+        expr1_t::vectorizable && expr2_t::vectorizable && std::is_same<typename expr1_t::scalar_type, typename expr2_t::scalar_type>::value;
+};
 
 template <typename E1, typename E2>
-struct scalar_type<MatrixSubtraction<E1, E2>>
-    : public detail::set_type<operation_result_t<std::minus<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>> {};
+struct expression_traits<MatrixSubtraction<E1, E2>> {
+private:
+    using expr1_t = expression_traits<E1>;
+    using expr2_t = expression_traits<E2>;
+
+public:
+    // -- types
+    using scalar_type = operation_result_t<std::minus<>, typename expr1_t::scalar_type, typename expr2_t::scalar_type>;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = MatrixSubtraction<E1, E2>;
+    using expression_tree_type = MatrixSubtraction<E1, E2>;
+
+    // -- values
+    static constexpr bool vectorizable =
+        expr1_t::vectorizable && expr2_t::vectorizable && std::is_same<typename expr1_t::scalar_type, typename expr2_t::scalar_type>::value;
+};
 
 template <typename E1, typename E2>
-struct scalar_type<ElementMatrixMultiplication<E1, E2>>
-    : public detail::set_type<operation_result_t<std::multiplies<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>> {};
+struct expression_traits<ElementMatrixMultiplication<E1, E2>> {
+private:
+    using expr1_t = expression_traits<E1>;
+    using expr2_t = expression_traits<E2>;
+
+public:
+    // -- types
+    using scalar_type = operation_result_t<std::multiplies<>, typename expr1_t::scalar_type, typename expr2_t::scalar_type>;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = ElementMatrixMultiplication<E1, E2>;
+    using expression_tree_type = ElementMatrixMultiplication<E1, E2>;
+
+    // -- values
+    static constexpr bool vectorizable =
+        expr1_t::vectorizable && expr2_t::vectorizable && std::is_same<typename expr1_t::scalar_type, typename expr2_t::scalar_type>::value;
+};
 
 template <typename E1, typename E2>
-struct scalar_type<MatrixMultiplication<E1, E2>> {
-    using type = operation_result_t<std::multiplies<>, typename scalar_type<E1>::type, typename scalar_type<E2>::type>;
-    static_assert(std::is_same<operation_result_t<std::plus<>, type, type>, type>::value,
+struct expression_traits<MatrixMultiplication<E1, E2>> {
+private:
+    using expr1_t = expression_traits<E1>;
+    using expr2_t = expression_traits<E2>;
+
+public:
+    // -- types
+    using scalar_type = operation_result_t<std::multiplies<>, typename expr1_t::scalar_type, typename expr2_t::scalar_type>;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = MatrixMultiplication<E1, E2>;
+    using expression_tree_type = MatrixMultiplication<E1, E2>;
+
+    // -- values
+    static constexpr bool vectorizable = false;
+
+    static_assert(std::is_same<operation_result_t<std::plus<>, scalar_type, scalar_type>, scalar_type>::value,
                   "Resulting type of matrix multiplication must yield the same type if added up.");
 };
 
 template <typename T>
-struct scalar_type<EvaluatedExpression<T>> : public detail::set_type<T> {};
+struct expression_traits<EvaluatedExpression<T>> {
+    // -- types
+    using scalar_type = T;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = EvaluatedExpression<T>;
+    using expression_tree_type = EvaluatedExpression<T>;
+
+    // -- values
+    static constexpr bool vectorizable = std::is_arithmetic<scalar_type>::value;
+};
 
 template <typename E>
-struct scalar_type<MatrixNegation<E>> : public detail::set_type<typename scalar_type<E>::type> {};
+struct expression_traits<MatrixNegation<E>> {
+private:
+    using expr_t = expression_traits<E>;
+
+public:
+    // -- types
+    using scalar_type = typename expr_t::scalar_type;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = MatrixNegation<E>;
+    using expression_tree_type = MatrixNegation<E>;
+
+    // -- values
+    static constexpr bool vectorizable = expr_t::vectorizable;
+};
 
 template <typename E>
-struct scalar_type<MatrixTranspose<E>> : public detail::set_type<typename scalar_type<E>::type> {};
+struct expression_traits<MatrixTranspose<E>> {
+private:
+    using expr_t = expression_traits<E>;
+
+public:
+    // -- types
+    using scalar_type = typename expr_t::scalar_type;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = MatrixTranspose<E>;
+    using expression_tree_type = MatrixTranspose<E>;
+
+    // -- values
+    static constexpr bool vectorizable = false;
+};
 
 template <typename E>
-struct scalar_type<MatrixConjugate<E>> : public detail::set_type<typename scalar_type<E>::type> {};
+struct expression_traits<MatrixConjugate<E>> {
+private:
+    using expr_t = expression_traits<E>;
+
+public:
+    // -- types
+    using scalar_type = typename expr_t::scalar_type;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = MatrixConjugate<E>;
+    using expression_tree_type = MatrixConjugate<E>;
+
+    // -- values
+    static constexpr bool vectorizable = false;
+};
 
 template <typename E>
-struct scalar_type<MatrixAbs<E>> : public detail::set_type<typename scalar_type<E>::type> {};
+struct expression_traits<MatrixAbs<E>> {
+private:
+    using expr_t = expression_traits<E>;
+
+public:
+    // -- types
+    using scalar_type = typename expr_t::scalar_type;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = MatrixAbs<E>;
+    using expression_tree_type = MatrixAbs<E>;
+
+    // -- values
+    static constexpr bool vectorizable = expr_t::vectorizable;
+};
 
 template <typename E, typename U>
-struct scalar_type<MatrixScalarMultiplication<E, U>> : public detail::set_type<operation_result_t<std::multiplies<>, typename scalar_type<E>::type, U>> {};
+struct expression_traits<MatrixScalarMultiplication<E, U>> {
+private:
+    using expr_t = expression_traits<E>;
+
+public:
+    // -- types
+    using scalar_type = operation_result_t<std::multiplies<>, typename expr_t::scalar_type, U>;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = MatrixScalarMultiplication<E, U>;
+    using expression_tree_type = MatrixScalarMultiplication<E, U>;
+
+    // -- values
+    static constexpr bool vectorizable = expr_t::vectorizable && std::is_same<typename expr_t::scalar_type, U>::value;
+};
 
 template <typename E, typename U>
-struct scalar_type<ScalarMatrixMultiplication<E, U>> : public detail::set_type<operation_result_t<std::multiplies<>, U, typename scalar_type<E>::type>> {};
+struct expression_traits<ScalarMatrixMultiplication<E, U>> {
+private:
+    using expr_t = expression_traits<E>;
+
+public:
+    // -- types
+    using scalar_type = operation_result_t<std::multiplies<>, U, typename expr_t::scalar_type>;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = ScalarMatrixMultiplication<E, U>;
+    using expression_tree_type = ScalarMatrixMultiplication<E, U>;
+
+    // -- values
+    static constexpr bool vectorizable = expr_t::vectorizable && std::is_same<typename expr_t::scalar_type, U>::value;
+};
 
 template <typename T>
-struct scalar_type<Matrix<T>> : public detail::set_type<T> {};
+struct expression_traits<IdentityMatrix<T>> {
+    // -- types
+    using scalar_type = T;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = IdentityMatrix<T>;
+    using expression_tree_type = IdentityMatrix<T>;
+
+    // -- values
+    static constexpr bool vectorizable = false;
+};
 
 template <typename T>
-struct scalar_type<IdentityMatrix<T>> : public detail::set_type<T> {};
+struct expression_traits<PermutationMatrix<T>> {
+    // -- types
+    using scalar_type = T;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = PermutationMatrix<T>;
+    using expression_tree_type = PermutationMatrix<T>;
 
-template <typename T>
-struct scalar_type<PermutationMatrix<T>> : public detail::set_type<T> {};
+    // -- values
+    static constexpr bool vectorizable = false;
+};
 
 template <typename E, ViewType View>
-struct scalar_type<MatrixView<E, View>> : public scalar_type<E> {};
+struct expression_traits<MatrixView<E, View>> {
+private:
+    using expr_t = expression_traits<E>;
+
+public:
+    // -- types
+    using scalar_type = typename expr_t::scalar_type;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = MatrixView<E, View>;
+    using expression_tree_type = MatrixView<E, View>;
+
+    // -- values
+    static constexpr bool vectorizable = false;
+};
+
+// template <typename E, ViewType View>
+// struct expression_traits<MatrixView<E, View>> {
+// private:
+//    using expr_t = expression_traits<E>;
+//
+// public:
+//    // -- types
+//    using scalar_type = typename expr_t::scalar_type;
+//    using eval_return_type = Matrix<scalar_type>;
+//    using expression_member_type = MatrixView<E, View>;
+//    using expression_tree_type = MatrixView<E, View>;
+//
+//    // -- values
+//    static constexpr bool vectorizable = false;
+//};
 
 template <typename E, bool V>
-struct scalar_type<SubMatrix<E, V>> : public detail::set_type<typename scalar_type<E>::type> {};
+struct expression_traits<SubMatrix<E, V>> {
+private:
+    using expr_t = expression_traits<E>;
 
-template <typename Expr>
-using scalar_type_t = typename scalar_type<Expr>::type;
+public:
+    // -- types
+    using scalar_type = typename expr_t::scalar_type;
+    using eval_return_type = Matrix<scalar_type>;
+    using expression_member_type = SubMatrix<E, V>;
+    using expression_tree_type = SubMatrix<E, V>;
 
-template <typename Expr>
-struct vectorizable : public std::false_type {};
-
-template <typename Expr>
-struct vectorizable<const Expr> : vectorizable<Expr> {};
-
-template <typename Expr>
-struct vectorizable<volatile Expr> : vectorizable<Expr> {};
-
-template <typename Expr>
-struct vectorizable<const volatile Expr> : vectorizable<Expr> {};
+    // -- values
+    static constexpr bool vectorizable = expr_t::vectorizable;
+};
 
 template <typename E>
-struct vectorizable<MatrixExpression<E>> : public vectorizable<E> {};
-
-template <typename E1, typename E2>
-struct vectorizable<MatrixAddition<E1, E2>>
-    : public detail::and_value<vectorizable<E1>::value, vectorizable<E2>::value, std::is_arithmetic<scalar_type_t<MatrixAddition<E1, E2>>>::value> {};
-
-template <typename E1, typename E2>
-struct vectorizable<MatrixSubtraction<E1, E2>>
-    : public detail::and_value<vectorizable<E1>::value, vectorizable<E2>::value, std::is_arithmetic<scalar_type_t<MatrixSubtraction<E1, E2>>>::value> {};
-
-template <typename E1, typename E2>
-struct vectorizable<ElementMatrixMultiplication<E1, E2>>
-    : public detail::and_value<vectorizable<E1>::value, vectorizable<E2>::value,
-                               std::is_arithmetic<scalar_type_t<ElementMatrixMultiplication<E1, E2>>>::value> {};
-
-template <typename T>
-struct vectorizable<EvaluatedExpression<T>> : public std::is_arithmetic<T> {};
+struct expression_traits<const MatrixExpression<E>> : public expression_traits<MatrixExpression<E>> {};
 
 template <typename E>
-struct vectorizable<MatrixNegation<E>> : public vectorizable<E> {};
+struct expression_traits<const E> : public expression_traits<E> {};
 
 template <typename E>
-struct vectorizable<MatrixTranspose<E>> : public std::false_type {};
+struct expression_traits<volatile E> : public expression_traits<E> {};
 
 template <typename E>
-struct vectorizable<MatrixConjugate<E>> : public std::false_type {};
+struct expression_traits<const volatile E> : public expression_traits<E> {};
 
 template <typename E>
-struct vectorizable<MatrixAbs<E>> : public vectorizable<E> {};
-
-template <typename E, typename U>
-struct vectorizable<MatrixScalarMultiplication<E, U>> : public detail::and_value<vectorizable<E>::value, std::is_same<scalar_type_t<E>, U>::value> {};
-
-template <typename T>
-struct vectorizable<Matrix<T>> : public std::is_arithmetic<T> {};
-
-template <typename E1, typename E2>
-struct vectorizable<MatrixMultiplication<E1, E2>> : public std::false_type {};
+struct expression_traits<E&> : public expression_traits<E> {};
 
 template <typename E>
-struct vectorizable<PermutationMatrix<E>> : public std::false_type {};
-
-template <typename E, ViewType View>
-struct vectorizable<MatrixView<E, View>> : public std::false_type {};
-
-template <typename E, bool V>
-struct vectorizable<SubMatrix<E, V>> : public std::false_type {};
-
-template <typename T, bool V>
-struct vectorizable<SubMatrix<Matrix<T>, V>> : public std::true_type {};
-
-template <typename T, bool V>
-struct vectorizable<SubMatrix<const Matrix<T>, V>> : public std::true_type {};
-
-template <typename T>
-struct vectorizable<IdentityMatrix<T>> : public std::false_type {};
-
-template <typename Expr>
-constexpr bool vectorizable_v = vectorizable<Expr>::value;
+using eval_return_t = typename expression_traits<E>::eval_return_type;
 
 template <typename E>
-struct expression_member : public detail::set_type<const E> {};
-
-template <typename T>
-struct expression_member<Matrix<T>> : public detail::set_type<Matrix<T>&> {};
-
-template <typename T>
-struct expression_member<const Matrix<T>> : public detail::set_type<const Matrix<T>&> {};
+using scalar_type_t = typename expression_traits<E>::scalar_type;
 
 template <typename E>
-using expression_member_t = typename expression_member<E>::type;
+using eval_return_t = typename expression_traits<E>::eval_return_type;
 
 template <typename E>
-struct expression_tree : public std::remove_cv<E> {};
-
-template <typename T>
-struct expression_tree<Matrix<T>> : public detail::set_type<Matrix<T>> {};
-
-template <typename T>
-struct expression_tree<const Matrix<T>> : public detail::set_type<const Matrix<T>> {};
+using expression_member_t = typename expression_traits<E>::expression_member_type;
 
 template <typename E>
-using expression_tree_t = typename expression_tree<E>::type;
+using expression_tree_t = typename expression_traits<E>::expression_tree_type;
+
+template <typename E>
+static constexpr bool vectorizable_v = expression_traits<E>::vectorizable;
 
 template <typename T>
 struct is_associative : public std::false_type {};
