@@ -26,9 +26,6 @@ namespace user {
 namespace data {
 namespace impl {
 
-using point_type = GridPoint<2>;
-using triple_type = GridPoint<3>;
-
 namespace detail {
 
 template <int Depth = 1024, typename T>
