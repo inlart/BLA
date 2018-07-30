@@ -44,12 +44,12 @@ struct remove_cvref : public set_type<std::remove_cv_t<std::remove_reference_t<T
 template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 
-template <typename T>
-struct alignment
-    : public std::conditional<alignof(std::max_align_t) >= Vc::memory_alignment_v<T>, Vc::flags::vector_aligned_tag, Vc::flags::element_aligned_tag> {};
+// template <typename T>
+// struct alignment
+//    : public std::conditional<alignof(std::max_align_t) >= Vc::memory_alignment_v<T>, Vc::flags::vector_aligned_tag, Vc::flags::element_aligned_tag> {};
 
-template <typename T>
-using alignment_t = typename alignment<T>::type;
+// template <typename T>
+// using alignment_t = typename alignment<T>::type;
 
 } // namespace detail
 
@@ -307,22 +307,6 @@ public:
     // -- values
     static constexpr bool vectorizable = false;
 };
-
-// template <typename E, ViewType View>
-// struct expression_traits<MatrixView<E, View>> {
-// private:
-//    using expr_t = expression_traits<E>;
-//
-// public:
-//    // -- types
-//    using scalar_type = typename expr_t::scalar_type;
-//    using eval_return_type = Matrix<scalar_type>;
-//    using expression_member_type = MatrixView<E, View>;
-//    using expression_tree_type = MatrixView<E, View>;
-//
-//    // -- values
-//    static constexpr bool vectorizable = false;
-//};
 
 template <typename E, bool V>
 struct expression_traits<SubMatrix<E, V>> {

@@ -24,7 +24,9 @@ macro(add_module_executable_folder folder extension prefix postfix includes alwa
             add_executable(${filename} ${file})
 
             # -- Dependencies
-            add_dependencies(${filename} ${dependencies})
+            if(dependencies)
+                add_dependencies(${filename} "${dependencies}")
+            endif()
 
             # -- Default Includes
             target_include_directories(${filename} PUBLIC ${includes})
@@ -73,7 +75,9 @@ macro(add_test_folder folder extension prefix postfix includes always_allscale d
         add_executable(${filename} ${file})
 
         # -- Dependencies
-        add_dependencies(${filename} ${dependencies})
+        if(dependencies)
+            add_dependencies(${filename} "${dependencies}")
+        endif()
 
         # -- Default Includes
         target_include_directories(${filename} PUBLIC ${includes})

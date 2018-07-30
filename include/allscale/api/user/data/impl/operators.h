@@ -52,7 +52,7 @@ Matrix<T>& operator*=(Matrix<T>& u, const MatrixExpression<E>& v) {
 template <typename T>
 std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
-    using PacketScalar = typename Vc::native_simd<T>;
+    using PacketScalar = typename Vc::Vector<T>;
 
 
     const int total_size = u.rows() * u.columns();
@@ -64,7 +64,7 @@ std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u,
     algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
         int i = coord[0] * packet_size;
         point_type p{i / u.columns(), i % u.columns()};
-        (u.template packet<PacketScalar, detail::alignment_t<PacketScalar>>(p) * simd_value).copy_to(&u[p], detail::alignment_t<PacketScalar>{});
+        (u.template packet<PacketScalar>(p) * simd_value).store(&u[p]);
     });
 
     for(int i = aligned_end; i < total_size; i++) {
@@ -84,7 +84,7 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u
 
 template <typename T, bool V>
 std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>>> operator*=(SubMatrix<Matrix<T>, V> u, const T& v) {
-    using PacketScalar = typename Vc::native_simd<T>;
+    using PacketScalar = typename Vc::Vector<T>;
 
     const int packet_size = PacketScalar::size();
     const int caligned_end = u.columns() / packet_size * packet_size;
@@ -94,7 +94,7 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>>> 
     algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
-        (u.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p) * simd_value).copy_to(&u[p], Vc::flags::element_aligned);
+        (u.template packet<PacketScalar>(p) * simd_value).store(&u[p]);
     });
 
     for(int i = 0; i < u.rows(); ++i) {
@@ -118,7 +118,7 @@ std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, 
 template <typename T>
 std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u, const T& v) {
     // no aliasing because the result is written in a temporary matrix
-    using PacketScalar = typename Vc::native_simd<T>;
+    using PacketScalar = typename Vc::Vector<T>;
 
 
     const int total_size = u.rows() * u.columns();
@@ -130,7 +130,7 @@ std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u,
     algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
         int i = coord[0] * packet_size;
         point_type p{i / u.columns(), i % u.columns()};
-        (u.template packet<PacketScalar, detail::alignment_t<PacketScalar>>(p) / simd_value).copy_to(&u[p], detail::alignment_t<PacketScalar>{});
+        (u.template packet<PacketScalar>(p) / simd_value).store(&u[p]);
     });
 
     for(int i = aligned_end; i < total_size; i++) {
@@ -150,7 +150,7 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u
 
 template <typename T, bool V>
 std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, V>> operator/=(SubMatrix<Matrix<T>, V> u, const T& v) {
-    using PacketScalar = typename Vc::native_simd<T>;
+    using PacketScalar = typename Vc::Vector<T>;
 
     const int packet_size = PacketScalar::size();
     const int caligned_end = u.columns() / packet_size * packet_size;
@@ -160,7 +160,7 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, V
     algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
-        (u.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p) / simd_value).copy_to(&u[p], Vc::flags::element_aligned);
+        (u.template packet<PacketScalar>(p) / simd_value).store(&u[p]);
     });
 
     for(int i = 0; i < u.rows(); ++i) {

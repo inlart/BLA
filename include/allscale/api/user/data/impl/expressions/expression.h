@@ -22,7 +22,7 @@ namespace detail {
 
 template <typename T1, typename T2>
 std::enable_if_t<vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<T2>& dst) {
-    using PacketScalar = typename Vc::native_simd<T2>;
+    using PacketScalar = typename Vc::Vector<T2>;
 
 
     const int total_size = dst.rows() * dst.columns();
@@ -35,7 +35,7 @@ std::enable_if_t<vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<T
         int i = coord[0] * packet_size;
         point_type p{i / dst.columns(), i % dst.columns()};
 
-        z.copy_to(&dst[p], alignment_t<PacketScalar>{});
+        z.store(&dst[p]);
     });
 
     for(int i = aligned_end; i < total_size; i++) {
@@ -51,7 +51,7 @@ std::enable_if_t<!vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<
 
 template <typename T1, typename T2, bool V>
 void set_value(const T1& value, SubMatrix<Matrix<T2>, V>& dst) {
-    using PacketScalar = typename Vc::native_simd<T2>;
+    using PacketScalar = typename Vc::Vector<T2>;
 
     const int packet_size = PacketScalar::size();
     const int caligned_end = dst.columns() / packet_size * packet_size;
@@ -61,7 +61,7 @@ void set_value(const T1& value, SubMatrix<Matrix<T2>, V>& dst) {
     algorithm::pfor(point_type{dst.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
-        z.copy_to(&dst[p], Vc::flags::element_aligned);
+        z.store(&dst[p]);
     });
 
     for(int i = 0; i < dst.rows(); ++i) {
@@ -160,7 +160,7 @@ class MatrixExpression {
 
 public:
     using T = scalar_type_t<E>;
-    using PacketScalar = typename Vc::native_simd<T>;
+    using PacketScalar = typename Vc::Vector<T>;
 
 private:
     E& impl() {
@@ -374,9 +374,9 @@ public:
     T determinant() const;
     Matrix<T> inverse() const;
 
-    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
+    template <typename simd_type = PacketScalar>
     std::enable_if_t<vectorizable_v<E>, simd_type> packet(point_type p) const {
-        return impl().template packet<simd_type, align>(p);
+        return impl().template packet<simd_type>(p);
     }
 
     // -- defined in evaluate.h

@@ -19,7 +19,7 @@ namespace detail {
 template <typename T, bool V1, bool V2>
 void swap(SubMatrix<Matrix<T>, V1> a, SubMatrix<Matrix<T>, V2> b) {
     assert_eq(a.size(), b.size());
-    using PacketScalar = typename Vc::native_simd<T>;
+    using PacketScalar = typename Vc::Vector<T>;
 
     const int packet_size = PacketScalar::size();
     const int caligned_end = a.columns() / packet_size * packet_size;
@@ -28,9 +28,9 @@ void swap(SubMatrix<Matrix<T>, V1> a, SubMatrix<Matrix<T>, V2> b) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
 
-        PacketScalar tmp = a.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p);
-        b.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p).copy_to(&a[p], Vc::flags::element_aligned);
-        tmp.copy_to(&b[p], Vc::flags::element_aligned);
+        PacketScalar tmp = a.template packet<PacketScalar>(p);
+        b.template packet<PacketScalar>(p).store(&a[p]);
+        tmp.store(&b[p]);
     });
 
     for(int i = 0; i < a.rows(); ++i) {
@@ -46,7 +46,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Ma
     assert_eq(expr.size(), dst.size());
 
     using T = scalar_type_t<E>;
-    using PacketScalar = typename Vc::native_simd<T>;
+    using PacketScalar = typename Vc::Vector<T>;
 
     const int packet_size = PacketScalar::size();
     const int caligned_end = expr.columns() / packet_size * packet_size;
@@ -54,7 +54,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Ma
     algorithm::pfor(point_type{expr.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
-        expr.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p).copy_to(&dst[p], Vc::flags::element_aligned);
+        expr.template packet<PacketScalar>(p).store(&dst[p]);
     });
 
     for(int i = 0; i < expr.rows(); ++i) {
@@ -73,7 +73,7 @@ std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, M
 template <typename E>
 std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>> dst) {
     using T = scalar_type_t<E>;
-    using PacketScalar = typename Vc::native_simd<T>;
+    using PacketScalar = typename Vc::Vector<T>;
 
     const int packet_size = PacketScalar::size();
     const int caligned_end = expr.columns() / packet_size * packet_size;
@@ -81,7 +81,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Su
     algorithm::pfor(point_type{expr.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
-        expr.template packet<PacketScalar, Vc::flags::element_aligned_tag>(p).copy_to(&dst[p], Vc::flags::element_aligned);
+        expr.template packet<PacketScalar>(p).store(&dst[p]);
     });
 
     for(int i = 0; i < expr.rows(); ++i) {

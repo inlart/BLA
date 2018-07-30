@@ -44,9 +44,9 @@ public:
         return lhs.columns();
     }
 
-    template <typename simd_type = PacketScalar, typename align = Vc::flags::element_aligned_tag>
+    template <typename simd_type = PacketScalar>
     simd_type packet(point_type p) const {
-        return lhs.template packet<simd_type, align>(p) + rhs.template packet<simd_type, align>(p);
+        return lhs.template packet<simd_type>(p) + rhs.template packet<simd_type>(p);
     }
 
     Exp1 getLeftExpression() const {

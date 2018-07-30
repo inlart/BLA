@@ -23,16 +23,16 @@ namespace detail {
 
 // fallback function
 template <typename data_type>
-void transpose(std::array<Vc::simd<data_type, Vc::simd_abi::scalar>, 1>&) {
+void transpose(std::array<Vc::Vector<data_type, Vc::VectorAbi::Scalar>, 1>&) {
     // Nothing to do in scalar case
 }
 
-#ifdef Vc_HAVE_SSE
+#ifdef Vc_IMPL_SSE4_2 // Vc_HAVE_SSE
 
 #ifdef _MM_TRANSPOSE4_PS
 
 // -- AVX float 4x4
-void transpose(std::array<Vc::simd<float, Vc::simd_abi::sse>, 4>& rows) {
+void transpose(std::array<Vc::Vector<float, Vc::VectorAbi::Sse>, 4>& rows) {
     // TODO: check if this is valid
     _MM_TRANSPOSE4_PS(reinterpret_cast<__m128&>(rows[0]), reinterpret_cast<__m128&>(rows[1]), reinterpret_cast<__m128&>(rows[2]),
                       reinterpret_cast<__m128&>(rows[3]));
@@ -42,10 +42,10 @@ void transpose(std::array<Vc::simd<float, Vc::simd_abi::sse>, 4>& rows) {
 
 #endif // Vc_HAVE_SSE
 
-#ifdef Vc_HAVE_AVX
+#ifdef Vc_IMPL_AVX2 // Vc_HAVE_AVX
 
 // -- AVX float 8x8
-void transpose(std::array<Vc::simd<float, Vc::simd_abi::avx>, 8>& rows) {
+void transpose(std::array<Vc::Vector<float, Vc::VectorAbi::Avx>, 8>& rows) {
     // TODO: check if this is valid
     __m256& r1 = reinterpret_cast<__m256&>(rows[0]);
     __m256& r2 = reinterpret_cast<__m256&>(rows[1]);
@@ -90,7 +90,7 @@ void transpose(std::array<Vc::simd<float, Vc::simd_abi::avx>, 8>& rows) {
 }
 
 // -- AVX double 4x4
-void transpose(std::array<Vc::simd<double, Vc::simd_abi::avx>, 4>& rows) {
+void transpose(std::array<Vc::Vector<double, Vc::VectorAbi::Avx>, 4>& rows) {
     // TODO: check if this is valid
     __m256d& r1 = reinterpret_cast<__m256d&>(rows[0]);
     __m256d& r2 = reinterpret_cast<__m256d&>(rows[1]);
@@ -113,31 +113,30 @@ void transpose(std::array<Vc::simd<double, Vc::simd_abi::avx>, 4>& rows) {
 
 // -- AVX int 8x8
 // -- TODO
-// void transpose(std::array<Vc::simd<int, Vc::simd_abi::avx>, 8>& rows) {
+// void transpose(std::array<Vc::Vector<int, Vc::Vector_abi::avx>, 8>& rows) {
 // }
 
 #endif // Vc_HAVE_AVX
+
 
 // TODO: move
 template <typename Arg, typename _ = void>
 struct transpose_exists : std::false_type {};
 
 template <typename Arg>
-struct transpose_exists<Arg, void_t<decltype(transpose(std::declval<Arg&>()))>> : std::true_type {};
+struct transpose_exists<Arg, decltype(transpose(std::declval<Arg&>()))> : std::true_type {};
 
 template <typename Arg>
 constexpr bool transpose_exists_v = transpose_exists<Arg>::value;
 
 } // namespace detail
 
+
 template <typename simd_type>
 class SimdBlock {
     using T = typename simd_type::value_type;
-    using abi_type =
-        std::conditional_t<detail::transpose_exists_v<std::array<simd_type, simd_type::size()>>, typename simd_type::abi_type, Vc::simd_abi::scalar>;
-    using simd_t = Vc::simd<T, abi_type>;
-
-    static_assert(Vc::is_simd_v<simd_type>, "SimdBlock consists of SIMD vectors");
+    using abi_type = std::conditional_t<detail::transpose_exists_v<std::array<simd_type, simd_type::size()>>, typename simd_type::abi, Vc::VectorAbi::Scalar>;
+    using simd_t = Vc::Vector<T, abi_type>;
 
 public:
     template <typename E>
@@ -157,7 +156,7 @@ public:
 
     void load_to(Matrix<T>& matrix, point_type pos) {
         for(coordinate_type i = 0; i < (coordinate_type)simd_t::size(); ++i) {
-            rows[i].copy_to(&matrix[{pos.x + i, pos.y}], Vc::flags::element_aligned);
+            rows[i].store(&matrix[{pos.x + i, pos.y}]);
         }
     }
 
@@ -165,14 +164,15 @@ private:
     std::array<simd_t, simd_t::size()> rows;
 };
 
+
 template <typename E>
 MatrixTranspose<expression_tree_t<const E>> MatrixExpression<E>::transpose() const {
     return MatrixTranspose<expression_tree_t<const E>>(static_cast<const E&>(*this));
 }
 
 
-} // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace impl
+} // namespace data
+} // namespace user
+} // namespace api
+} // namespace allscale

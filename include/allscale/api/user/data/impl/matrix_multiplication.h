@@ -139,7 +139,7 @@ void strassen_rec(const Matrix<T>& A, const Matrix<T>& B, Matrix<T>& C, coordina
 template <int size = 8, typename T>
 void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
     using ct = coordinate_type;
-    using vt = Vc::native_simd<T>;
+    using vt = Vc::Vector<T>;
 
     static_assert(size % vt::size() == 0, "vector type size doesn't divide 'size'"); // our vector type 'vt' fits into the size x size segment
 
@@ -171,7 +171,7 @@ void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type ma
         std::array<vt, vector_size> b;
 
         for(ct j = 0; j < vector_size; ++j) {
-            b[j].copy_from(rhs + j * vt::size() + i * size, Vc::flags::vector_aligned);
+            b[j].load(rhs + j * vt::size() + i * size);
 
 
             for(ct jj = 0; jj < size; ++jj) {
@@ -195,7 +195,7 @@ template <int size = 8, typename T>
 void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
     using ct = coordinate_type;
 
-    alignas(Vc::memory_alignment_v<Vc::native_simd<T>>) T packed_b[end.y * end.x];
+    T packed_b[end.y * end.x];
 
     algorithm::pfor(GridPoint<1>{end.y / size}, [&](const auto& pos) {
         ct j = pos[0] * size;
@@ -245,7 +245,7 @@ void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, con
     const auto k = lhs.columns();
     const auto n = rhs.columns();
 
-    constexpr auto size = Vc::native_simd<T>::size();
+    constexpr auto size = Vc::Vector<T>::size();
 
     // TODO: find good values for kc, nc (multiple of vector size?)
 
@@ -348,12 +348,13 @@ void matrix_multiplication_pbblas(Matrix<T>& result, const Matrix<T>& lhs, const
 
 // -- parallel blocked blas using pointers
 template <bool transLHS = false, bool transRHS = false, typename T, typename Func>
-void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f, coordinate_type m, coordinate_type n, coordinate_type k, coordinate_type lda, coordinate_type ldb, coordinate_type ldc) {
-//    assert_eq((transLHS ? lhs.rows() : lhs.columns()), (transRHS ? rhs.columns() : rhs.rows()));
+void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f, coordinate_type m, coordinate_type n, coordinate_type k, coordinate_type lda,
+                                  coordinate_type ldb, coordinate_type ldc) {
+    //    assert_eq((transLHS ? lhs.rows() : lhs.columns()), (transRHS ? rhs.columns() : rhs.rows()));
 
-//    const auto k = transLHS ? lhs.rows() : lhs.columns();
+    //    const auto k = transLHS ? lhs.rows() : lhs.columns();
 
-//    std::cout << m << " / " << n << " / " << k << std::endl;
+    //    std::cout << m << " / " << n << " / " << k << std::endl;
 
     const CBLAS_TRANSPOSE tlhs = transLHS ? CblasTrans : CblasNoTrans;
     const CBLAS_TRANSPOSE trhs = transRHS ? CblasTrans : CblasNoTrans;
@@ -376,7 +377,6 @@ void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f,
         core::pick(
             // parallel recursive split
             [&](const BlockRange& r, const auto& rec) {
-//            std::cout << "split" << std::endl;
                 auto mid = r.start + r.size / 2;
 
 
@@ -478,33 +478,30 @@ void vv_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const
     assert_eq(lhs.columns(), 1);
     assert_eq(rhs.rows(), 1);
 
-    using vt = Vc::native_simd<T>;
+    using vt = Vc::Vector<T>;
 
 
     const int packet_size = vt::size();
     const int caligned_end = result.columns() / packet_size;
 
 
-
-    algorithm::pfor(point_type{result.rows(), caligned_end}, [&](const auto& vec_pos){
+    algorithm::pfor(point_type{result.rows(), caligned_end}, [&](const auto& vec_pos) {
         point_type pos(vec_pos.x, vec_pos.y * packet_size);
 
         vt left(lhs[{pos.x, 0}]);
 
-        vt right(&static_cast<const E2&>(rhs)[{0, pos.y}], Vc::flags::element_aligned);
+        vt right(&static_cast<const E2&>(rhs)[{0, pos.y}]);
 
-        (left * right).copy_to(&result[pos], Vc::flags::element_aligned);
+        (left * right).store(&result[pos]);
     });
 
-    algorithm::pfor(point_type{0, caligned_end * packet_size}, result.size(), [&](const auto& pos){
-        result[pos] = lhs[{pos.x, 0}] * rhs[{0, pos.y}];
-    });
-
+    algorithm::pfor(point_type{0, caligned_end * packet_size}, result.size(), [&](const auto& pos) { result[pos] = lhs[{pos.x, 0}] * rhs[{0, pos.y}]; });
 }
 
 // -- default matrix * matrix multiplication
 template <typename T, typename E1, typename E2>
-std::enable_if_t<!(direct_or_transpose_v<E1> && direct_or_transpose_v<E2>)> matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const MatrixExpression<E2>& rhs) {
+std::enable_if_t<!(direct_or_transpose_v<E1> && direct_or_transpose_v<E2>)> matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs,
+                                                                                                  const MatrixExpression<E2>& rhs) {
     matrix_multiplication(result, lhs.eval(), rhs.eval());
 }
 
@@ -528,25 +525,32 @@ void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, c
 }
 
 template <typename T>
-std::enable_if_t<!std::is_same<double, T>::value && ! std::is_same<float, T>::value> matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+std::enable_if_t<!std::is_same<double, T>::value && !std::is_same<float, T>::value> matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs,
+                                                                                                          const Matrix<T>& rhs) {
     matrix_multiplication_peigen(result, lhs, rhs);
 }
 
 // -- double
 template <typename E1, typename E2>
-std::enable_if_t<direct_or_transpose_v<E1> && direct_or_transpose_v<E2>> matrix_multiplication(Matrix<double>& result, const MatrixExpression<E1>& lhs, const MatrixExpression<E2>& rhs) {
-    //TODO: make a compile time fix and float
+std::enable_if_t<direct_or_transpose_v<E1> && direct_or_transpose_v<E2>> matrix_multiplication(Matrix<double>& result, const MatrixExpression<E1>& lhs,
+                                                                                               const MatrixExpression<E2>& rhs) {
+    // TODO: make a compile time fix and float
     if(lhs.columns() == 1 && rhs.rows() == 1) {
         vv_multiplication(result, lhs, rhs);
         return;
     }
-    matrix_multiplication_pbblas<is_transpose_v<E1>, is_transpose_v<E2>>(&result[{0, 0}], &static_cast<const E1&>(lhs)[{0, 0}], &static_cast<const E2&>(rhs)[{0, 0}], cblas_dgemm, result.rows(), result.columns(), lhs.columns(), static_cast<const E1&>(lhs).stride(), static_cast<const E2&>(rhs).stride(), result.stride());
+    matrix_multiplication_pbblas<is_transpose_v<E1>, is_transpose_v<E2>>(
+        &result[{0, 0}], &static_cast<const E1&>(lhs)[{0, 0}], &static_cast<const E2&>(rhs)[{0, 0}], cblas_dgemm, result.rows(), result.columns(),
+        lhs.columns(), static_cast<const E1&>(lhs).stride(), static_cast<const E2&>(rhs).stride(), result.stride());
 }
 
 // -- float
 template <typename E1, typename E2>
-std::enable_if_t<direct_or_transpose_v<E1> && direct_or_transpose_v<E2>> matrix_multiplication(Matrix<float>& result, const MatrixExpression<E1>& lhs, const MatrixExpression<E2>& rhs) {
-    matrix_multiplication_pbblas<is_transpose_v<E1>, is_transpose_v<E2>>(&result[{0, 0}], &static_cast<const E1&>(lhs)[{0, 0}], &static_cast<const E2&>(rhs)[{0, 0}], cblas_sgemm, result.rows(), result.columns(), lhs.columns(), static_cast<const E1&>(lhs).stride(), static_cast<const E2&>(rhs).stride(), result.stride());
+std::enable_if_t<direct_or_transpose_v<E1> && direct_or_transpose_v<E2>> matrix_multiplication(Matrix<float>& result, const MatrixExpression<E1>& lhs,
+                                                                                               const MatrixExpression<E2>& rhs) {
+    matrix_multiplication_pbblas<is_transpose_v<E1>, is_transpose_v<E2>>(
+        &result[{0, 0}], &static_cast<const E1&>(lhs)[{0, 0}], &static_cast<const E2&>(rhs)[{0, 0}], cblas_sgemm, result.rows(), result.columns(),
+        lhs.columns(), static_cast<const E1&>(lhs).stride(), static_cast<const E2&>(rhs).stride(), result.stride());
 }
 
 } // end namespace impl

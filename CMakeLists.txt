@@ -19,25 +19,25 @@ include(dependencies/pthread)
 
 find_package(Boost REQUIRED)
 
+set(ALLSCALE_MATRIX_DEPENDENCIES "")
+
 #GTest
-include(dependencies/googletest)
+if(BUILD_TESTS)
+  include(dependencies/googletest)
 
-set(GTEST_LIBRARIES gtest)
-set(GTEST_MAIN_LIBRARIES gtest_main)
+  set(GTEST_LIBRARIES gtest)
+  set(GTEST_MAIN_LIBRARIES gtest_main)
 
-set(ALLSCALE_MATRIX_DEPENDENCIES gtest ${ALLSCALE_MATRIX_DEPENDENCIES})
-set(ALLSCALE_MATRIX_DEPENDENCIES gtest_main ${ALLSCALE_MATRIX_DEPENDENCIES})
+  set(ALLSCALE_MATRIX_DEPENDENCIES gtest ${ALLSCALE_MATRIX_DEPENDENCIES})
+  set(ALLSCALE_MATRIX_DEPENDENCIES gtest_main ${ALLSCALE_MATRIX_DEPENDENCIES})
+endif()
 
 #GBenchmark
 find_package(benchmark)
 
 
-#Vc master
-if(EXISTS ${Vc_INCLUDE_DIR}/Vc)
-  message(STATUS "Vc_INCLUDE_DIR = ${Vc_INCLUDE_DIR}")
-else()
-  message(FATAL_ERROR "Vc folder not found. Please set \"Vc_INCLUDE_DIR\"=${Vc_INCLUDE_DIR} correctly.")
-endif()
+#Vc 1.3
+find_package(Vc REQUIRED)
 
 #Eigen 3.3
 if(EXISTS ${EIGEN3_INCLUDE_DIR}/Eigen)
@@ -79,11 +79,15 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 # -- Compilation
 if(BUILD_BENCHMARKS)
-  add_module_executable_folder("src/benchmark/" ".cc" "benchmark_" "" "src/benchmark/include;include" OFF ${ALLSCALE_MATRIX_DEPENDENCIES})
+  add_module_executable_folder("src/benchmark/" ".cc" "benchmark_" "" "src/benchmark/include;include" OFF "${ALLSCALE_MATRIX_DEPENDENCIES}")
 endif()
 
 if(BUILD_EXAMPLES)
-  add_module_executable_folder("src/examples/" ".cc" "example_" "" "include" ON ${ALLSCALE_MATRIX_DEPENDENCIES})
+  add_module_executable_folder("src/examples/" ".cc" "example_" "" "include" ON "${ALLSCALE_MATRIX_DEPENDENCIES}")
+endif()
+
+if(BUILD_TESTS)
+  add_test_folder("src/test/user/data" ".cc" "" "_test" "include" ON "${ALLSCALE_MATRIX_DEPENDENCIES}")
 endif()
 
 if(BUILD_BENCHMARKS AND USE_ASSERT)
@@ -94,5 +98,3 @@ string( TOLOWER "${CMAKE_BUILD_TYPE}" release_type_lower )
 if(BUILD_BENCHMARKS AND (NOT release_type_lower STREQUAL "release"))
   message(WARNING "Building benchmark executables without cmake build type release will falsify the measured times")
 endif()
-
-add_test_folder("src/test/user/data" ".cc" "" "_test" "include" ON ${ALLSCALE_MATRIX_DEPENDENCIES})
