@@ -13,7 +13,7 @@
 
 using Matrix = allscale::api::user::data::Matrix<double>;
 
-static void benchmark_mm_allscale(benchmark::State& state) {
+static void benchmark_mm_allscalestrassen(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
@@ -34,6 +34,6 @@ static void benchmark_mm_allscale(benchmark::State& state) {
     }
 }
 
-BENCHMARK(benchmark_mm_allscale)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_mm_allscalestrassen)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();
