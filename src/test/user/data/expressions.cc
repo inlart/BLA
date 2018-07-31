@@ -944,6 +944,163 @@ TEST(Operation, ElementMultiplication) {
     }
 }
 
+TEST(Solve, ViewLower) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        auto x = m1.template view<ViewType::Lower>().solve(b);
+
+        ASSERT_TRUE(isAlmostEqual(b, m1.template view<ViewType::Lower>() * x));
+    }
+}
+
+TEST(Solve, ViewLowerInPlace) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        Matrix<double> x = b;
+
+        m1.template view<ViewType::Lower>().solveInPlace(x);
+
+        ASSERT_TRUE(isAlmostEqual(b, m1.template view<ViewType::Lower>() * x));
+    }
+}
+
+TEST(Solve, ViewUpper) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        auto x = m1.template view<ViewType::Upper>().solve(b);
+
+        ASSERT_TRUE(isAlmostEqual(b, m1.template view<ViewType::Upper>() * x));
+    }
+}
+
+TEST(Solve, ViewUpperInPlace) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        Matrix<double> x = b;
+
+        m1.template view<ViewType::Upper>().solveInPlace(x);
+
+        ASSERT_TRUE(isAlmostEqual(b, m1.template view<ViewType::Upper>() * x));
+    }
+}
+
+TEST(Solve, ViewUnitLower) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        auto x = m1.template view<ViewType::UnitLower>().solve(b);
+
+        ASSERT_TRUE(isAlmostEqual(b, m1.template view<ViewType::UnitLower>() * x));
+    }
+}
+
+TEST(Solve, ViewUnitLowerInPlace) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        Matrix<double> x = b;
+
+        m1.template view<ViewType::UnitLower>().solveInPlace(x);
+
+        ASSERT_TRUE(isAlmostEqual(b, m1.template view<ViewType::UnitLower>() * x));
+    }
+}
+
+TEST(Solve, ViewUnitUpper) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        auto x = m1.template view<ViewType::UnitUpper>().solve(b);
+
+        ASSERT_TRUE(isAlmostEqual(b, m1.template view<ViewType::UnitUpper>() * x));
+    }
+}
+
+TEST(Solve, ViewUnitUpperInPlace) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        Matrix<double> x = b;
+
+        m1.template view<ViewType::UnitUpper>().solveInPlace(x);
+
+        ASSERT_TRUE(isAlmostEqual(b, m1.template view<ViewType::UnitUpper>() * x));
+    }
+}
+
 } // end namespace impl
 } // end namespace data
 } // end namespace user
