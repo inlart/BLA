@@ -117,26 +117,12 @@ struct LUD {
     // -- Solve A * x = b for x
     Matrix<T> solve(SubMatrix<Matrix<T>> b) {
         assert_eq(b.rows(), LU.columns());
-        using ct = coordinate_type;
         Matrix<T> x(b.size());
 
-        // TODO: pfor
-        for(ct ii = 0; ii < x.columns(); ++ii) {
-            for(ct i = 0; i < LU.rows(); ++i) {
-                x[{i, ii}] = b[{P.permutation(i), ii}];
+        x = P * b;
 
-                for(ct k = 0; k < i; ++k) {
-                    x[{i, ii}] -= LU[{i, k}] * x[{k, ii}];
-                }
-            }
-            for(ct i = LU.rows() - 1; i >= 0; --i) {
-                for(ct k = i + 1; k < LU.rows(); ++k) {
-                    x[{i, ii}] -= LU[{i, k}] * x[{k, ii}];
-                }
-
-                x[{i, ii}] /= LU[{i, i}];
-            }
-        }
+        LU.template view<ViewType::UnitLower>().solveInPlace(x);
+        LU.template view<ViewType::Upper>().solveInPlace(x);
 
         return x;
     }
@@ -219,11 +205,8 @@ private:
                     A_2.row(i).swap(A_2.row(t[i + loup.getBlockRange().start.x] - loup.getBlockRange().start.x));
                 }
 
-                // TODO: improve this
-                auto x = A11.template view<ViewType::UnitLower>().LUDecomposition();
-                A12 = x.solve(A12);
-                // A12 = A11^-1 A12
-                //                A11.template triangularView<UnitLower>().solveInPlace(A12);
+                A11.template view<ViewType::UnitLower>().solveInPlace(A12);
+
                 A22 -= A21 * A12;
             }
         }

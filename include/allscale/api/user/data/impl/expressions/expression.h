@@ -294,7 +294,7 @@ public:
     }
 
     template <ViewType View>
-    MatrixView<expression_tree_t<const E>, View> view() {
+    MatrixView<expression_tree_t<const E>, View> view() const {
         return MatrixView<expression_tree_t<const E>, View>(impl());
     }
 

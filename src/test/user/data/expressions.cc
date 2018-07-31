@@ -336,7 +336,7 @@ TEST(Expression, MatrixViewLower) {
         m1.fill_seq(g);
 
         algorithm::pfor(m1.size(), [&](const auto& pos) {
-            if(pos.x > pos.y)
+            if(pos.x >= pos.y)
                 ASSERT_EQ(m1.view<ViewType::Lower>()[pos], m1[pos]);
             else
                 ASSERT_EQ(m1.view<ViewType::Lower>()[pos], 0.);
@@ -376,7 +376,7 @@ TEST(Expression, MatrixViewUpper) {
         m1.fill_seq(g);
 
         algorithm::pfor(m1.size(), [&](const auto& pos) {
-            if(pos.x < pos.y)
+            if(pos.x <= pos.y)
                 ASSERT_EQ(m1.view<ViewType::Upper>()[pos], m1[pos]);
             else
                 ASSERT_EQ(m1.view<ViewType::Upper>()[pos], 0.);
