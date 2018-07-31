@@ -42,6 +42,30 @@ public:
         return expression;
     }
 
+    Matrix<T> solve(SubMatrix<Matrix<T>> b) const {
+        assert_eq(b.rows(), columns());
+        Matrix<T> x(b);
+
+        solveInPlace(SubMatrix<Matrix<T>>(x));
+
+
+        return x;
+    }
+
+    void solveInPlace(SubMatrix<Matrix<T>> x) const {
+        assert_eq(b.rows(), columns());
+        using ct = coordinate_type;
+
+        for(ct ii = 0; ii < x.columns(); ++ii) { // TODO: pfor
+            for(ct i = 0; i < rows(); ++i) {
+                for(ct j = 0; j < i; ++j) {
+                    x[{i, ii}] -= x[{j, ii}] * (*this)[{i, j}];
+                }
+                x[{i, ii}] /= (*this)[{i, i}];
+            }
+        }
+    }
+
 private:
     Exp expression;
 };
@@ -84,6 +108,7 @@ public:
         Matrix<T> x(b);
 
         solveInPlace(SubMatrix<Matrix<T>>(x));
+
 
         return x;
     }
@@ -196,6 +221,29 @@ public:
 
     Exp getExpression() const {
         return expression;
+    }
+
+    Matrix<T> solve(SubMatrix<Matrix<T>> b) const {
+        assert_eq(b.rows(), columns());
+
+        Matrix<T> x(b);
+
+        solveInPlace(SubMatrix<Matrix<T>>(x));
+
+        return x;
+    }
+
+    void solveInPlace(SubMatrix<Matrix<T>> x) const {
+        assert_eq(b.rows(), columns());
+        using ct = coordinate_type;
+
+        for(ct ii = 0; ii < x.columns(); ++ii) { // TODO: pfor
+            for(ct i = rows() - 1; i >= 0; --i) {
+                for(ct j = rows() - 1; j > i; --j) {
+                    x[{i, ii}] -= x[{j, ii}] * (*this)[{i, j}];
+                }
+            }
+        }
     }
 
 private:
