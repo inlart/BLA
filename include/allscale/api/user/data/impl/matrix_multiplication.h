@@ -329,7 +329,6 @@ void matrix_multiplication_pbblas(Matrix<T>& result, const Matrix<T>& lhs, const
             [&](const BlockRange& r, const auto& rec) {
                 auto mid = r.start + r.size / 2;
 
-
                 BlockRange top_left{r.start, mid - r.start};
                 BlockRange top_right{{r.start.x, mid.y}, {mid.x - r.start.x, r.start.y + r.size.y - mid.y}};
                 BlockRange bottom_left{{mid.x, r.start.y}, {r.start.x + r.size.x - mid.x, mid.y - r.start.y}};
@@ -371,14 +370,13 @@ void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f,
 
     auto multiplication_rec = prec(
         // base case test
-        [&](const BlockRange& r) { return r.area() / k <= 128 * 128; },
+        [&](const BlockRange& r) { return r.area() <= 128 * 128; },
         // base case
         blas_multiplication,
         core::pick(
             // parallel recursive split
             [&](const BlockRange& r, const auto& rec) {
                 auto mid = r.start + r.size / 2;
-
 
                 BlockRange top_left{r.start, mid - r.start};
                 BlockRange top_right{{r.start.x, mid.y}, {mid.x - r.start.x, r.start.y + r.size.y - mid.y}};
