@@ -58,7 +58,7 @@ public:
 
         algorithm::pfor(utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
             const ct ii = p[0];
-            for(ct i = 0; i < rows(); ++i) {
+            for(ct i = 0; i < this->rows(); ++i) {
                 for(ct j = 0; j < i; ++j) {
                     x[{i, ii}] -= x[{j, ii}] * (*this)[{i, j}];
                 }
@@ -120,7 +120,7 @@ public:
 
         algorithm::pfor(utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
             const ct ii = p[0];
-            for(ct i = 0; i < rows(); ++i) {
+            for(ct i = 0; i < this->rows(); ++i) {
                 for(ct j = 0; j < i; ++j) {
                     x[{i, ii}] -= x[{j, ii}] * (*this)[{i, j}];
                 }
@@ -180,8 +180,8 @@ public:
 
         algorithm::pfor(utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
             const ct ii = p[0];
-            for(ct i = rows() - 1; i >= 0; --i) {
-                for(ct j = rows() - 1; j > i; --j) {
+            for(ct i = this->rows() - 1; i >= 0; --i) {
+                for(ct j = this->rows() - 1; j > i; --j) {
                     x[{i, ii}] -= x[{j, ii}] * (*this)[{i, j}];
                 }
                 x[{i, ii}] /= (*this)[{i, i}];
@@ -242,8 +242,8 @@ public:
 
         algorithm::pfor(utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
             const ct ii = p[0];
-            for(ct i = rows() - 1; i >= 0; --i) {
-                for(ct j = rows() - 1; j > i; --j) {
+            for(ct i = this->rows() - 1; i >= 0; --i) {
+                for(ct j = this->rows() - 1; j > i; --j) {
                     x[{i, ii}] -= x[{j, ii}] * (*this)[{i, j}];
                 }
             }
