@@ -53,7 +53,7 @@ public:
     }
 
     void solveInPlace(SubMatrix<Matrix<T>> x) const {
-        assert_eq(b.rows(), columns());
+        assert_eq(x.rows(), columns());
         using ct = coordinate_type;
 
         algorithm::pfor(utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
@@ -115,7 +115,7 @@ public:
     }
 
     void solveInPlace(SubMatrix<Matrix<T>> x) const {
-        assert_eq(b.rows(), columns());
+        assert_eq(x.rows(), columns());
         using ct = coordinate_type;
 
         algorithm::pfor(utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
@@ -175,7 +175,7 @@ public:
     }
 
     void solveInPlace(SubMatrix<Matrix<T>> x) const {
-        assert_eq(b.rows(), columns());
+        assert_eq(x.rows(), columns());
         using ct = coordinate_type;
 
         algorithm::pfor(utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
@@ -237,7 +237,7 @@ public:
     }
 
     void solveInPlace(SubMatrix<Matrix<T>> x) const {
-        assert_eq(b.rows(), columns());
+        assert_eq(x.rows(), columns());
         using ct = coordinate_type;
 
         algorithm::pfor(utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
