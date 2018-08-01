@@ -307,19 +307,31 @@ public:
     QRD<T> QRDecomposition() const;
     SVD<T> SVDecomposition() const;
 
-    Iterator<E> begin() const {
+    // Avoid that temporaries bind to the const& ref-qualified member function
+    Iterator<E> begin() const&& = delete;
+
+    Iterator<E> begin() const& {
         return cbegin();
     }
 
-    Iterator<E> end() const {
+    // Avoid that temporaries bind to the const& ref-qualified member function
+    Iterator<E> end() const&& = delete;
+
+    Iterator<E> end() const& {
         return cend();
     }
 
-    Iterator<E> cbegin() const {
+    // Avoid that temporaries bind to the const& ref-qualified member function
+    Iterator<E> cbegin() const&& = delete;
+
+    Iterator<E> cbegin() const& {
         return Iterator<E>(*this, 0);
     }
 
-    Iterator<E> cend() const {
+    // Avoid that temporaries bind to the const& ref-qualified member function
+    Iterator<E> cend() const&& = delete;
+
+    Iterator<E> cend() const& {
         return Iterator<E>(*this, rows() * columns());
     }
 
@@ -354,19 +366,24 @@ public:
         return reduce([](const T& a, const T& b) { return std::min(a, b); });
     }
 
-    Iterator<E> max_element() const {
+    // Avoid that temporaries bind to the const& ref-qualified member function
+    Iterator<E> max_element() const&& = delete;
+
+    Iterator<E> max_element() const& {
         Iterator<E> max = begin();
 
         for(auto it = begin(); it != end(); ++it) {
-            if(*it > *max)
+            if(*max < *it)
                 max = it;
         }
 
         return max;
-        //        return iterator_reduce([](const Iterator<E>& a, const Iterator<E>& b) { return (*a < *b) ? b : a; });
     }
 
-    Iterator<E> min_element() const {
+    // Avoid that temporaries bind to the const& ref-qualified member function
+    Iterator<E> min_element() const&& = delete;
+
+    Iterator<E> min_element() const& {
         return iterator_reduce([](const Iterator<E>& a, const Iterator<E>& b) { return (*b < *a) ? b : a; });
     }
 

@@ -137,9 +137,10 @@ private:
 
 
         for(ct k = 0; k < size; ++k) {
-            auto it = loup.column(k).bottomRows(loup.rows() - k).abs().max_element();
+            auto abs_range = loup.column(k).bottomRows(loup.rows() - k).abs();
+            auto it = abs_range.max_element();
 
-            ct max_row = it - loup.begin();
+            ct max_row = it - abs_range.begin();
 
             max_row += k;
             t[k + start_row] = max_row + start_row;
@@ -157,10 +158,8 @@ private:
         }
     }
 
-    void compute_blocked(SubMatrix<Matrix<T>> loup, Transpositions& t) {
+    void compute_blocked(SubMatrix<Matrix<T>> loup, Transpositions& t, const coordinate_type maxBlockSize = 256) {
         using ct = coordinate_type;
-
-        const ct maxBlockSize = 256;
 
         const ct size = std::min(loup.rows(), loup.columns());
         const ct rows = loup.rows();
@@ -192,7 +191,7 @@ private:
             auto A22 = loup.sub({{k + bs, k + bs}, {trows, tsize}});
 
 
-            compute_blocked(loup.sub({{k, k}, {trows + bs, bs}}), t);
+            compute_blocked(loup.sub({{k, k}, {trows + bs, bs}}), t, 16);
 
             // update permutations and apply them to A_0
             for(ct i = k; i < k + bs; ++i) {
