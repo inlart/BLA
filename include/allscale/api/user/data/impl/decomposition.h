@@ -37,31 +37,12 @@ struct LUD {
     LUD<T>& operator=(LUD<T>&&) = default;
 
 
-    Matrix<T> lower() const {
-        Matrix<T> l(LU.size());
-        l.fill([&](const auto& pos) {
-            if(pos.x > pos.y) {
-                return LU[pos];
-            } else if(pos.x == pos.y) {
-                return static_cast<T>(1);
-            } else {
-                return static_cast<T>(0);
-            }
-        });
-
-        return l;
+    MatrixView<const Matrix<T>, ViewType::UnitLower> lower() const {
+        return LU.template view<ViewType::UnitLower>();
     }
 
-    Matrix<T> upper() const {
-        Matrix<T> u(LU.size());
-        u.fill([&](const auto& pos) {
-            if(pos.x <= pos.y) {
-                return LU[pos];
-            } else {
-                return static_cast<T>(0);
-            }
-        });
-        return u;
+    MatrixView<const Matrix<T>, ViewType::Upper> upper() const {
+        return LU.template view<ViewType::Upper>();
     }
 
     const PermutationMatrix<T>& permutation() const {
