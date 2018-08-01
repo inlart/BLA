@@ -146,9 +146,15 @@ public:
     SubMatrix(SubMatrix<Matrix<T>, V2> sub) : expression(sub.getExpression()), block_range(sub.getBlockRange()) {
     }
 
+    SubMatrix<Matrix<T>, V>& operator=(const SubMatrix<Matrix<T>, V>& mat) {
+        AccessBase<SubMatrix<Matrix<T>, V>>::evaluate(mat);
+
+        return *this;
+    }
+
     template <typename E2>
     SubMatrix<Matrix<T>, V>& operator=(const MatrixExpression<E2>& mat) {
-        AccessBase<SubMatrix<Matrix<T>>>::evaluate(mat);
+        AccessBase<SubMatrix<Matrix<T>, V>>::evaluate(mat);
 
         return *this;
     }

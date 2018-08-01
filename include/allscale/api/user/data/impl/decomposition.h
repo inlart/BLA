@@ -200,7 +200,9 @@ private:
 template <typename T>
 struct QRD {
     QRD(const Matrix<T>& A) : Q(point_type{A.rows(), A.rows()}), R(A) {
-        compute_unblocked(A);
+        assert_ge(A.rows(), A.columns());
+
+        compute_unblocked({A});
     }
 
     QRD(const QRD<T>&) = delete;
@@ -217,13 +219,12 @@ struct QRD {
     }
 
 private:
-    void compute_unblocked(SubMatrix<Matrix<T>> A) {
+    void compute_unblocked(SubMatrix<const Matrix<T>> A) {
         using ct = coordinate_type;
 
         // Householder QR Decomposition
         T mag, alpha;
         Matrix<T> u({A.rows(), 1});
-        Matrix<T> v({A.rows(), 1});
 
         Matrix<T> P(point_type{A.rows(), A.rows()});
         Matrix<T> I(IdentityMatrix<T>(point_type{A.rows(), A.rows()})); // TODO: fix
@@ -231,34 +232,25 @@ private:
         Q.identity();
 
         for(ct i = 0; i < A.columns(); ++i) {
+            auto v = u.column(0).topRows(A.rows() - i - 1);
             u.zero();
-            v.zero();
 
-            mag = 0;
-            for(ct j = i; j < A.rows(); ++j) {
-                u[{j, 0}] = R[{j, i}];
-                mag += u[{j, 0}] * u[{j, 0}];
-            }
-            mag = std::sqrt(mag);
+            v = R.column(i).bottomRows(A.rows() - i - 1);
+            mag = v.reduce(0, std::plus<T>{});
 
-            alpha = u[{i, 0}] < 0 ? mag : -mag;
+            alpha = v[{i, 0}] < 0 ? std::sqrt(mag) : -std::sqrt(mag);
 
-            mag = 0.0;
-            for(ct j = i; j < A.rows(); ++j) {
-                v[{j, 0}] = j == i ? u[{j, 0}] + alpha : u[{j, 0}];
+            v[{i, i}] += alpha;
 
-                mag += v[{j, 0}] * v[{j, 0}];
-            }
+            mag += alpha;
             mag = std::sqrt(mag);
 
             if(mag < 1E-10)
                 continue;
 
-            for(ct j = i; j < A.rows(); ++j) {
-                v[{j, 0}] /= mag;
-            }
+            v /= mag;
 
-            P = I - (v * v.transpose()) * 2.0;
+            P = I - (u * u.transpose()) * 2.0;
 
             R = (P * R).eval();
             Q *= P;

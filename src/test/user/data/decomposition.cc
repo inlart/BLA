@@ -103,7 +103,7 @@ TEST(Operation, LUSolve) {
 }
 
 TEST(Operation, QRDecomposition) {
-    Matrix<double> m1({10, 5});
+    Matrix<double> m1({95, 79});
 
     std::random_device rd;
     std::mt19937 gen(rd());
