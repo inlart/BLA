@@ -1,5 +1,7 @@
 #pragma once
 
+#include "allscale/api/user/data/grid.h"
+#include "allscale/api/user/data/impl/expressions/access.h"
 #include "allscale/api/user/data/impl/forward.h"
 #include "allscale/api/user/data/impl/types.h"
 
@@ -110,7 +112,7 @@ public:
     }
 
 private:
-    data::Grid<T, 2> m_data;
+    Grid<T, 2> m_data;
 };
 
 } // namespace impl

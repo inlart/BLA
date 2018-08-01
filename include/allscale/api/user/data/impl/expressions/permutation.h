@@ -4,6 +4,7 @@
 #include "allscale/api/user/data/impl/forward.h"
 #include "allscale/api/user/data/impl/transpositions.h"
 #include "allscale/api/user/data/impl/types.h"
+#include "allscale/utils/vector.h"
 
 namespace allscale {
 namespace api {

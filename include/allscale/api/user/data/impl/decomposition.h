@@ -200,6 +200,24 @@ private:
 template <typename T>
 struct QRD {
     QRD(const Matrix<T>& A) : Q(point_type{A.rows(), A.rows()}), R(A) {
+        compute_unblocked(A);
+    }
+
+    QRD(const QRD<T>&) = delete;
+    QRD(QRD<T>&&) = default;
+
+    QRD<T>& operator=(const QRD<T>&) = delete;
+    QRD<T>& operator=(QRD<T>&&) = default;
+
+    const Matrix<T>& getQ() const {
+        return Q;
+    }
+    const Matrix<T>& getR() const {
+        return R;
+    }
+
+private:
+    void compute_unblocked(SubMatrix<Matrix<T>> A) {
         using ct = coordinate_type;
 
         // Householder QR Decomposition
@@ -247,20 +265,6 @@ struct QRD {
         }
     }
 
-    QRD(const QRD<T>&) = delete;
-    QRD(QRD<T>&&) = default;
-
-    QRD<T>& operator=(const QRD<T>&) = delete;
-    QRD<T>& operator=(QRD<T>&&) = default;
-
-    const Matrix<T>& getQ() const {
-        return Q;
-    }
-    const Matrix<T>& getR() const {
-        return R;
-    }
-
-private:
     Matrix<T> Q;
     Matrix<T> R;
 };

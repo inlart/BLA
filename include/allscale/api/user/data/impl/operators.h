@@ -117,7 +117,6 @@ std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, 
 
 template <typename T>
 std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u, const T& v) {
-    // no aliasing because the result is written in a temporary matrix
     using PacketScalar = typename Vc::Vector<T>;
 
 

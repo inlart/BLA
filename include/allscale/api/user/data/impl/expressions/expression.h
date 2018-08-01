@@ -1,11 +1,13 @@
 #pragma once
 
+#include "allscale/api/user/algorithm/pfor.h"
 #include "allscale/api/user/algorithm/preduce.h"
 #include "allscale/api/user/data/impl/forward.h"
 #include "allscale/api/user/data/impl/iterator.h"
 #include "allscale/api/user/data/impl/iterator_wrapper.h"
 #include "allscale/api/user/data/impl/traits.h"
 #include "allscale/api/user/data/impl/types.h"
+#include "allscale/utils/vector.h"
 
 #include <Eigen/Eigen>
 #include <Vc/Vc>
