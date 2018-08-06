@@ -20,9 +20,10 @@ std::enable_if_t<!std::is_same<scalar_type_t<E1>, std::complex<double>>::value, 
     for(coordinate_type i = 0; i < a.rows(); ++i) {
         for(coordinate_type j = 0; j < a.columns(); ++j) {
             scalar_type_t<E1> diff = (a[{i, j}] - b[{i, j}]);
-            if(diff * diff > epsilon) {
-                return false;
+            if(diff * diff < epsilon) {
+                continue;
             }
+            return false;
         }
     }
     return true;
@@ -37,9 +38,10 @@ std::enable_if_t<std::is_same<scalar_type_t<E1>, std::complex<double>>::value, b
     for(coordinate_type i = 0; i < a.rows(); ++i) {
         for(coordinate_type j = 0; j < a.columns(); ++j) {
             scalar_type_t<E1> diff = (a[{i, j}] - b[{i, j}]);
-            if(diff.real() * diff.real() > epsilon || diff.imag() * diff.imag() > epsilon) {
-                return false;
+            if(diff.real() * diff.real() < epsilon && diff.imag() * diff.imag() < epsilon) {
+                continue;
             }
+            return false;
         }
     }
     return true;
@@ -107,7 +109,7 @@ TEST(Operation, QRDecomposition) {
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dis(-1, 1);
+    std::uniform_real_distribution<double> dis(1, 2);
 
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 1; ++i) {

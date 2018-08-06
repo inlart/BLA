@@ -301,7 +301,7 @@ public:
     }
 
     T norm() const {
-        return std::sqrt(product(*this).reduce(0, std::plus<T>{}));
+        return std::sqrt(product(*this).accumulate());
     }
 
     // -- defined in decomposition.h
@@ -335,6 +335,10 @@ public:
 
     Iterator<E> cend() const& {
         return Iterator<E>(*this, rows() * columns());
+    }
+
+    T accumulate() const {
+        return std::accumulate(begin(), end(), static_cast<T>(0));
     }
 
     template <typename Reducer>

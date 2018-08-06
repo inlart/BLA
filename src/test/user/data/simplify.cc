@@ -20,9 +20,10 @@ std::enable_if_t<!std::is_same<scalar_type_t<E1>, std::complex<double>>::value, 
     for(coordinate_type i = 0; i < a.rows(); ++i) {
         for(coordinate_type j = 0; j < a.columns(); ++j) {
             scalar_type_t<E1> diff = (a[{i, j}] - b[{i, j}]);
-            if(diff * diff > epsilon) {
-                return false;
+            if(diff * diff < epsilon) {
+                continue;
             }
+            return false;
         }
     }
     return true;
@@ -37,14 +38,14 @@ std::enable_if_t<std::is_same<scalar_type_t<E1>, std::complex<double>>::value, b
     for(coordinate_type i = 0; i < a.rows(); ++i) {
         for(coordinate_type j = 0; j < a.columns(); ++j) {
             scalar_type_t<E1> diff = (a[{i, j}] - b[{i, j}]);
-            if(diff.real() * diff.real() > epsilon || diff.imag() * diff.imag() > epsilon) {
-                return false;
+            if(diff.real() * diff.real() < epsilon && diff.imag() * diff.imag() < epsilon) {
+                continue;
             }
+            return false;
         }
     }
     return true;
 }
-
 TEST(Simplify, Transpose) {
     Matrix<int> m1({55, 58});
     Matrix<int> m2({55, 58});
