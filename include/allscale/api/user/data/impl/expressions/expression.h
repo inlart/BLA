@@ -393,6 +393,9 @@ public:
         return iterator_reduce([](const Iterator<E>& a, const Iterator<E>& b) { return (*b < *a) ? b : a; });
     }
 
+    // -- defined in eigen.h
+    EigenSolver<T> solveEigen() const;
+
     // -- defined in decomposition.h
     T determinant() const;
     Matrix<T> inverse() const;

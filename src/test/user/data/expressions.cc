@@ -1103,6 +1103,24 @@ TEST(Solve, ViewUnitUpperInPlace) {
     }
 }
 
+TEST(Solve, EigenSolver) {
+    Matrix<double> m1({4, 4});
+
+    Matrix<double> zero({m1.rows(), 1});
+    zero.zero();
+
+    m1 << 52, 30, 49, 28, 30, 50, 8, 44, 49, 8, 46, 16, 28, 44, 16, 22;
+
+    auto s = m1.solveEigen();
+
+    for(unsigned int i = 0; i < s.eigenvalues.size(); ++i) {
+        ASSERT_TRUE(isAlmostEqual(m1 * s.eigenvectors[i], s.eigenvalues[i] * s.eigenvectors[i], 0.01));
+
+        // we are searching for non-trivial solutions
+        ASSERT_FALSE(isAlmostEqual(s.eigenvectors[i], zero));
+    }
+}
+
 } // end namespace impl
 } // end namespace data
 } // end namespace user

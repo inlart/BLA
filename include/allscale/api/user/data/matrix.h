@@ -1,6 +1,7 @@
 #pragma once
 
 #include "allscale/api/user/data/impl/decomposition.h"
+#include "allscale/api/user/data/impl/eigen.h"
 #include "allscale/api/user/data/impl/evaluate.h"
 #include "allscale/api/user/data/impl/expressions.h"
 #include "allscale/api/user/data/impl/matrix_multiplication.h"

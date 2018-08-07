@@ -103,6 +103,15 @@ template <typename T>
 struct SVD;
 
 /*
+ * Eigen Solver
+ * Defined in eigen.h
+ */
+
+// -- Lower Upper Decomposition
+template <typename T>
+struct EigenSolver;
+
+/*
  * Traits
  * Defined in traits.h
  */
