@@ -198,6 +198,96 @@ private:
     Matrix<T> LU;
 };
 
+// -- full pivoting LUD
+template <typename T>
+struct FPLUD {
+    static_assert(!std::numeric_limits<T>::is_integer, "Decomposition only for floating point types");
+
+    FPLUD(const Matrix<T>& A) : P(A.rows()), Q(A.columns()), LU(A) {
+        assert_eq(A.rows(), A.columns());
+        compute_unblocked(LU);
+    }
+
+    FPLUD(const FPLUD<T>&) = delete;
+    FPLUD(FPLUD<T>&&) = default;
+
+    FPLUD<T>& operator=(const FPLUD<T>&) = delete;
+    FPLUD<T>& operator=(FPLUD<T>&&) = default;
+
+
+    MatrixView<const Matrix<T>, ViewType::UnitLower> lower() const {
+        return LU.template view<ViewType::UnitLower>();
+    }
+
+    MatrixView<const Matrix<T>, ViewType::Upper> upper() const {
+        return LU.template view<ViewType::Upper>();
+    }
+
+    const PermutationMatrix<T>& rowPermutation() const {
+        return P;
+    }
+
+    MatrixTranspose<PermutationMatrix<T>> columnPermutation() const {
+        return Q.transpose();
+    }
+
+    int rank() const {
+        int rank = 0;
+        for(int i = 0; i < LU.rows(); ++i) {
+            if(std::abs(LU[{i, i}]) > 1E-8)
+                ++rank;
+        }
+        return rank;
+    }
+
+
+private:
+    void compute_unblocked(SubMatrix<Matrix<T>> loup) {
+        using ct = coordinate_type;
+
+        const ct size = std::min(loup.rows(), loup.columns());
+
+        for(ct k = 0; k < size; ++k) {
+            auto abs_range = loup.bottomColumns(loup.columns() - k).bottomRows(loup.rows() - k).abs();
+            auto it = abs_range.max_element();
+
+            ct max_row = it.pointPos().x;
+            ct max_column = it.pointPos().y;
+
+            max_row += k;
+            max_column += k;
+            if(*it == 0) {
+                // TODO: error handling
+                return;
+            }
+
+
+            if(k != max_row) {
+                P.swap(k, max_row);
+                loup.row(k).swap(loup.row(max_row));
+            }
+
+            if(k != max_column) {
+                Q.swap(k, max_column);
+                loup.column(k).swap(loup.column(max_column));
+            }
+
+            // update bottom right by gaussian elimination
+            loup.column(k).bottomRows(loup.rows() - k - 1) /= loup[{k, k}];
+
+            if(k < std::min(loup.rows(), loup.columns()) - 1) {
+                loup.bottomRows(loup.rows() - k - 1).bottomColumns(loup.columns() - k - 1) -=
+                    loup.column(k).bottomRows(loup.rows() - k - 1) * loup.row(k).bottomColumns(loup.columns() - k - 1);
+            }
+        }
+    }
+
+private:
+    PermutationMatrix<T> P;
+    PermutationMatrix<T> Q;
+    Matrix<T> LU;
+};
+
 template <typename T>
 struct QRD {
     QRD(const Matrix<T>& A) : Q(IdentityMatrix<T>({A.rows(), A.rows()})), R(A) {

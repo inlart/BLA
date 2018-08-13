@@ -73,14 +73,14 @@ TEST(Operation, LUDecompositionBig) {
 }
 
 TEST(Operation, LUDecompositionRNG) {
-    Matrix<double> m1({571, 571});
+    Matrix<double> m1({57, 57});
 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(1, 25);
 
     auto g = [&](const auto&) { return dis(gen); };
-    for(int i = 0; i < 1; ++i) {
+    for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
 
         auto lu = m1.LUDecomposition();
@@ -102,6 +102,51 @@ TEST(Operation, LUSolve) {
     Matrix<double> x = lu.solve(b);
 
     ASSERT_TRUE(isAlmostEqual(m1 * x, b));
+}
+
+TEST(Operation, FPLUDecompositionRNG) {
+    Matrix<double> m1({5, 5});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 25);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+
+        FPLUD<double> lu(m1);
+
+        ASSERT_TRUE(isAlmostEqual(lu.rowPermutation() * m1 * lu.columnPermutation(), (lu.lower() * lu.upper()).eval()));
+        ASSERT_TRUE(isAlmostEqual(lu.lower(), lu.lower().template view<ViewType::Lower>()));
+        ASSERT_TRUE(isAlmostEqual(lu.upper(), lu.upper().template view<ViewType::Upper>()));
+    }
+}
+
+TEST(Operation, FPLUDecompositionRank) {
+    Matrix<double> m1({3, 3});
+
+    m1 << 0, 1, 2, 1, 2, 1, 2, 7, 8;
+
+    FPLUD<double> lu1(m1);
+
+    ASSERT_EQ(lu1.rank(), 2);
+
+    Matrix<double> m2({3, 3});
+
+    m2 << 1, 0, 2, 2, 1, 0, 3, 2, 1;
+
+    FPLUD<double> lu2(m2);
+
+    ASSERT_EQ(lu2.rank(), 3);
+
+    Matrix<double> m3({4, 4});
+
+    m3 << 1, 4, 3, 2, 3, 7, 4, 6, 7, 8, 1, 14, 2, 11, 9, 4;
+
+    FPLUD<double> lu3(m3);
+
+    ASSERT_EQ(lu3.rank(), 2);
 }
 
 TEST(Operation, Householder) {

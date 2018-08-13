@@ -89,7 +89,8 @@ struct Iterator : public std::iterator<std::random_access_iterator_tag, scalar_t
     }
 
     bool operator==(const Iterator& other) const {
-        if(!back_ref || !other.back_ref) return false;
+        if(!back_ref || !other.back_ref)
+            return false;
         return std::addressof(expr()) == std::addressof(other.expr()) && pos == other.pos;
     }
 
@@ -97,11 +98,11 @@ struct Iterator : public std::iterator<std::random_access_iterator_tag, scalar_t
         return !(*this == other);
     }
 
-private:
     point_type pointPos() const {
         return {pos / expr().columns(), pos % expr().columns()};
     }
 
+private:
     const MatrixExpression<E>& expr() const {
         return back_ref.get();
     }
