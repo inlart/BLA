@@ -167,6 +167,10 @@ public:
         return expression[pos + block_range.start];
     }
 
+    operator SubMatrix<const Matrix<T>, V>() const {
+        return SubMatrix<const Matrix<T>, V>(expression, block_range);
+    }
+
     point_type size() const {
         return block_range.size;
     }

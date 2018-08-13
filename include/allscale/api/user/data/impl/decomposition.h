@@ -7,6 +7,7 @@
 
 #include "allscale/api/user/data/impl/expressions.h"
 #include "allscale/api/user/data/impl/forward.h"
+#include "allscale/api/user/data/impl/householder.h"
 #include "allscale/api/user/data/impl/traits.h"
 #include "allscale/api/user/data/impl/transpositions.h"
 
@@ -199,7 +200,7 @@ private:
 
 template <typename T>
 struct QRD {
-    QRD(const Matrix<T>& A) : Q(point_type{A.rows(), A.rows()}), R(A) {
+    QRD(const Matrix<T>& A) : Q(IdentityMatrix<T>({A.rows(), A.rows()})), R(A) {
         assert_ge(A.rows(), A.columns());
 
         compute_unblocked({A});
@@ -223,44 +224,13 @@ private:
         using ct = coordinate_type;
 
         // Householder QR Decomposition
-        T mag, alpha;
-        Matrix<T> u({A.rows(), 1});
-
-        u.zero();
-
-        Matrix<T> P(point_type{A.rows(), A.rows()});
-        Matrix<T> I(IdentityMatrix<T>(point_type{A.rows(), A.rows()})); // TODO: fix / done to enable vectorization for I - (u * u.transpose()) * 2.0
-
         Q.identity();
 
         for(ct i = 0; i < A.columns(); ++i) {
-            auto v(u.bottomRows(A.rows() - i));
+            Householder<T> h({R.column(i).bottomRows(A.rows() - i)}, Q.size());
 
-            v = R.column(i).bottomRows(A.rows() - i);
-            mag = v.product(v).accumulate();
-
-            alpha = v[{0, 0}] < 0 ? std::sqrt(mag) : -std::sqrt(mag);
-
-            mag -= v[{0, 0}] * v[{0, 0}];
-
-            v[{0, 0}] += alpha;
-
-            mag += v[{0, 0}] * v[{0, 0}];
-            mag = std::sqrt(mag);
-
-            if(mag < 1E-10)
-                continue;
-
-            v /= mag;
-
-
-            P = I - (u * u.transpose()) * 2.0;
-
-            // eval to avoid aliasing
-            R = (P * R).eval();
-            Q *= P;
-
-            u[{i, 0}] = 0; // set unused value in next iteration to zero
+            h.applyLeft(R);
+            h.applyRight(Q);
         }
     }
 
