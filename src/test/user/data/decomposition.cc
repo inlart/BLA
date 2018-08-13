@@ -104,15 +104,33 @@ TEST(Operation, LUSolve) {
     ASSERT_TRUE(isAlmostEqual(m1 * x, b));
 }
 
-TEST(Operation, QRDecomposition) {
-    Matrix<double> m1({95, 79});
+TEST(Operation, Householder) {
+    Matrix<double> m1({57, 1});
 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(1, 2);
 
     auto g = [&](const auto&) { return dis(gen); };
-    for(int i = 0; i < 1; ++i) {
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+
+        Householder<double> h({m1}, {m1.rows(), m1.rows()});
+
+        ASSERT_TRUE(isAlmostEqual(h.getP() * h.getP(), IdentityMatrix<double>(point_type{m1.rows(), m1.rows()})));
+        ASSERT_TRUE(isAlmostEqual(h.getP().inverse(), h.getP()));
+    }
+}
+
+TEST(Operation, QRDecomposition) {
+    Matrix<double> m1({5, 5});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
 
         auto qr = m1.QRDecomposition();
@@ -120,6 +138,8 @@ TEST(Operation, QRDecomposition) {
         ASSERT_TRUE(isAlmostEqual(qr.getQ() * qr.getQ().transpose(), IdentityMatrix<double>(point_type{m1.rows(), m1.rows()})));
 
         ASSERT_TRUE(isAlmostEqual(m1, (qr.getQ() * qr.getR()).eval()));
+
+        ASSERT_TRUE(isAlmostEqual(qr.getR(), qr.getR().template view<ViewType::Upper>()));
     }
 }
 

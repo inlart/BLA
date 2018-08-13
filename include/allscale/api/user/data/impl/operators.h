@@ -181,6 +181,40 @@ std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, 
     return u;
 }
 
+template <typename T, bool V>
+std::enable_if_t<vectorizable_v<SubMatrix<const Matrix<T>, V>>, SubMatrix<const Matrix<T>, V>> operator/=(SubMatrix<const Matrix<T>, V> u, const T& v) {
+    using PacketScalar = typename Vc::Vector<T>;
+
+    const int packet_size = PacketScalar::size();
+    const int caligned_end = u.columns() / packet_size * packet_size;
+
+    const PacketScalar simd_value(v);
+
+    algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+        int j = coord.y * packet_size;
+        point_type p{coord.x, j};
+        (u.template packet<PacketScalar>(p) / simd_value).store(&u[p]);
+    });
+
+    for(int i = 0; i < u.rows(); ++i) {
+        for(int j = caligned_end; j < u.columns(); ++j) {
+            u[{i, j}] /= v;
+        }
+    }
+
+
+    return u;
+}
+
+template <typename T, bool V>
+std::enable_if_t<!vectorizable_v<SubMatrix<const Matrix<T>, V>>, SubMatrix<const Matrix<T>, V>> operator/=(SubMatrix<const Matrix<T>, V> u, const T& v) {
+    // no aliasing because the result is written in a temporary matrix
+
+    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
+
+    return u;
+}
+
 
 // -- matrix matrix addition
 template <typename E1, typename E2>

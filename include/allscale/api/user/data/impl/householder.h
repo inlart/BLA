@@ -13,7 +13,7 @@ namespace impl {
 template <typename T>
 struct Householder {
     template <bool V = false>
-    Householder(SubMatrix<const Matrix<T>, V> m, point_type size) : P(size), v(m.size()) {
+    Householder(SubMatrix<const Matrix<T>, V> m, point_type size) : P(size), v(m), beta(0) {
         P.identity();
         compute(m);
     }
@@ -39,29 +39,20 @@ private:
     // Householder Matrix
     Matrix<T> P;
     Matrix<T> v;
+    T beta;
 
 
     template <bool V = false>
     void compute(SubMatrix<const Matrix<T>, V> m) {
-        Matrix<T> v(m.size());
+        T norm = v.norm();
+        int rho = (v[{0, 0}] < static_cast<T>(0)) - (static_cast<T>(0) < v[{0, 0}]); // -sign(v[0])
+        T u1 = v[{0, 0}] - rho * norm;
+        v /= u1;
+        v[{0, 0}] = static_cast<T>(1);
+        beta = -rho * u1 / norm;
 
-        v = m;
-        T mag = v.product(v).accumulate();
 
-        mag -= v[{0, 0}] * v[{0, 0}];
-
-        v[{0, 0}] += v[{0, 0}] < 0 ? std::sqrt(mag) : -std::sqrt(mag);
-
-        mag += v[{0, 0}] * v[{0, 0}];
-        mag = std::sqrt(mag);
-
-        // TODO: set fail state
-        if(mag < 1E-10)
-            return;
-
-        v /= mag;
-
-        P.bottomRows(m.rows()).bottomColumns(m.rows()) -= (v * v.transpose()) * 2.0;
+        P.bottomRows(m.rows()).bottomColumns(m.rows()) -= (v * v.transpose()) * beta;
     }
 };
 

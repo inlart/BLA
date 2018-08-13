@@ -4,7 +4,6 @@
 #include "allscale/api/user/data/impl/expressions/identity.h"
 #include "allscale/api/user/data/impl/types.h"
 
-#include <allscale/api/user/data/grid.h>
 #include <allscale/api/user/data/matrix.h>
 
 namespace allscale {
@@ -15,9 +14,11 @@ namespace impl {
 
 template <typename T>
 struct EigenSolver {
-    EigenSolver(const Matrix<T>& matrix) {
+    EigenSolver(const Matrix<T>& matrix) : Q(IdentityMatrix<T>(matrix.size())) {
         assert_eq(matrix.rows(), matrix.columns());
-        compute(matrix);
+        Matrix<T> H = matrix;
+        hessenberg_form(H);
+        compute(H);
     }
 
 private:
@@ -25,7 +26,7 @@ private:
         for(int i = 0; i < m.rows(); ++i) {
             for(int j = 0; j < i; ++j) {
                 // TODO: epsilon
-                if(m[{i, j}] > 1E-8) {
+                if(std::abs(m[{i, j}]) > 1E-9) {
                     return false;
                 }
             }
@@ -38,7 +39,7 @@ private:
         using ct = coordinate_type;
 
         Matrix<T> m = matrix;
-        Matrix<T> vec(IdentityMatrix<T>(matrix.size()));
+        Matrix<T> vec(Q);
 
         // QR Algorithm
         while(!isUpper(m)) {
@@ -56,7 +57,20 @@ private:
         }
     }
 
+    void hessenberg_form(Matrix<T>& H) {
+        for(int k = 0; k < H.rows() - 2; ++k) {
+            Matrix<T> old = H;
+            Householder<T> h({H.column(k).bottomRows(H.rows() - k - 1)}, H.size());
+
+            Q *= h.getP();
+
+            h.applyLeft(H);
+            h.applyRight(H);
+        }
+    }
+
 public:
+    Matrix<T> Q;
     std::vector<T> eigenvalues;
     std::vector<Matrix<T>> eigenvectors;
 };
