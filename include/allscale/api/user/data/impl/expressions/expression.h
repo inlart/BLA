@@ -306,6 +306,7 @@ public:
 
     // -- defined in decomposition.h
     LUD<T> LUDecomposition() const;
+    FPLUD<T> FPLUDecomposition() const;
     QRD<T> QRDecomposition() const;
     SVD<T> SVDecomposition() const;
 

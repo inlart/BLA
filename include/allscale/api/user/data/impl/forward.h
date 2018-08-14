@@ -90,9 +90,13 @@ class SimdBlock;
  * Defined in decomposition.h
  */
 
-// -- Lower Upper Decomposition
+// -- Lower Upper Decomposition with partial pivoting
 template <typename T>
 struct LUD;
+
+// -- Lower Upper Decomposition with full pivoting
+template <typename T>
+struct FPLUD;
 
 // -- QR Decomposition
 template <typename T>

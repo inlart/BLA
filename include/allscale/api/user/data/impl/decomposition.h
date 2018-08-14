@@ -231,6 +231,37 @@ struct FPLUD {
         return Q.transpose();
     }
 
+    T determinant() const {
+        using ct = coordinate_type;
+
+        T det = LU[{0, 0}];
+
+        const ct n = LU.rows();
+
+        for(ct i = 1; i < n; ++i) {
+            det *= LU[{i, i}];
+        }
+
+        if(((P.numSwaps() + Q.numSwaps()) & 1) == 0)
+            return det;
+        else
+            return -det;
+    }
+
+
+    // -- Solve A * x = b for x
+    Matrix<T> solve(SubMatrix<Matrix<T>> b) {
+        assert_eq(b.rows(), LU.columns());
+        Matrix<T> x(b.size());
+
+        x = P * b;
+
+        LU.template view<ViewType::UnitLower>().solveInPlace(x);
+        LU.template view<ViewType::Upper>().solveInPlace(x);
+
+        return Q.transpose() * x;
+    }
+
     int rank() const {
         int rank = 0;
         for(int i = 0; i < LU.rows(); ++i) {
@@ -360,6 +391,11 @@ private:
 template <typename E>
 LUD<scalar_type_t<E>> MatrixExpression<E>::LUDecomposition() const {
     return LUD<scalar_type_t<E>>(*this);
+}
+
+template <typename E>
+FPLUD<scalar_type_t<E>> MatrixExpression<E>::FPLUDecomposition() const {
+    return FPLUD<scalar_type_t<E>>(*this);
 }
 
 template <typename E>

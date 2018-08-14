@@ -149,6 +149,21 @@ TEST(Operation, FPLUDecompositionRank) {
     ASSERT_EQ(lu3.rank(), 2);
 }
 
+TEST(Operation, FPLUSolve) {
+    Matrix<double> m1({3, 3});
+    m1 << 3, 2, -1, 2, -2, 4, -1, 0.5, -1;
+
+    auto lu = m1.FPLUDecomposition();
+
+    Matrix<double> b({3, 1});
+
+    b << 1, -2, 0;
+
+    Matrix<double> x = lu.solve(b);
+
+    ASSERT_TRUE(isAlmostEqual(m1 * x, b));
+}
+
 TEST(Operation, Householder) {
     Matrix<double> m1({57, 1});
 
