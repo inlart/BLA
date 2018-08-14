@@ -42,6 +42,14 @@ public:
         return expression;
     }
 
+    Matrix<T> inverse() const {
+        Matrix<T> inverse{IdentityMatrix<T>(size())};
+
+        solveInPlace(inverse);
+
+        return inverse;
+    }
+
     Matrix<T> solve(SubMatrix<Matrix<T>> b) const {
         assert_eq(b.rows(), columns());
         Matrix<T> x(b);
@@ -104,6 +112,14 @@ public:
         return expression;
     }
 
+    Matrix<T> inverse() const {
+        Matrix<T> inverse{IdentityMatrix<T>(size())};
+
+        solveInPlace(inverse);
+
+        return inverse;
+    }
+
     Matrix<T> solve(SubMatrix<Matrix<T>> b) const {
         assert_eq(b.rows(), columns());
         Matrix<T> x(b);
@@ -162,6 +178,14 @@ public:
 
     Exp getExpression() const {
         return expression;
+    }
+
+    Matrix<T> inverse() const {
+        Matrix<T> inverse{IdentityMatrix<T>(size())};
+
+        solveInPlace(inverse);
+
+        return inverse;
     }
 
     Matrix<T> solve(SubMatrix<Matrix<T>> b) const {
@@ -224,6 +248,14 @@ public:
 
     Exp getExpression() const {
         return expression;
+    }
+
+    Matrix<T> inverse() const {
+        Matrix<T> inverse{IdentityMatrix<T>(size())};
+
+        solveInPlace(inverse);
+
+        return inverse;
     }
 
     Matrix<T> solve(SubMatrix<Matrix<T>> b) const {

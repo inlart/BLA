@@ -956,6 +956,24 @@ TEST(Operation, Inverse) {
     }
 }
 
+
+TEST(Operation, InverseFPLUD) {
+    const point_type s{4, 4};
+    Matrix<double> m1(s);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        Matrix<double> inv = m1.FPLUDecomposition().inverse();
+        ASSERT_TRUE(isAlmostEqual(IdentityMatrix<double>(s), m1 * inv));
+        ASSERT_TRUE(isAlmostEqual(IdentityMatrix<double>(s), inv * m1));
+    }
+}
+
 TEST(Operation, ElementMultiplication) {
     Matrix<double> m1({31, 47});
     Matrix<double> m2(m1.size());
