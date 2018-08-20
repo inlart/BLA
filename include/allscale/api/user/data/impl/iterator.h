@@ -6,8 +6,10 @@
 #include "allscale/api/user/data/impl/forward.h"
 
 #include <allscale/utils/assert.h>
-#include <boost/optional.hpp>
+#include <allscale/utils/optional.h>
+#include <functional>
 #include <iterator>
+#include <memory>
 
 namespace allscale {
 namespace api {
@@ -23,7 +25,7 @@ struct Iterator : public std::iterator<std::random_access_iterator_tag, scalar_t
     // TODO: https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator
 
 
-    boost::optional<const MatrixExpression<E>&> back_ref;
+    utils::optional<std::reference_wrapper<const MatrixExpression<E>>> back_ref;
     coordinate_type pos;
 
     Iterator(const MatrixExpression<E>& m, coordinate_type pos) : back_ref(m), pos(pos) {
@@ -89,9 +91,9 @@ struct Iterator : public std::iterator<std::random_access_iterator_tag, scalar_t
     }
 
     bool operator==(const Iterator& other) const {
-        if(!back_ref || !other.back_ref)
+        if(!(bool)back_ref || !(bool)other.back_ref)
             return false;
-        return std::addressof(expr()) == std::addressof(other.expr()) && pos == other.pos;
+        return std::addressof((*back_ref).get()) == std::addressof((*other.back_ref).get()) && pos == other.pos;
     }
 
     bool operator!=(const Iterator& other) const {
@@ -104,7 +106,7 @@ struct Iterator : public std::iterator<std::random_access_iterator_tag, scalar_t
 
 private:
     const MatrixExpression<E>& expr() const {
-        return back_ref.get();
+        return (*back_ref).get();
     }
 };
 
