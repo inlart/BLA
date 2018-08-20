@@ -1,0 +1,4 @@
+[
+    { include: ["@\"allscale/api/user/data/impl/.*\"", "private", "<allscale/api/user/data/matrix.h>", "public" ] },
+    { include: ["@<allscale/api/user/data/impl/.*>", "private", "<allscale/api/user/data/matrix.h>", "public" ] },
+]

@@ -97,3 +97,10 @@ Contains transpose simplification benchmarks
 ### src/benchmark/transpose/
 
 Contains transpose benchmarks
+
+## Include what you use
+
+The include what you use mapping file is located at `iwyu/matrix.imp`.
+
+To use it with CMAKE add the option:
+`CXX_INCLUDE_WHAT_YOU_USE="path/to/include-what-you-use;-Xiwyu;--mapping_file=/path/to/project/root/iwyu/matrix.imp"`
