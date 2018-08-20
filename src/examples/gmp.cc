@@ -1,5 +1,7 @@
 #include <allscale/api/user/data/matrix.h>
+#include <allscale/utils/assert.h>
 #include <cstdlib>
+#include <functional>
 #include <gmpxx.h>
 
 using namespace allscale::api::user::data;

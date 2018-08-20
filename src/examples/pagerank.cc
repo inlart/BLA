@@ -1,7 +1,7 @@
 #include <allscale/api/user/data/matrix.h>
+#include <allscale/utils/assert.h>
 #include <cstdlib>
 #include <iostream>
-#include <limits>
 
 using namespace allscale::api::user::data;
 

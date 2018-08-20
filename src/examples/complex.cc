@@ -1,4 +1,5 @@
 #include <allscale/api/user/data/matrix.h>
+#include <allscale/utils/assert.h>
 #include <complex>
 #include <cstdlib>
 
