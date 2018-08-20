@@ -1035,6 +1035,25 @@ TEST(Solve, ViewLowerInPlace) {
     }
 }
 
+TEST(Solve, ViewLowerInverse) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        auto x = m1.template view<ViewType::Lower>().inverse();
+
+        ASSERT_TRUE(isAlmostEqual(IdentityMatrix<double>(m1.size()), m1.template view<ViewType::Lower>() * x));
+    }
+}
+
 TEST(Solve, ViewUpper) {
     Matrix<double> m1({211, 211});
     Matrix<double> b({211, 5});
@@ -1071,6 +1090,25 @@ TEST(Solve, ViewUpperInPlace) {
         m1.template view<ViewType::Upper>().solveInPlace(x);
 
         ASSERT_TRUE(isAlmostEqual(b, m1.template view<ViewType::Upper>() * x));
+    }
+}
+
+TEST(Solve, ViewUpperInverse) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        auto x = m1.template view<ViewType::Upper>().inverse();
+
+        ASSERT_TRUE(isAlmostEqual(IdentityMatrix<double>(m1.size()), m1.template view<ViewType::Upper>() * x));
     }
 }
 
@@ -1113,6 +1151,25 @@ TEST(Solve, ViewUnitLowerInPlace) {
     }
 }
 
+TEST(Solve, ViewUnitLowerInverse) {
+    Matrix<double> m1({5, 5});
+    Matrix<double> b({5, 1});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        auto x = m1.template view<ViewType::UnitLower>().inverse();
+
+        ASSERT_TRUE(isAlmostEqual(IdentityMatrix<double>(m1.size()), m1.template view<ViewType::UnitLower>() * x));
+    }
+}
+
 TEST(Solve, ViewUnitUpper) {
     Matrix<double> m1({211, 211});
     Matrix<double> b({211, 5});
@@ -1149,6 +1206,25 @@ TEST(Solve, ViewUnitUpperInPlace) {
         m1.template view<ViewType::UnitUpper>().solveInPlace(x);
 
         ASSERT_TRUE(isAlmostEqual(b, m1.template view<ViewType::UnitUpper>() * x));
+    }
+}
+
+TEST(Solve, ViewUnitUpperInverse) {
+    Matrix<double> m1({211, 211});
+    Matrix<double> b({211, 5});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(1, 2);
+
+    auto g = [&](const auto&) { return dis(gen); };
+    for(int i = 0; i < 20; ++i) {
+        m1.fill_seq(g);
+        b.fill_seq(g);
+
+        auto x = m1.template view<ViewType::UnitUpper>().inverse();
+
+        ASSERT_TRUE(isAlmostEqual(IdentityMatrix<double>(m1.size()), m1.template view<ViewType::UnitUpper>() * x));
     }
 }
 
