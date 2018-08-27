@@ -1,10 +1,10 @@
 # Matrices for AllScale
 
-Provides the `Matrix` data type for the AllScale API.
+A header-only linear algebra library extension of the AllScale API.
 
 ## Dependencies
 
-* CMake 3.5 (<https://cmake.org/>)
+* CMake 3.5 or later (<https://cmake.org/>)
 * Allscale API (<https://github.com/allscale/allscale_api>)
 * OpenBLAS 0.3.0 (<https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide>)
 
@@ -19,10 +19,13 @@ The following dependencies are already included as git submodules:
 | Option                  | Values          |
 | ----------------------- | --------------- |
 | -DCMAKE_BUILD_TYPE      | Release / Debug |
+| -DUSE_ASSERT            | ON / OFF        |
 | -DBUILD_BENCHMARKS      | ON / OFF        |
 | -DBUILD_EXAMPLES        | ON / OFF        |
+| -DBUILD_TESTS           | ON / OFF        |
 | -DOVERRIDE_ALLSCALE_API | \<path\>        |
 
+CMake will print a warning if benchmarks are built with asserts on or build type debug.
 If supported, the flag `-march=native` is set.
 CMake creates executables for all files in `src/benchmark` with a `.cc` file extension.
 Filenames that contain `allscale` may use the AllScale API.
@@ -42,61 +45,68 @@ This is the main header file, it provides the Matrix class,
 which is built on top of the AllScale Grid container.
 It includes the following header files which are contained in the subfolder `impl`:
 
-* `expressions.h` - expressions that represent matrix operations
-* `operators.h` - operator definitions for MatrixExpressions
-* `forward.h` - forward declaration for expressions and traits
-* `matrix_multiplication.h` - contains different variations of matrix-matrix multiplications
+* `decomposition.h` - LU (partial and full pivoting) and QR decomposition
+* `eigen.h` - eigenvalue / eigenvector solver
+* `evaluate.h` - copy matrix expressions to actual matrices
+* `expressions.h` - expressions that represent (nested) matrix operations; defined in subfolder `expressions`
+* `forward.h` - forward declarations
+* `householder.h` - Householder reflection helper
+* `iterator_wrapper.h` - iteratorception
+* `iterator.h` - MatrixExpression iterator
+* `matrix_multiplication.h` - different matrix multiplication approaches
+* `operators.h` - C++ operator definitions for MatrixExpressions
+* `simplify.h` - MatrixExpression tree simplification
 * `traits.h` - type traits
+* `transpose.h` - matrix transpose implementations
+* `transpositions.h` - a list of permutations
+* `types.h` - helper types
 
 ## Test for the Matrix Type
 
-### src/test/user/data/matrix.cc
-
 This file contains tests for:
 
-* `Matrix` - General matrix tests
-* `Utility` - Matrix helper functions tests
-* `Expression` - MatrixExpression tests
-* `Operation` - Matrix operations tests
-* `Simplify` - MatrixExpression simplification tests
+* `decomposition.cc` - tests for `decomposition.h`
+* `evaluate.cc` - tests for `evaluate.h`
+* `expressions.cc` - tests for `expressions.h`
+* `matrix_multiplication.cc` - tests for `matrix_multiplication.h`
+* `operators.cc` - tests for `operators.h`
+* `simplify.cc` - tests for `simplify.h`
+* `traits.cc` - tests for `traits.h`
+* `transpose.cc` - tests for `transpose.h`
 
 ## Benchmarking
 
-### src/benchmark/mm/
+* matrix operations
+  * add
+  * subtraction
+  * transpose
+  * x
+  * rowswap
 
-Contains matrix multiplication benchmarks
+* matrix multiplication
+  * mm
+  * mmnt
+  * mmtn
+  * mmtt
+  * submm
 
-### src/benchmark/add/
+* decomposition
+  * qrd
+  * lud
 
-Contains matrix addition benchmarks
+* simplify
+  * simplifyscalarmultiplication
+  * simplifysubmatrixmultiplication
+  * simplifytranspose
 
-### src/benchmark/x/
+## Examples
 
-Contains multiple operations benchmarks
-
-### src/benchmark/mm_n_t/
-
-Contains matrix multiplication benchmarks where the right matrix is transposed
-
-### src/benchmark/mm_t_n/
-
-Contains matrix multiplication benchmarks where the left matrix is transposed
-
-### src/benchmark/mm_t_t/
-
-Contains matrix multiplication benchmarks where both matrices are transposed
-
-### src/benchmark/simplify_scalarmultiplication/
-
-Contains scalar matrix multiplication simplification benchmarks
-
-### src/benchmark/simplify_transpose/
-
-Contains transpose simplification benchmarks
-
-### src/benchmark/transpose/
-
-Contains transpose benchmarks
+* `complex.cc` - complex number matrix multiplication
+* `expressions.cc` - nested expressions
+* `functions.cc` - functions taking MatrixExpressions
+* `gmp.cc` - matrix operations using the GNU Multiple Precision library
+* `matrix multiplication.cc` - a simple matrix multiplication
+* `pagerank.cc` -  PageRank algorithm implementation
 
 ## Include what you use
 
