@@ -57,6 +57,8 @@ struct LUD {
 
         const ct n = LU.rows();
 
+        // determinant is the multiplication of
+        // the diagonal elements of the lower and upper matrix
         for(ct i = 1; i < n; ++i) {
             det *= LU[{i, i}];
         }
@@ -68,6 +70,8 @@ struct LUD {
     }
 
     Matrix<T> inverse() const {
+        // A = P^T * L * U
+        // --> A^-1 = U^-1 * L^-1 * P
         Matrix<T> inverse(upper().inverse());
         inverse *= lower().inverse();
         inverse *= permutation();
@@ -77,12 +81,16 @@ struct LUD {
 
     // -- Solve A * x = b for x
     Matrix<T> solve(SubMatrix<Matrix<T>> b) {
+        // L * U * x = P * b
         assert_eq(b.rows(), LU.columns());
         Matrix<T> x(b.size());
 
         x = P * b;
 
+        // L * U * x' = x
         LU.template view<ViewType::UnitLower>().solveInPlace(x);
+
+        // U * x' = x
         LU.template view<ViewType::Upper>().solveInPlace(x);
 
         return x;
@@ -99,14 +107,18 @@ private:
 
         for(ct k = 0; k < size; ++k) {
             auto abs_range = loup.column(k).bottomRows(loup.rows() - k).abs();
+
+            // find the row of the max element
             auto it = abs_range.max_element();
-
             ct max_row = it - abs_range.begin();
-
             max_row += k;
+
+            // add switch to transpositions
             t[k + start_row] = max_row + start_row;
+
             if(*it != 0) {
                 if(k != max_row) {
+                    // swap the rows
                     loup.row(k).swap(loup.row(max_row));
                 }
 
@@ -152,6 +164,7 @@ private:
             auto A22 = loup.sub({{k + bs, k + bs}, {trows, tsize}});
 
 
+            // call recursive compute
             compute_blocked(loup.sub({{k, k}, {trows + bs, bs}}), t, 16);
 
             // update permutations and apply them to A_0
@@ -211,6 +224,8 @@ struct FPLUD {
     }
 
     Matrix<T> inverse() const {
+        // A = P^T * L * U * Q^T
+        // --> A^-1 = Q * U^-1 * L^-1 * P
         Matrix<T> inverse(columnPermutation());
         inverse *= upper().inverse();
         inverse *= lower().inverse();
@@ -226,6 +241,8 @@ struct FPLUD {
 
         const ct n = LU.rows();
 
+        // determinant is the multiplication of
+        // the diagonal elements of the lower and upper matrix
         for(ct i = 1; i < n; ++i) {
             det *= LU[{i, i}];
         }
@@ -252,6 +269,7 @@ struct FPLUD {
 
     int rank() const {
         int rank = 0;
+        // rank is the number of elements greater than zero
         for(int i = 0; i < LU.rows(); ++i) {
             if(std::abs(LU[{i, i}]) > 1E-8)
                 ++rank;
@@ -268,6 +286,8 @@ private:
 
         for(ct k = 0; k < size; ++k) {
             auto abs_range = loup.bottomColumns(loup.columns() - k).bottomRows(loup.rows() - k).abs();
+
+            // find row and column of max element
             auto it = abs_range.max_element();
 
             ct max_row = it.pointPos().x;
@@ -282,11 +302,13 @@ private:
 
 
             if(k != max_row) {
+                // swap row with max element row
                 P.swap(k, max_row);
                 loup.row(k).swap(loup.row(max_row));
             }
 
             if(k != max_column) {
+                // swap column with max element column
                 Q.swap(k, max_column);
                 loup.column(k).swap(loup.column(max_column));
             }
@@ -336,9 +358,13 @@ private:
         Q.identity();
 
         for(ct i = 0; i < A.columns(); ++i) {
+            // calculate Householder reflection for i-th column and last rows - i rows
             Householder<T> h({R.column(i).bottomRows(A.rows() - i)}, Q.size());
 
+            // add rows - i - 1 zeros on i-th column of Matrix R
             h.applyLeft(R);
+
+            // update Q
             h.applyRight(Q);
         }
     }
