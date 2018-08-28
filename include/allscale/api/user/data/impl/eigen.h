@@ -21,6 +21,14 @@ struct EigenSolver {
         compute(H);
     }
 
+    T getEigenvalue(coordinate_type i) {
+        return eigenvalues[i];
+    }
+
+    SubMatrix<const Matrix<T>, true> getEigenvector(coordinate_type i) {
+        return Q.column(i);
+    }
+
 private:
     bool isUpper(const Matrix<T>& m) {
         for(int i = 0; i < m.rows(); ++i) {
@@ -41,11 +49,17 @@ private:
         Matrix<T> m = matrix;
         Matrix<T> vec(Q);
 
-        // QR Algorithm
+        // -- QR Algorithm
+        // stop when the matrix is upper triangular
         while(!isUpper(m)) {
+            // perform QR decomposition
             auto qr = m.QRDecomposition();
+
+            // calculate new matrix = R * Q
             m = qr.getR() * qr.getQ();
-            vec *= qr.getQ();
+
+            // update eigenvector computation
+            Q *= qr.getQ();
         }
 
 
@@ -53,13 +67,13 @@ private:
             // eigenvalues are on the diagonal
             eigenvalues.push_back(m[{i, i}]);
 
-            eigenvectors.push_back((vec.column(i)).eval());
+            // eigenvectors are already in Q
         }
     }
 
     void hessenberg_form(Matrix<T>& H) {
+        // bring matrix to upper hessenberg form
         for(int k = 0; k < H.rows() - 2; ++k) {
-            Matrix<T> old = H;
             Householder<T> h({H.column(k).bottomRows(H.rows() - k - 1)}, H.size());
 
             Q *= h.getP();
@@ -72,7 +86,6 @@ private:
 public:
     Matrix<T> Q;
     std::vector<T> eigenvalues;
-    std::vector<Matrix<T>> eigenvectors;
 };
 
 template <typename E>

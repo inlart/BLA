@@ -1231,10 +1231,10 @@ TEST(Solve, EigenSolver) {
     auto s = m1.solveEigen();
 
     for(unsigned int i = 0; i < s.eigenvalues.size(); ++i) {
-        ASSERT_TRUE(isAlmostEqual(m1 * s.eigenvectors[i], s.eigenvalues[i] * s.eigenvectors[i], 0.01));
+        ASSERT_TRUE(isAlmostEqual(m1 * s.getEigenvector(i), s.getEigenvalue(i) * s.getEigenvector(i), 0.01));
 
         // we are searching for non-trivial solutions
-        ASSERT_FALSE(isAlmostEqual(s.eigenvectors[i], zero));
+        ASSERT_FALSE(isAlmostEqual(s.getEigenvector(i), zero));
     }
 }
 
