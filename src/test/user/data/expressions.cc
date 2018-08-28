@@ -1037,7 +1037,6 @@ TEST(Solve, ViewLowerInPlace) {
 
 TEST(Solve, ViewLowerInverse) {
     Matrix<double> m1({211, 211});
-    Matrix<double> b({211, 5});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -1046,7 +1045,6 @@ TEST(Solve, ViewLowerInverse) {
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
-        b.fill_seq(g);
 
         auto x = m1.template view<ViewType::Lower>().inverse();
 
@@ -1095,7 +1093,6 @@ TEST(Solve, ViewUpperInPlace) {
 
 TEST(Solve, ViewUpperInverse) {
     Matrix<double> m1({211, 211});
-    Matrix<double> b({211, 5});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -1104,7 +1101,6 @@ TEST(Solve, ViewUpperInverse) {
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
-        b.fill_seq(g);
 
         auto x = m1.template view<ViewType::Upper>().inverse();
 
@@ -1152,8 +1148,7 @@ TEST(Solve, ViewUnitLowerInPlace) {
 }
 
 TEST(Solve, ViewUnitLowerInverse) {
-    Matrix<double> m1({5, 5});
-    Matrix<double> b({5, 1});
+    Matrix<double> m1({211, 211});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -1162,7 +1157,6 @@ TEST(Solve, ViewUnitLowerInverse) {
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
-        b.fill_seq(g);
 
         auto x = m1.template view<ViewType::UnitLower>().inverse();
 
@@ -1211,7 +1205,6 @@ TEST(Solve, ViewUnitUpperInPlace) {
 
 TEST(Solve, ViewUnitUpperInverse) {
     Matrix<double> m1({211, 211});
-    Matrix<double> b({211, 5});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -1220,7 +1213,6 @@ TEST(Solve, ViewUnitUpperInverse) {
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
-        b.fill_seq(g);
 
         auto x = m1.template view<ViewType::UnitUpper>().inverse();
 
@@ -1247,7 +1239,7 @@ TEST(Solve, EigenSolver) {
 }
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace data
+} // namespace user
+} // namespace api
+} // namespace allscale

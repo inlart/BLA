@@ -44,8 +44,16 @@ public:
 
     Matrix<T> inverse() const {
         Matrix<T> inverse{IdentityMatrix<T>(size())};
+        using ct = coordinate_type;
 
-        solveInPlace(inverse);
+        for(ct i = 0; i < this->rows(); ++i) {
+            for(ct j = 0; j <= i; ++j) {
+                for(ct ii = j; ii < i; ++ii) {
+                    inverse[{i, j}] -= (*this)[{i, ii}] * inverse[{ii, j}];
+                }
+                inverse[{i, j}] /= (*this)[{i, i}];
+            }
+        }
 
         return inverse;
     }
@@ -113,9 +121,17 @@ public:
     }
 
     Matrix<T> inverse() const {
-        Matrix<T> inverse{IdentityMatrix<T>(size())};
+        Matrix<T> inverse{*this};
+        using ct = coordinate_type;
 
-        solveInPlace(inverse);
+        for(ct i = 1; i < this->rows(); ++i) {
+            for(ct j = 0; j < i; ++j) {
+                inverse[{i, j}] *= -1;
+                for(ct ii = j + 1; ii < i; ++ii) {
+                    inverse[{i, j}] -= (*this)[{i, ii}] * inverse[{ii, j}];
+                }
+            }
+        }
 
         return inverse;
     }
@@ -182,8 +198,16 @@ public:
 
     Matrix<T> inverse() const {
         Matrix<T> inverse{IdentityMatrix<T>(size())};
+        using ct = coordinate_type;
 
-        solveInPlace(inverse);
+        for(ct i = this->rows() - 1; i >= 0; --i) {
+            for(ct j = i; j < this->rows(); ++j) {
+                for(ct ii = j; ii > i; --ii) {
+                    inverse[{i, j}] -= (*this)[{i, ii}] * inverse[{ii, j}];
+                }
+                inverse[{i, j}] /= (*this)[{i, i}];
+            }
+        }
 
         return inverse;
     }
@@ -251,9 +275,17 @@ public:
     }
 
     Matrix<T> inverse() const {
-        Matrix<T> inverse{IdentityMatrix<T>(size())};
+        Matrix<T> inverse{*this};
+        using ct = coordinate_type;
 
-        solveInPlace(inverse);
+        for(ct i = this->rows() - 2; i >= 0; --i) {
+            for(ct j = i + 1; j < this->rows(); ++j) {
+                inverse[{i, j}] *= -1;
+                for(ct ii = j - 1; ii > i; --ii) {
+                    inverse[{i, j}] -= (*this)[{i, ii}] * inverse[{ii, j}];
+                }
+            }
+        }
 
         return inverse;
     }
