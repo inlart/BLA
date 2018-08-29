@@ -20,19 +20,6 @@ struct set_type {
     using type = T;
 };
 
-template <bool... A>
-struct and_value;
-
-template <bool A>
-struct and_value<A> {
-    static constexpr bool value = A;
-};
-
-template <bool A, bool... B>
-struct and_value<A, B...> {
-    static constexpr bool value = A && and_value<B...>::value;
-};
-
 // C++ 17 feature
 template <class...>
 using void_t = void;
@@ -43,13 +30,6 @@ struct remove_cvref : public set_type<std::remove_cv_t<std::remove_reference_t<T
 
 template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
-
-// template <typename T>
-// struct alignment
-//    : public std::conditional<alignof(std::max_align_t) >= Vc::memory_alignment_v<T>, Vc::flags::vector_aligned_tag, Vc::flags::element_aligned_tag> {};
-
-// template <typename T>
-// using alignment_t = typename alignment<T>::type;
 
 } // namespace detail
 

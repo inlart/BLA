@@ -27,7 +27,7 @@ void transpose(std::array<Vc::Vector<data_type, Vc::VectorAbi::Scalar>, 1>&) {
     // Nothing to do in scalar case
 }
 
-#ifdef Vc_IMPL_SSE4_2 // Vc_HAVE_SSE
+#ifdef Vc_IMPL_SSE4_2
 
 #ifdef _MM_TRANSPOSE4_PS
 
@@ -40,9 +40,9 @@ void transpose(std::array<Vc::Vector<float, Vc::VectorAbi::Sse>, 4>& rows) {
 
 #endif // _MM_TRANSPOSE4_PS
 
-#endif // Vc_HAVE_SSE
+#endif // Vc_IMPL_SSE4_2
 
-#ifdef Vc_IMPL_AVX2 // Vc_HAVE_AVX
+#ifdef Vc_IMPL_AVX2
 
 // -- AVX float 8x8
 void transpose(std::array<Vc::Vector<float, Vc::VectorAbi::Avx>, 8>& rows) {
@@ -116,7 +116,7 @@ void transpose(std::array<Vc::Vector<double, Vc::VectorAbi::Avx>, 4>& rows) {
 // void transpose(std::array<Vc::Vector<int, Vc::Vector_abi::avx>, 8>& rows) {
 // }
 
-#endif // Vc_HAVE_AVX
+#endif // Vc_IMPL_AVX2
 
 
 // TODO: move

@@ -10,6 +10,8 @@ namespace user {
 namespace data {
 namespace impl {
 
+// TODO: there might be better ways to apply a householder matrix / consider complex values
+
 template <typename T>
 struct Householder {
     template <bool V = false>
@@ -18,13 +20,14 @@ struct Householder {
         compute(m);
     }
 
+    // apply the Householder matrix on the left
     void applyLeft(Matrix<T>& m) const {
         assert_eq(m.rows(), m.columns());
         assert_eq(m.size(), P.size());
         m = (P * m).eval();
     }
 
-
+    // apply the Householder matrix on the right
     void applyRight(Matrix<T>& m) const {
         assert_eq(m.rows(), m.columns());
         assert_eq(m.size(), P.size());

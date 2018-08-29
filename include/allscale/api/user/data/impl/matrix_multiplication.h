@@ -28,12 +28,14 @@ namespace impl {
 
 namespace detail {
 
+// -- a recursive
 template <int Depth = 1024, typename T>
 void strassen_rec(SubMatrix<const Matrix<T>> A, SubMatrix<const Matrix<T>> B, SubMatrix<Matrix<T>> C) {
     assert_eq(A.size(), B.size());
     assert_eq(B.size(), C.size());
 
     static_assert(Depth > 0, "strassen depth has to be > 0");
+    // execute base case multiplication if the size is small enough
     if(A.rows() <= Depth) {
         C = A * B;
         return;
@@ -93,6 +95,7 @@ void strassen_rec(SubMatrix<const Matrix<T>> A, SubMatrix<const Matrix<T>> B, Su
     t3 = b22 - b12;
     t4 = t2 - b21;
 
+    // do the recursive computations
     auto p1_async = algorithm::async([&]() { strassen_rec(a11, b11, SubMatrix<Matrix<T>>(p1)); });
 
     auto p2_async = algorithm::async([&]() { strassen_rec(a12, b21, SubMatrix<Matrix<T>>(p2)); });
@@ -123,6 +126,7 @@ void strassen_rec(SubMatrix<const Matrix<T>> A, SubMatrix<const Matrix<T>> B, Su
     u6 = u3 - p4;
     u7 = u3 + p5;
 
+    // update the result matrix
     algorithm::pfor(size_m, [&](const point_type& p) {
         c11[p] = u1[p];
         c12[p] = u5[p];
@@ -131,7 +135,7 @@ void strassen_rec(SubMatrix<const Matrix<T>> A, SubMatrix<const Matrix<T>> B, Su
     });
 }
 
-} // end namespace detail
+} // namespace detail
 
 #define mindex(i, j, size) ((i) * (size) + (j))
 
@@ -155,6 +159,7 @@ void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type ma
 
     std::array<std::array<vt, vector_size>, size> res;
 
+    // initialize the result
     for(int i = 0; i < size; ++i) {
         for(int j = 0; j < vector_size; ++j) {
             res[i][j] = 0;
@@ -164,12 +169,14 @@ void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type ma
     for(ct i = 0; i < k; ++i) {
         std::array<vt, size> a;
 
+        // copy the content of the lhs to a
         for(ct j = 0; j < size; ++j) {
             a[j] = *lhs_ptr[j]++;
         }
 
         std::array<vt, vector_size> b;
 
+        // calculate the result
         for(ct j = 0; j < vector_size; ++j) {
             b[j].load(rhs + j * vt::size() + i * size);
 
@@ -180,6 +187,7 @@ void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type ma
         }
     }
 
+    // update the result matrix
     for(ct i = 0; i < size; ++i) {
         for(ct j = 0; j < vector_size; ++j) {
             ct jj = j * (ct)vt::size();
@@ -197,6 +205,7 @@ void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type m
 
     T packed_b[end.y * end.x];
 
+    // copy rhs
     algorithm::pfor(GridPoint<1>{end.y / size}, [&](const auto& pos) {
         ct j = pos[0] * size;
         T* b_pos = packed_b + (j * end.x);
@@ -207,6 +216,14 @@ void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type m
         }
     });
 
+    // calculate part that is blockable
+    /*
+     * ######--
+     * ######--
+     * ######--
+     * --------
+     * --------
+     */
     algorithm::pfor(point_type{matrix_sizes.x / size, end.y / size}, [&](const auto& pos) {
         ct i = pos.x * size;
         ct j = pos.y * size;
@@ -214,6 +231,14 @@ void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type m
         block<size>(end, result + mindex(i, j, matrix_sizes.z), lhs + mindex(i, 0, matrix_sizes.y), packed_b + (j * end.x), matrix_sizes);
     });
 
+    // calculate part to the right
+    /*
+     * ------##
+     * ------##
+     * ------##
+     * --------
+     * --------
+     */
     for(ct i = 0; i < matrix_sizes.x - (matrix_sizes.x % size); ++i) {
         for(ct j = end.y - (end.y % size); j < end.y; ++j) {
             for(ct k = 0; k < end.x; ++k) {
@@ -222,6 +247,14 @@ void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type m
         }
     }
 
+    // calculate bottom part
+    /*
+     * --------
+     * --------
+     * --------
+     * ########
+     * ########
+     */
     for(ct i = matrix_sizes.x - (matrix_sizes.x % size); i < matrix_sizes.x; ++i) {
         for(ct j = 0; j < end.y; ++j) {
             for(ct k = 0; k < end.x; ++k) {
@@ -445,6 +478,7 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
         // no need to resize
         Matrix<T> result(size);
 
+        // call the recursive strassen algorithm
         detail::strassen_rec<Depth>(SubMatrix<const Matrix<T>>(A), SubMatrix<const Matrix<T>>(B), SubMatrix<Matrix<T>>(result));
 
         return result;
@@ -458,10 +492,12 @@ Matrix<T> strassen(const Matrix<T>& A, const Matrix<T>& B) {
 
         Matrix<T> result_padded(size);
 
+        // call the recursive strassen algorithm
         detail::strassen_rec<Depth>(SubMatrix<const Matrix<T>>(A_padded), SubMatrix<const Matrix<T>>(B_padded), SubMatrix<Matrix<T>>(result_padded));
 
         Matrix<T> result({A.rows(), B.columns()});
 
+        // write the padded result to the actual result matrix
         result = result_padded.sub({{0, 0}, result.size()});
 
         return result;
@@ -480,7 +516,7 @@ void vv_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const
     const int packet_size = vt::size();
     const int caligned_end = result.columns() / packet_size;
 
-
+    // calculate using vectorization
     algorithm::pfor(point_type{result.rows(), caligned_end}, [&](const auto& vec_pos) {
         point_type pos(vec_pos.x, vec_pos.y * packet_size);
 
@@ -491,6 +527,7 @@ void vv_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const
         (left * right).store(&result[pos]);
     });
 
+    // calculate rest
     algorithm::pfor(point_type{0, caligned_end * packet_size}, result.size(), [&](const auto& pos) { result[pos] = lhs[{pos.x, 0}] * rhs[{0, pos.y}]; });
 }
 
