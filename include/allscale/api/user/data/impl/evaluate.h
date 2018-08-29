@@ -77,8 +77,8 @@ std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, M
 }
 
 // -- evaluate a matrix expression using vectorization
-template <typename E>
-std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>> dst) {
+template <typename E, bool V>
+std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>, V> dst) {
     using T = scalar_type_t<E>;
     using PacketScalar = typename Vc::Vector<T>;
 
@@ -101,8 +101,8 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Su
 }
 
 // -- evaluate a matrix expression by simply copying each value
-template <typename E>
-std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>> dst) {
+template <typename E, bool V>
+std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>, V> dst) {
     algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 
