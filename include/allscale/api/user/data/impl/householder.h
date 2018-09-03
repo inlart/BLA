@@ -14,8 +14,7 @@ namespace impl {
 
 template <typename T>
 struct Householder {
-    template <bool V = false>
-    Householder(SubMatrix<const Matrix<T>, V> m, point_type size) : P(size), v(m), beta(0) {
+    Householder(SubMatrix<const Matrix<T>> m, point_type size) : P(size), v(m), beta(0) {
         P.identity();
         compute(m);
     }
@@ -45,8 +44,7 @@ private:
     T beta;
 
 
-    template <bool V = false>
-    void compute(SubMatrix<const Matrix<T>, V> m) {
+    void compute(SubMatrix<const Matrix<T>> m) {
         T norm = v.norm();
         int rho = (v[{0, 0}] < static_cast<T>(0)) - (static_cast<T>(0) < v[{0, 0}]); // -sign(v[0])
         T u1 = v[{0, 0}] - rho * norm;

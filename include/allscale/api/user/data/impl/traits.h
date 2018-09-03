@@ -288,8 +288,8 @@ public:
     static constexpr bool vectorizable = false;
 };
 
-template <typename E, bool V>
-struct expression_traits<SubMatrix<E, V>> {
+template <typename E>
+struct expression_traits<SubMatrix<E>> {
 private:
     using expr_t = expression_traits<E>;
 
@@ -297,8 +297,8 @@ public:
     // -- types
     using scalar_type = typename expr_t::scalar_type;
     using eval_return_type = Matrix<scalar_type>;
-    using expression_member_type = SubMatrix<E, V>;
-    using expression_tree_type = SubMatrix<E, V>;
+    using expression_member_type = SubMatrix<E>;
+    using expression_tree_type = SubMatrix<E>;
 
     // -- values
     static constexpr bool vectorizable = expr_t::vectorizable;
@@ -372,11 +372,11 @@ struct direct_access : public std::false_type {};
 template <typename T>
 struct direct_access<Matrix<T>> : public std::true_type {};
 
-template <typename T, bool V>
-struct direct_access<SubMatrix<Matrix<T>, V>> : public std::true_type {};
+template <typename T>
+struct direct_access<SubMatrix<Matrix<T>>> : public std::true_type {};
 
-template <typename T, bool V>
-struct direct_access<SubMatrix<const Matrix<T>, V>> : public std::true_type {};
+template <typename T>
+struct direct_access<SubMatrix<const Matrix<T>>> : public std::true_type {};
 
 template <typename E>
 constexpr bool direct_access_v = direct_access<E>::value;

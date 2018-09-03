@@ -17,8 +17,8 @@ namespace impl {
 namespace detail {
 
 // -- swap the content of two SubMatrix expressions
-template <typename T, bool V1, bool V2>
-void swap(SubMatrix<Matrix<T>, V1> a, SubMatrix<Matrix<T>, V2> b) {
+template <typename T>
+void swap(SubMatrix<Matrix<T>> a, SubMatrix<Matrix<T>> b) {
     assert_eq(a.size(), b.size());
     using PacketScalar = typename Vc::Vector<T>;
 
@@ -77,8 +77,8 @@ std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, M
 }
 
 // -- evaluate a matrix expression using vectorization
-template <typename E, bool V>
-std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>, V> dst) {
+template <typename E>
+std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>> dst) {
     using T = scalar_type_t<E>;
     using PacketScalar = typename Vc::Vector<T>;
 
@@ -101,8 +101,8 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Su
 }
 
 // -- evaluate a matrix expression by simply copying each value
-template <typename E, bool V>
-std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>, V> dst) {
+template <typename E>
+std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>> dst) {
     algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 

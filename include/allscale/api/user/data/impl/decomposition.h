@@ -27,7 +27,7 @@ struct LUD {
     LUD(const Matrix<T>& A) : P(A.rows()), LU(A) {
         assert_eq(A.rows(), A.columns());
         Transpositions t(LU.columns());
-        compute_blocked(LU, t);
+        compute_blocked(SubMatrix<Matrix<T>>(LU), t);
         P = t;
     }
 
@@ -359,7 +359,7 @@ private:
 
         for(ct i = 0; i < A.columns(); ++i) {
             // calculate Householder reflection for i-th column and last rows - i rows
-            Householder<T> h({R.column(i).bottomRows(A.rows() - i)}, Q.size());
+            Householder<T> h(R.column(i).bottomRows(A.rows() - i), Q.size());
 
             // add rows - i - 1 zeros on i-th column of Matrix R
             h.applyLeft(R);

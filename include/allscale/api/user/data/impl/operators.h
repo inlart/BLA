@@ -22,8 +22,8 @@ Matrix<T>& operator+=(Matrix<T>& u, const MatrixExpression<E>& v) {
 }
 
 // -- in-place SubMatrix addition
-template <typename T, typename E, bool V>
-SubMatrix<Matrix<T>, V> operator+=(SubMatrix<Matrix<T>, V> u, const MatrixExpression<E>& v) {
+template <typename T, typename E>
+SubMatrix<Matrix<T>> operator+=(SubMatrix<Matrix<T>> u, const MatrixExpression<E>& v) {
     detail::evaluate_simplify(u + v, u);
     return u;
 }
@@ -37,8 +37,8 @@ Matrix<T>& operator-=(Matrix<T>& u, const MatrixExpression<E>& v) {
 }
 
 // -- in-place SubMatrix subtraction
-template <typename T, typename E, bool V>
-SubMatrix<Matrix<T>, V> operator-=(SubMatrix<Matrix<T>, V> u, const MatrixExpression<E>& v) {
+template <typename T, typename E>
+SubMatrix<Matrix<T>> operator-=(SubMatrix<Matrix<T>> u, const MatrixExpression<E>& v) {
     detail::evaluate_simplify(u - v, u);
 
     return u;
@@ -90,8 +90,8 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u
 }
 
 // -- multiply SubMatrix by value v using vectorization
-template <typename T, bool V>
-std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>>> operator*=(SubMatrix<Matrix<T>, V> u, const T& v) {
+template <typename T>
+std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator*=(SubMatrix<Matrix<T>> u, const T& v) {
     using PacketScalar = typename Vc::Vector<T>;
 
     const int packet_size = PacketScalar::size();
@@ -119,7 +119,7 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>>> 
 
 // -- multiply SubMatrix by value v
 template <typename T, bool V>
-std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, V>> operator*=(SubMatrix<Matrix<T>, V> u, const T& v) {
+std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator*=(SubMatrix<Matrix<T>> u, const T& v) {
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
 
     return u;
@@ -161,8 +161,8 @@ std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u
 }
 
 // -- divide SubMatrix by value v using vectorization
-template <typename T, bool V>
-std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, V>> operator/=(SubMatrix<Matrix<T>, V> u, const T& v) {
+template <typename T>
+std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator/=(SubMatrix<Matrix<T>> u, const T& v) {
     using PacketScalar = typename Vc::Vector<T>;
 
     const int packet_size = PacketScalar::size();
@@ -189,8 +189,8 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, V
 }
 
 // -- divide SubMatrix by value v
-template <typename T, bool V>
-std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>, V>>, SubMatrix<Matrix<T>, V>> operator/=(SubMatrix<Matrix<T>, V> u, const T& v) {
+template <typename T>
+std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator/=(SubMatrix<Matrix<T>> u, const T& v) {
     algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
 
     return u;

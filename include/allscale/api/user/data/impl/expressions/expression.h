@@ -51,8 +51,8 @@ std::enable_if_t<!vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<
     algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<T2>(value); });
 }
 
-template <typename T1, typename T2, bool V>
-void set_value(const T1& value, SubMatrix<Matrix<T2>, V>& dst) {
+template <typename T1, typename T2>
+void set_value(const T1& value, SubMatrix<Matrix<T2>>& dst) {
     using PacketScalar = typename Vc::Vector<T2>;
 
     const int packet_size = PacketScalar::size();
@@ -95,63 +95,63 @@ auto sub(Matrix<T>& e, const BlockRange& br) {
     return SubMatrix<Matrix<T>>(e, br);
 }
 
-template <typename E, bool V>
-auto sub(const SubMatrix<E, V>& e, BlockRange block_range) {
+template <typename E>
+auto sub(const SubMatrix<E>& e, BlockRange block_range) {
     assert_ge(block_range.start, (point_type{0, 0}));
     assert_le(block_range.start + block_range.size, e.getBlockRange().size);
 
     BlockRange new_range;
     new_range.start = e.getBlockRange().start + block_range.start;
     new_range.size = block_range.size;
-    return SubMatrix<E, V>(e.getExpression(), new_range);
+    return SubMatrix<E>(e.getExpression(), new_range);
 }
 
 template <typename E>
 auto row(const MatrixExpression<E>& e, coordinate_type r) {
     assert_lt(r, e.rows());
-    return SubMatrix<E, true>(sub(static_cast<const E&>(e), {{r, 0}, {1, e.columns()}}));
+    return sub(static_cast<const E&>(e), {{r, 0}, {1, e.columns()}});
 }
 
 template <typename T>
 auto row(SubMatrix<Matrix<T>> e, coordinate_type r) {
     assert_lt(r, e.rows());
-    return SubMatrix<Matrix<T>, true>(sub(e, {{r, 0}, {1, e.columns()}}));
+    return sub(e, {{r, 0}, {1, e.columns()}});
 }
 
 template <typename T>
 auto row(Matrix<T>& e, coordinate_type r) {
     assert_lt(r, e.rows());
-    return SubMatrix<Matrix<T>, true>(sub(e, {{r, 0}, {1, e.columns()}}));
+    return sub(e, {{r, 0}, {1, e.columns()}});
 }
 
 template <typename T>
 auto row(const Matrix<T>& e, coordinate_type r) {
     assert_lt(r, e.rows());
-    return SubMatrix<const Matrix<T>, true>(sub(e, {{r, 0}, {1, e.columns()}}));
+    return sub(e, {{r, 0}, {1, e.columns()}});
 }
 
 template <typename E>
 auto column(const MatrixExpression<E>& e, coordinate_type c) {
     assert_lt(c, e.columns());
-    return SubMatrix<E, true>(sub(static_cast<const E&>(e), {{0, c}, {e.rows(), 1}}));
+    return sub(static_cast<const E&>(e), {{0, c}, {e.rows(), 1}});
 }
 
 template <typename T>
 auto column(SubMatrix<Matrix<T>> e, coordinate_type c) {
     assert_lt(c, e.columns());
-    return SubMatrix<Matrix<T>, true>(sub(e, {{0, c}, {e.rows(), 1}}));
+    return sub(e, {{0, c}, {e.rows(), 1}});
 }
 
 template <typename T>
 auto column(Matrix<T>& e, coordinate_type c) {
     assert_lt(c, e.columns());
-    return SubMatrix<Matrix<T>, true>(sub(e, {{0, c}, {e.rows(), 1}}));
+    return sub(e, {{0, c}, {e.rows(), 1}});
 }
 
 template <typename T>
 auto column(const Matrix<T>& e, coordinate_type c) {
     assert_lt(c, e.columns());
-    return SubMatrix<const Matrix<T>, true>(sub(e, {{0, c}, {e.rows(), 1}}));
+    return sub(e, {{0, c}, {e.rows(), 1}});
 }
 
 } // end namespace detail

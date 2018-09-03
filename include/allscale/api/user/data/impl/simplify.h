@@ -43,11 +43,6 @@ EvaluatedExpression<T> simplify(EvaluatedExpression<T> m) {
 // -- simplify subexpression / don't touch current expression
 
 template <typename E1, typename E2>
-auto simplify(MatrixMultiplication<SubMatrix<E1, true>, SubMatrix<E2, true>> e) {
-    return simplify(e.getLeftExpression()) * simplify(e.getRightExpression());
-}
-
-template <typename E1, typename E2>
 auto simplify(MatrixAddition<E1, E2> e) {
     return simplify(e.getLeftExpression()) + simplify(e.getRightExpression());
 }
@@ -92,8 +87,8 @@ auto simplify(ScalarMatrixMultiplication<E, U> e) {
     return e.getScalar() * simplify(e.getExpression());
 }
 
-template <typename E, bool V>
-auto simplify(SubMatrix<E, V> e) {
+template <typename E>
+auto simplify(SubMatrix<E> e) {
     return simplify(e.getExpression()).sub(e.getBlockRange());
 }
 
@@ -268,9 +263,9 @@ void AccessBase<E>::evaluate(const MatrixExpression<E2>& mat) {
 }
 
 
-template <typename T, bool V>
-template <typename T2, bool V2>
-void SubMatrix<Matrix<T>, V>::swap(SubMatrix<Matrix<T2>, V2> other) {
+template <typename T>
+template <typename T2>
+void SubMatrix<Matrix<T>>::swap(SubMatrix<Matrix<T2>> other) {
     assert_eq(size(), other.size());
     detail::swap(*this, other);
 }

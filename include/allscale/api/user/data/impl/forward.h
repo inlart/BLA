@@ -67,7 +67,7 @@ template <typename T = double>
 class Matrix;
 
 // -- Represents a part of a MatrixExpression
-template <typename E, bool V = false>
+template <typename E>
 class SubMatrix;
 
 // -- Represents an identity matrix

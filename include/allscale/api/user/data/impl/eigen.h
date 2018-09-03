@@ -25,7 +25,7 @@ struct EigenSolver {
         return eigenvalues[i];
     }
 
-    SubMatrix<const Matrix<T>, true> getEigenvector(coordinate_type i) {
+    SubMatrix<const Matrix<T>> getEigenvector(coordinate_type i) {
         return Q.column(i);
     }
 
@@ -74,7 +74,7 @@ private:
     void hessenberg_form(Matrix<T>& H) {
         // bring matrix to upper hessenberg form
         for(int k = 0; k < H.rows() - 2; ++k) {
-            Householder<T> h({H.column(k).bottomRows(H.rows() - k - 1)}, H.size());
+            Householder<T> h(H.column(k).bottomRows(H.rows() - k - 1), H.size());
 
             Q *= h.getP();
 

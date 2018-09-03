@@ -13,23 +13,20 @@ namespace user {
 namespace data {
 namespace impl {
 
-template <typename E, bool V>
-class SubMatrix : public MatrixExpression<SubMatrix<E, V>> {
-    using typename MatrixExpression<SubMatrix<E, V>>::T;
+template <typename E>
+class SubMatrix : public MatrixExpression<SubMatrix<E>> {
+    using typename MatrixExpression<SubMatrix<E>>::T;
 
     using Exp = expression_member_t<E>;
 
 public:
-    static constexpr bool is_vector = V;
-
     SubMatrix(Exp v, BlockRange block_range) : expression(v), block_range(block_range) {
         assert_ge(block_range.start, (point_type{0, 0}));
         assert_ge(block_range.size, (point_type{0, 0}));
         assert_le(block_range.start + block_range.size, expression.size());
     }
 
-    template <bool V2>
-    SubMatrix(SubMatrix<E, V2> sub) : expression(sub.getExpression()), block_range(sub.getBlockRange()) {
+    SubMatrix(const SubMatrix<E>& sub) : expression(sub.getExpression()), block_range(sub.getBlockRange()) {
     }
 
     T operator[](const point_type& pos) const {
@@ -67,14 +64,12 @@ private:
 };
 
 // TODO: is there a better way to do this?
-template <typename T, bool V>
-class SubMatrix<const Matrix<T>, V> : public MatrixExpression<SubMatrix<const Matrix<T>, V>> {
-    using typename MatrixExpression<SubMatrix<const Matrix<T>, V>>::PacketScalar;
+template <typename T>
+class SubMatrix<const Matrix<T>> : public MatrixExpression<SubMatrix<const Matrix<T>>> {
+    using typename MatrixExpression<SubMatrix<const Matrix<T>>>::PacketScalar;
     using Exp = expression_member_t<const Matrix<T>>;
 
 public:
-    static constexpr bool is_vector = V;
-
     SubMatrix(Exp m) : expression(m), block_range({{0, 0}, {m.size()}}) {
     }
 
@@ -84,8 +79,7 @@ public:
         assert_le(block_range.start + block_range.size, expression.size());
     }
 
-    template <bool V2>
-    SubMatrix(SubMatrix<const Matrix<T>, V2> sub) : expression(sub.getExpression()), block_range(sub.getBlockRange()) {
+    SubMatrix(const SubMatrix<const Matrix<T>>& sub) : expression(sub.getExpression()), block_range(sub.getBlockRange()) {
     }
 
     const T& operator[](const point_type& pos) const {
@@ -125,14 +119,12 @@ private:
     BlockRange block_range;
 };
 
-template <typename T, bool V>
-class SubMatrix<Matrix<T>, V> : public AccessBase<SubMatrix<Matrix<T>, V>> {
-    using typename MatrixExpression<SubMatrix<Matrix<T>, V>>::PacketScalar;
+template <typename T>
+class SubMatrix<Matrix<T>> : public AccessBase<SubMatrix<Matrix<T>>> {
+    using typename MatrixExpression<SubMatrix<Matrix<T>>>::PacketScalar;
     using Exp = expression_member_t<Matrix<T>>;
 
 public:
-    static constexpr bool is_vector = V;
-
     SubMatrix(Exp& m) : expression(m), block_range({{0, 0}, {m.size()}}) {
     }
 
@@ -142,19 +134,18 @@ public:
         assert_le(block_range.start + block_range.size, expression.size());
     }
 
-    template <bool V2>
-    SubMatrix(SubMatrix<Matrix<T>, V2> sub) : expression(sub.getExpression()), block_range(sub.getBlockRange()) {
+    SubMatrix(const SubMatrix<Matrix<T>>& sub) : expression(sub.getExpression()), block_range(sub.getBlockRange()) {
     }
 
-    SubMatrix<Matrix<T>, V>& operator=(const SubMatrix<Matrix<T>, V>& mat) {
-        AccessBase<SubMatrix<Matrix<T>, V>>::evaluate(mat);
+    SubMatrix<Matrix<T>>& operator=(const SubMatrix<Matrix<T>>& mat) {
+        AccessBase<SubMatrix<Matrix<T>>>::evaluate(mat);
 
         return *this;
     }
 
     template <typename E2>
-    SubMatrix<Matrix<T>, V>& operator=(const MatrixExpression<E2>& mat) {
-        AccessBase<SubMatrix<Matrix<T>, V>>::evaluate(mat);
+    SubMatrix<Matrix<T>>& operator=(const MatrixExpression<E2>& mat) {
+        AccessBase<SubMatrix<Matrix<T>>>::evaluate(mat);
 
         return *this;
     }
@@ -167,8 +158,8 @@ public:
         return expression[pos + block_range.start];
     }
 
-    operator SubMatrix<const Matrix<T>, V>() const {
-        return SubMatrix<const Matrix<T>, V>(expression, block_range);
+    operator SubMatrix<const Matrix<T>>() const {
+        return SubMatrix<const Matrix<T>>(expression, block_range);
     }
 
     point_type size() const {
@@ -183,8 +174,8 @@ public:
     }
 
     // -- defined in evaluate.h
-    template <typename T2, bool V2>
-    void swap(SubMatrix<Matrix<T2>, V2> other);
+    template <typename T2>
+    void swap(SubMatrix<Matrix<T2>> other);
 
     template <typename simd_type = PacketScalar>
     simd_type packet(point_type p) const {
