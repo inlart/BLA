@@ -25,8 +25,6 @@ public:
         algorithm::pfor(utils::Vector<coordinate_type, 1>{rows()}, [&](const auto& p) { values[p] = mat.values[p]; });
     }
 
-    PermutationMatrix(PermutationMatrix<T>&&) = default;
-
     PermutationMatrix(const Transpositions& t) : swaps(0) {
         for(coordinate_type i = 0; i < t.length(); ++i) {
             swap(i, t[i]);

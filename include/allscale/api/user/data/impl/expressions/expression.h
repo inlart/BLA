@@ -13,6 +13,7 @@
 #include <Vc/Vc>
 #include <complex>
 #include <type_traits>
+#include <numeric>
 
 namespace allscale {
 namespace api {

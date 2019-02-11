@@ -15,10 +15,10 @@ namespace impl {
 
 template <typename E>
 class AccessBase : public MatrixExpression<E> {
+public:
     using T = scalar_type_t<E>;
     using PacketScalar = typename MatrixExpression<E>::PacketScalar;
 
-protected:
 private:
     E& impl() {
         return static_cast<E&>(*this);

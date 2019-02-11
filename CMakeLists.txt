@@ -17,8 +17,6 @@ include(CTest)
 # -- Dependency Settings
 include(dependencies/pthread)
 
-find_package(Boost REQUIRED)
-
 set(ALLSCALE_MATRIX_DEPENDENCIES "")
 
 #GTest
@@ -50,7 +48,6 @@ endif()
 find_package(OpenBLAS)
 if(NOT OpenBLAS_FOUND)
   message(WARNING "Adding OpenBLAS as third party dependency. This will rebuild OpenBLAS each time you clean the build directory.")
-  include(dependencies/openblas)
 endif()
 
 find_package(GMPXX)
