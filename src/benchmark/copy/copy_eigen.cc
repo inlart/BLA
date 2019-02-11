@@ -13,7 +13,7 @@
 
 using Eigen::MatrixXd;
 
-static void benchmark_add_eigen(benchmark::State& state) {
+static void benchmark_copy_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
     MatrixXd a = MatrixXd::Random(n, n);
@@ -24,6 +24,6 @@ static void benchmark_add_eigen(benchmark::State& state) {
     }
 }
 
-BENCHMARK(benchmark_add_eigen)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_copy_eigen)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();
