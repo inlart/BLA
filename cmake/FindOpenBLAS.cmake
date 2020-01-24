@@ -1,1 +1,0 @@
-find_package(OpenBLAS ${Open_BLAS_FIND_VERSION} QUIET NO_MODULE PATHS $ENV{HOME} /opt/OpenBLAS)

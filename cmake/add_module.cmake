@@ -38,7 +38,7 @@ macro(add_module_executable_folder folder extension prefix postfix includes alwa
 
                 target_link_libraries(${filename} ${CMAKE_THREAD_LIBS_INIT})
                 target_link_libraries(${filename} ${Vc_LIBRARIES})
-                target_link_libraries(${filename} ${OpenBLAS_LIBRARIES})
+                target_link_libraries(${filename} ${BLAS_LIBRARIES})
             endif()
 
             # -- GMP
@@ -89,7 +89,9 @@ macro(add_test_folder folder extension prefix postfix includes always_allscale d
 
             target_link_libraries(${filename} ${CMAKE_THREAD_LIBS_INIT})
             target_link_libraries(${filename} ${Vc_LIBRARIES})
-            target_link_libraries(${filename} ${OpenBLAS_LIBRARIES})
+            target_link_libraries(${filename} ${BLAS_LIBRARIES})
+
+            
         endif()
 
         target_link_libraries(${filename} ${CMAKE_THREAD_LIBS_INIT})

@@ -38,16 +38,15 @@ find_package(benchmark)
 find_package(Vc REQUIRED)
 
 #Eigen 3.3
-if(EXISTS ${EIGEN3_INCLUDE_DIR}/Eigen)
-  message(STATUS "EIGEN3_INCLUDE_DIR = ${EIGEN3_INCLUDE_DIR}")
-else()
-  message(FATAL_ERROR "Eigen3 folder not found. Please set \"EIGEN3_INCLUDE_DIR\"=${EIGEN3_INCLUDE_DIR} correctly.")
-endif()
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
-#OpenBLAS
-find_package(OpenBLAS)
-if(NOT OpenBLAS_FOUND)
-  message(WARNING "Adding OpenBLAS as third party dependency. This will rebuild OpenBLAS each time you clean the build directory.")
+# BLAS
+set(BLA_VENDOR OpenBLAS)
+find_package(BLAS QUIET)
+if(NOT BLAS_FOUND)
+  # try to find any BLAS vendor
+  unset(BLA_VENDOR)
+  find_package(BLAS REQUIRED)
 endif()
 
 find_package(GMPXX)
@@ -71,7 +70,7 @@ endif()
 include_directories(SYSTEM ${GTEST_INCLUDE_DIRS})
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 include_directories(SYSTEM ${Vc_INCLUDE_DIR})
-include_directories(SYSTEM ${OpenBLAS_INCLUDE_DIRS})
+include_directories(SYSTEM ${BLAS_INCLUDE_DIRS})
 include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 # -- Compilation
