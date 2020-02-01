@@ -1,9 +1,12 @@
 #include <Vc/Vc>
 #include <allscale/api/user/data/matrix.h>
+#include <Eigen/Eigen>
 #include <complex>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <type_traits>
+
+#include "utils.h"
 
 namespace allscale {
 namespace api {
@@ -259,7 +262,7 @@ TEST(Operation, DeterminantEigen) {
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
 
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = m1.toEigenMatrix();
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = toEigenMatrix(m1);
 
         ASSERT_TRUE(std::abs(m1.determinant() - m1e.determinant()) < 0.001);
     }
@@ -290,7 +293,7 @@ TEST(Operation, DeterminantFPLUDEigen) {
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
 
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = m1.toEigenMatrix();
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = toEigenMatrix(m1);
 
         ASSERT_TRUE(std::abs(m1.FPLUDecomposition().determinant() - m1e.determinant()) < 0.001);
     }

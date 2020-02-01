@@ -5,6 +5,8 @@
 #include <iostream>
 #include <type_traits>
 
+#include "utils.h"
+
 namespace allscale {
 namespace api {
 namespace user {
@@ -264,18 +266,6 @@ TEST(Matrix, Complex) {
     ASSERT_TRUE(isAlmostEqual(a, Matrix<type>(a * b)));
 }
 
-TEST(Utility, EigenConversion) {
-    Matrix<int> m({4, 4});
-    for(coordinate_type i = 0; i < m.rows(); ++i) {
-        for(coordinate_type j = 0; j < m.columns(); ++j) {
-            m[{i, j}] = i * m.columns() + j;
-        }
-    }
-    Matrix<int> n(m.toEigenMatrix());
-
-    ASSERT_EQ(m, n);
-}
-
 TEST(Utility, Random) {
     Matrix<double> m({2, 2});
     std::random_device rd;
@@ -289,23 +279,6 @@ TEST(Utility, Random) {
             ASSERT_LE(-1.0, (m[{i, j}]));
             ASSERT_GE(+1.0, (m[{i, j}]));
         }
-    }
-}
-
-TEST(Utility, EigenMap) {
-    Matrix<double> m1({23, 45});
-    Matrix<double> m2({m1.columns(), 53});
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dis(-1, 1);
-
-    auto g = [&](const auto&) { return dis(gen); };
-    for(int i = 0; i < 4; ++i) {
-        m1.fill_seq(g);
-        m2.fill_seq(g);
-        auto map1 = m1.getEigenMap();
-        auto map2 = m2.getEigenMap();
-        ASSERT_TRUE(isAlmostEqual(Matrix<double>(map1 * map2), Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
     }
 }
 
@@ -587,8 +560,8 @@ TEST(Expression, Conjugate) {
         m1.fill_seq(g1);
         m2.fill_seq(g2);
 
-        ASSERT_TRUE(isAlmostEqual(m1.conjugate(), Matrix<double>(m1.toEigenMatrix().conjugate().eval())));
-        ASSERT_TRUE(isAlmostEqual(m2.conjugate(), Matrix<std::complex<double>>(m2.toEigenMatrix().conjugate().eval())));
+        ASSERT_TRUE(isAlmostEqual(m1.conjugate(), toAllscaleMatrix(toEigenMatrix(m1).conjugate().eval())));
+        ASSERT_TRUE(isAlmostEqual(m2.conjugate(), toAllscaleMatrix(toEigenMatrix(m2).conjugate().eval())));
     }
 }
 
@@ -605,8 +578,8 @@ TEST(Expression, Adjugate) {
         m1.fill_seq(g1);
         m2.fill_seq(g2);
 
-        ASSERT_TRUE(isAlmostEqual(m1.adjoint(), Matrix<double>(m1.toEigenMatrix().adjoint().eval())));
-        ASSERT_TRUE(isAlmostEqual(m2.adjoint(), Matrix<std::complex<double>>(m2.toEigenMatrix().adjoint().eval())));
+        ASSERT_TRUE(isAlmostEqual(m1.adjoint(), toAllscaleMatrix(toEigenMatrix(m1).adjoint().eval())));
+        ASSERT_TRUE(isAlmostEqual(m2.adjoint(), toAllscaleMatrix(toEigenMatrix(m2).adjoint().eval())));
     }
 }
 

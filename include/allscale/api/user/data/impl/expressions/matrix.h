@@ -13,9 +13,6 @@ namespace impl {
 
 template <typename T>
 class Matrix : public AccessBase<Matrix<T>> {
-    using map_type = Eigen::Map<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
-    using cmap_type = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>;
-
     using typename MatrixExpression<Matrix<T>>::PacketScalar;
 
 public:
@@ -25,11 +22,6 @@ public:
     template <typename E>
     Matrix(const MatrixExpression<E>& mat) : m_data(mat.size()) {
         AccessBase<Matrix<T>>::evaluate(mat);
-    }
-
-    template <typename Derived>
-    Matrix(const Eigen::MatrixBase<Derived>& matrix) : m_data({matrix.rows(), matrix.cols()}) {
-        algorithm::pfor(size(), [&](const point_type& p) { m_data[p] = matrix(p.x, p.y); });
     }
 
     Matrix(const Matrix& mat) : m_data(mat.size()) {
@@ -76,28 +68,6 @@ public:
 
     coordinate_type columns() const {
         return m_data.size()[1];
-    }
-
-    map_type eigenSub(const range_type& r) {
-        return map_type(&m_data[{r.x, 0}], r.y, columns());
-    }
-
-    cmap_type eigenSub(const range_type& r) const {
-        return cmap_type(&m_data[{r.x, 0}], r.y, columns());
-    }
-
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> toEigenMatrix() {
-        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> result(rows(), columns());
-        algorithm::pfor(size(), [&](const point_type& p) { result(p.x, p.y) = m_data[p]; });
-        return result;
-    }
-
-    map_type getEigenMap() {
-        return eigenSub({0, rows()});
-    }
-
-    cmap_type getEigenMap() const {
-        return eigenSub({0, rows()});
     }
 
     const Matrix<T>& eval() const {

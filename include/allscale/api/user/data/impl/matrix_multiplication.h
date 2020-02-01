@@ -199,101 +199,101 @@ void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type ma
 }
 
 // -- parallel matrix * matrix multiplication kernel
-template <int size = 8, typename T>
-void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
-    using ct = coordinate_type;
+// template <int size = 8, typename T>
+// void kernel(point_type end, T* result, const T* lhs, const T* rhs, triple_type matrix_sizes) {
+//     using ct = coordinate_type;
 
-    T packed_b[end.y * end.x];
+//     T packed_b[end.y * end.x];
 
-    // copy rhs
-    algorithm::pfor(GridPoint<1>{end.y / size}, [&](const auto& pos) {
-        ct j = pos[0] * size;
-        T* b_pos = packed_b + (j * end.x);
-        for(int k = 0; k < end.x; ++k) {
-            for(int jj = 0; jj < size; ++jj) {
-                *b_pos++ = rhs[mindex(k, jj + j, matrix_sizes.z)];
-            }
-        }
-    });
+//     // copy rhs
+//     algorithm::pfor(GridPoint<1>{end.y / size}, [&](const auto& pos) {
+//         ct j = pos[0] * size;
+//         T* b_pos = packed_b + (j * end.x);
+//         for(int k = 0; k < end.x; ++k) {
+//             for(int jj = 0; jj < size; ++jj) {
+//                 *b_pos++ = rhs[mindex(k, jj + j, matrix_sizes.z)];
+//             }
+//         }
+//     });
 
-    // calculate part that is blockable
-    /*
-     * ######--
-     * ######--
-     * ######--
-     * --------
-     * --------
-     */
-    algorithm::pfor(point_type{matrix_sizes.x / size, end.y / size}, [&](const auto& pos) {
-        ct i = pos.x * size;
-        ct j = pos.y * size;
+//     // calculate part that is blockable
+//     /*
+//      * ######--
+//      * ######--
+//      * ######--
+//      * --------
+//      * --------
+//      */
+//     algorithm::pfor(point_type{matrix_sizes.x / size, end.y / size}, [&](const auto& pos) {
+//         ct i = pos.x * size;
+//         ct j = pos.y * size;
 
-        block<size>(end, result + mindex(i, j, matrix_sizes.z), lhs + mindex(i, 0, matrix_sizes.y), packed_b + (j * end.x), matrix_sizes);
-    });
+//         block<size>(end, result + mindex(i, j, matrix_sizes.z), lhs + mindex(i, 0, matrix_sizes.y), packed_b + (j * end.x), matrix_sizes);
+//     });
 
-    // calculate part to the right
-    /*
-     * ------##
-     * ------##
-     * ------##
-     * --------
-     * --------
-     */
-    for(ct i = 0; i < matrix_sizes.x - (matrix_sizes.x % size); ++i) {
-        for(ct j = end.y - (end.y % size); j < end.y; ++j) {
-            for(ct k = 0; k < end.x; ++k) {
-                result[mindex(i, j, matrix_sizes.z)] += lhs[mindex(i, k, matrix_sizes.y)] * rhs[mindex(k, j, matrix_sizes.z)];
-            }
-        }
-    }
+//     // calculate part to the right
+//     /*
+//      * ------##
+//      * ------##
+//      * ------##
+//      * --------
+//      * --------
+//      */
+//     for(ct i = 0; i < matrix_sizes.x - (matrix_sizes.x % size); ++i) {
+//         for(ct j = end.y - (end.y % size); j < end.y; ++j) {
+//             for(ct k = 0; k < end.x; ++k) {
+//                 result[mindex(i, j, matrix_sizes.z)] += lhs[mindex(i, k, matrix_sizes.y)] * rhs[mindex(k, j, matrix_sizes.z)];
+//             }
+//         }
+//     }
 
-    // calculate bottom part
-    /*
-     * --------
-     * --------
-     * --------
-     * ########
-     * ########
-     */
-    for(ct i = matrix_sizes.x - (matrix_sizes.x % size); i < matrix_sizes.x; ++i) {
-        for(ct j = 0; j < end.y; ++j) {
-            for(ct k = 0; k < end.x; ++k) {
-                result[mindex(i, j, matrix_sizes.z)] += lhs[mindex(i, k, matrix_sizes.y)] * rhs[mindex(k, j, matrix_sizes.z)];
-            }
-        }
-    }
-}
+//     // calculate bottom part
+//     /*
+//      * --------
+//      * --------
+//      * --------
+//      * ########
+//      * ########
+//      */
+//     for(ct i = matrix_sizes.x - (matrix_sizes.x % size); i < matrix_sizes.x; ++i) {
+//         for(ct j = 0; j < end.y; ++j) {
+//             for(ct k = 0; k < end.x; ++k) {
+//                 result[mindex(i, j, matrix_sizes.z)] += lhs[mindex(i, k, matrix_sizes.y)] * rhs[mindex(k, j, matrix_sizes.z)];
+//             }
+//         }
+//     }
+// }
 
 // -- parallel matrix * matrix multiplication
-template <typename T>
-void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
-    assert(lhs.columns() == rhs.rows());
+// template <typename T>
+// void matrix_multiplication_allscale(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
+//     assert(lhs.columns() == rhs.rows());
 
-    using ct = coordinate_type;
+//     using ct = coordinate_type;
 
-    const coordinate_type nc = 512;
-    const coordinate_type kc = 256;
+//     const coordinate_type nc = 512;
+//     const coordinate_type kc = 256;
 
-    const auto m = lhs.rows();
-    const auto k = lhs.columns();
-    const auto n = rhs.columns();
+//     const auto m = lhs.rows();
+//     const auto k = lhs.columns();
+//     const auto n = rhs.columns();
 
-    constexpr auto size = Vc::Vector<T>::size();
+//     constexpr auto size = Vc::Vector<T>::size();
 
-    // TODO: find good values for kc, nc (multiple of vector size?)
+//     // TODO: find good values for kc, nc (multiple of vector size?)
 
-    result.zero();
+//     result.zero();
 
 
-    for(ct kk = 0; kk < k; kk += kc) {
-        ct kb = std::min(k - kk, kc);
-        for(ct j = 0; j < n; j += nc) {
-            ct jb = std::min(n - j, nc);
+//     for(ct kk = 0; kk < k; kk += kc) {
+//         ct kb = std::min(k - kk, kc);
+//         for(ct j = 0; j < n; j += nc) {
+//             ct jb = std::min(n - j, nc);
 
-            kernel<size>({kb, jb}, &result[{0, j}], &lhs[{0, kk}], &rhs[{kk, j}], {m, k, n});
-        }
-    }
-}
+//             kernel<size>({kb, jb}, &result[{0, j}], &lhs[{0, kk}], &rhs[{kk, j}], {m, k, n});
+//         }
+//     }
+// }
 
 // -- matrix * matrix multiplication using a single BLAS level 3 function call
 void matrix_multiplication_blas(Matrix<double>& result, const Matrix<double>& lhs, const Matrix<double>& rhs) {
@@ -427,42 +427,6 @@ void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f,
     multiplication_rec(BlockRange{{0, 0}, {m, n}}).wait();
 }
 
-// -- parallel matrix * matrix multiplication using the Eigen multiplication as base case
-template <typename T>
-void matrix_multiplication_peigen(Matrix<T>& result, const Matrix<T>& lhs, const Matrix<T>& rhs) {
-    assert(lhs.columns() == rhs.rows());
-
-    // create an Eigen map for the rhs of the multiplication
-    auto eigen_rhs = rhs.getEigenMap();
-
-    auto eigen_multiplication = [&](const range_type& r) {
-        auto eigen_res_row = result.eigenSub(r);
-        auto eigen_lhs_row = lhs.eigenSub(r);
-
-        // Eigen matrix multiplication
-        eigen_res_row = eigen_lhs_row * eigen_rhs;
-    };
-
-    auto multiplication_rec = prec(
-        // base case test
-        [&](const range_type& r) { return r.y < 64; },
-        // base case
-        eigen_multiplication,
-        core::pick(
-            // parallel recursive split
-            [&](const range_type& r, const auto& rec) {
-                int mid = r.x + r.y / 2;
-                return core::parallel(rec({r.x, r.y / 2}), rec({mid, r.y - r.y / 2}));
-            },
-            // BLAS multiplication if no further parallelism can be exploited
-            [&](const range_type& r, const auto&) {
-                eigen_multiplication(r);
-                return core::done();
-            }));
-
-    multiplication_rec({0, lhs.rows()}).wait();
-}
-
 // -- Strassen-Winograd's matrix multiplication algorithm
 
 template <int Depth = 2048, typename T>
@@ -560,7 +524,12 @@ void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, c
 template <typename T>
 std::enable_if_t<!std::is_same<double, T>::value && !std::is_same<float, T>::value> matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs,
                                                                                                           const Matrix<T>& rhs) {
-    matrix_multiplication_peigen(result, lhs, rhs);
+    algorithm::pfor(result.size(), [&](const point_type& p) {
+        result[p] = 0;
+        for(int i = 0; i < lhs.columns(); ++i) {
+            result[p] += lhs[{p.x, i}] * rhs[{i, p.y}];
+        }
+    });
 }
 
 // -- double

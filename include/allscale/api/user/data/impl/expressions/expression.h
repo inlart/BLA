@@ -9,7 +9,6 @@
 #include "allscale/api/user/data/impl/types.h"
 #include "allscale/utils/vector.h"
 
-#include <Eigen/Eigen>
 #include <Vc/Vc>
 #include <complex>
 #include <type_traits>
