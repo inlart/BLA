@@ -1,18 +1,19 @@
-# Matrices for AllScale
+# BLA Linear Algebra
 
-A header-only linear algebra library extension of the AllScale API.
+A header-only linear algebra library extension for the AllScale API.
 
 ## Dependencies
 
 * CMake 3.5 or later (<https://cmake.org/>)
 * Allscale API (<https://github.com/allscale/allscale_api>)
-* OpenBLAS 0.3.0 (<https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide>)
+* Vc (<https://github.com/VcDevel/Vc>)
+* A C BLAS implementation (e.g. OpenBLAS 0.3.7 - <https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide>)
 
-The following dependencies are already included as git submodules:
+For benchmarks/testing:
 
 * Eigen 3.3.4 (<http://eigen.tuxfamily.org/index.php?title=Main_Page>)
-* Vc (<https://github.com/VcDevel/Vc>)
 * googletest 1.8 (<https://github.com/google/googletest/tree/release-1.8.0>)
+* googlebenchmark (<https://github.com/google/benchmark>)
 
 ## CMake Options
 
