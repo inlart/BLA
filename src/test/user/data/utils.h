@@ -1,5 +1,5 @@
 #include <Eigen/Eigen>
-#include <allscale/api/user/data/matrix.h>
+#include <bla/matrix.h>
 #include <allscale/api/user/algorithm/pfor.h>
 
 #include <type_traits>

@@ -1,5 +1,5 @@
 #include <Vc/Vc>
-#include <allscale/api/user/data/matrix.h>
+#include <bla/matrix.h>
 #include <complex>
 #include <gtest/gtest.h>
 #include <iostream>
