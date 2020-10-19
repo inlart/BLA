@@ -75,15 +75,15 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIR})
 
 # -- Compilation
 if(BUILD_BENCHMARKS)
-  add_module_executable_folder("src/benchmark/" ".cc" "benchmark_" "" "include" OFF "${ALLSCALE_MATRIX_DEPENDENCIES}")
+  add_module_executable_folder("benchmarks/" ".cc" "benchmark_" "" "include" OFF "${ALLSCALE_MATRIX_DEPENDENCIES}")
 endif()
 
 if(BUILD_EXAMPLES)
-  add_module_executable_folder("src/examples/" ".cc" "example_" "" "include" ON "${ALLSCALE_MATRIX_DEPENDENCIES}")
+  add_module_executable_folder("examples/" ".cc" "example_" "" "include" ON "${ALLSCALE_MATRIX_DEPENDENCIES}")
 endif()
 
 if(BUILD_TESTS)
-  add_test_folder("src/test/user/data" ".cc" "" "_test" "include" ON "${ALLSCALE_MATRIX_DEPENDENCIES}")
+  add_test_folder("tests/" ".cc" "" "_test" "include" ON "${ALLSCALE_MATRIX_DEPENDENCIES}")
 endif()
 
 if(BUILD_BENCHMARKS AND USE_ASSERT)
