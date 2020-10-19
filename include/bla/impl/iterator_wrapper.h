@@ -2,10 +2,7 @@
 
 #include <iterator>
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename Iterator>
@@ -82,7 +79,4 @@ struct IteratorWrapper : public std::iterator<std::random_access_iterator_tag, t
 };
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

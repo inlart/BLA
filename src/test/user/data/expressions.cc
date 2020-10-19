@@ -7,10 +7,7 @@
 
 #include "utils.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename E1, typename E2, typename T = double>
@@ -261,7 +258,7 @@ TEST(Matrix, Complex) {
 
     b.identity();
 
-    algorithm::pfor(a.size(), [&](const auto& pos) { a[pos] = type(pos.x, pos.y); });
+    allscale::api::user::algorithm::pfor(a.size(), [&](const auto& pos) { a[pos] = type(pos.x, pos.y); });
 
     ASSERT_TRUE(isAlmostEqual(a, Matrix<type>(a * b)));
 }
@@ -289,7 +286,7 @@ TEST(Expression, PermutationMatrix) {
 
     p.swap(0, 1);
 
-    algorithm::pfor(p.size(), [&](const auto& pos) {
+    allscale::api::user::algorithm::pfor(p.size(), [&](const auto& pos) {
         if(pos.x == 0) {
             ASSERT_EQ(p[pos], pos.y == 1 ? 1 : 0);
         } else if(pos.x == 1) {
@@ -310,7 +307,7 @@ TEST(Expression, MatrixViewLower) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
 
-        algorithm::pfor(m1.size(), [&](const auto& pos) {
+        allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& pos) {
             if(pos.x >= pos.y)
                 ASSERT_EQ(m1.view<ViewType::Lower>()[pos], m1[pos]);
             else
@@ -329,7 +326,7 @@ TEST(Expression, MatrixViewUnitLower) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
 
-        algorithm::pfor(m1.size(), [&](const auto& pos) {
+        allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& pos) {
             if(pos.x > pos.y)
                 ASSERT_EQ(m1.view<ViewType::UnitLower>()[pos], m1[pos]);
             else if(pos.x == pos.y)
@@ -350,7 +347,7 @@ TEST(Expression, MatrixViewUpper) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
 
-        algorithm::pfor(m1.size(), [&](const auto& pos) {
+        allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& pos) {
             if(pos.x <= pos.y)
                 ASSERT_EQ(m1.view<ViewType::Upper>()[pos], m1[pos]);
             else
@@ -369,7 +366,7 @@ TEST(Expression, MatrixViewUnitUpper) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
 
-        algorithm::pfor(m1.size(), [&](const auto& pos) {
+        allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& pos) {
             if(pos.x < pos.y)
                 ASSERT_EQ(m1.view<ViewType::UnitUpper>()[pos], m1[pos]);
             else if(pos.x == pos.y)
@@ -385,7 +382,7 @@ TEST(Expression, SubMatrix) {
     const int nh = n / 2;
     Matrix<int> m1({n, n});
 
-    algorithm::pfor(m1.size(), [&](const auto& p) { m1[p] = p.y % nh + nh * (p.x % nh); });
+    allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& p) { m1[p] = p.y % nh + nh * (p.x % nh); });
 
     Matrix<int> s1 = m1.sub({{0, 0}, {nh, nh}});
     Matrix<int> s2 = m1.sub({{0, nh}, {nh, nh}});
@@ -408,14 +405,14 @@ TEST(Expression, RefSubMatrix) {
 
     m1.fill(5);
 
-    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], 5); });
+    allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], 5); });
 
     m1.sub({{0, 0}, {nh, nh}}).fill(1);
     m1.sub({{0, nh}, {nh, nh}}).fill(2);
     m1.sub({{nh, 0}, {nh, nh}}).fill(3);
     m1.sub({{nh, nh}, {nh, nh}}).fill(4);
 
-    algorithm::pfor(m1.size(), [&](const auto& p) {
+    allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& p) {
         if(p.x < nh && p.y < nh) {
             ASSERT_EQ(m1[p], 1);
         } else if(p.x < nh && p.y >= nh) {
@@ -446,7 +443,7 @@ TEST(Expression, RefSubMatrixCopy) {
 
         m1_su = m2;
 
-        algorithm::pfor(m1.size(), [&](const auto& pos) {
+        allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& pos) {
             if(pos < m1_su.size()) {
                 ASSERT_EQ(m1[pos], m2[pos]);
             } else {
@@ -461,13 +458,13 @@ TEST(Expression, RefSubMatrixConversion) {
 
     m1.fill(5);
 
-    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], 5); });
+    allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], 5); });
 
     SubMatrix<Matrix<int>> m2 = m1;
 
     ASSERT_EQ(m1.size(), m2.size());
 
-    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], m2[p]); });
+    allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], m2[p]); });
 }
 
 TEST(Expression, RefSubMatrixSwap) {
@@ -477,7 +474,7 @@ TEST(Expression, RefSubMatrixSwap) {
 
     m1.fill(5);
 
-    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], 5); });
+    allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], 5); });
 
     m1.sub({{0, 0}, {nh, nh}}).fill(1);
     m1.sub({{0, nh}, {nh, nh}}).fill(2);
@@ -487,7 +484,7 @@ TEST(Expression, RefSubMatrixSwap) {
     m1.sub({{0, 0}, {nh, nh}}).swap(m1.sub({{nh, 0}, {nh, nh}}));
 
 
-    algorithm::pfor(m1.size(), [&](const auto& p) {
+    allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& p) {
         if(p.x < nh && p.y < nh) {
             ASSERT_EQ(m1[p], 3);
         } else if(p.x < nh && p.y >= nh) {
@@ -506,7 +503,7 @@ TEST(Expression, RefSubMatrixContiguous) {
 
     m1.fill(-1);
 
-    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], -1); });
+    allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(m1[p], -1); });
 
     for(int i = 0; i < n; ++i) {
         m1.row(i).fill(i);
@@ -514,7 +511,7 @@ TEST(Expression, RefSubMatrixContiguous) {
 
     //    ASSERT_TRUE(vectorizable_v<decltype(m1.row(0))>);
 
-    algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(p.x, m1[p]); });
+    allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& p) { ASSERT_EQ(p.x, m1[p]); });
 }
 
 TEST(Expression, IdentityMatrix) {
@@ -544,7 +541,7 @@ TEST(Expression, Abs) {
 
     Matrix<int> m2 = m1.abs();
 
-    algorithm::pfor(m1.size(), [&](const auto& pos) { ASSERT_EQ(m1[pos], -m2[pos]); });
+    allscale::api::user::algorithm::pfor(m1.size(), [&](const auto& pos) { ASSERT_EQ(m1[pos], -m2[pos]); });
 }
 
 TEST(Expression, Conjugate) {
@@ -872,7 +869,4 @@ TEST(Operation, ElementMultiplication) {
 }
 
 } // end namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

@@ -2,22 +2,19 @@
 
 #include "allscale/api/user/algorithm/pfor.h"
 #include "allscale/api/user/algorithm/preduce.h"
+#include "allscale/utils/vector.h"
 #include "bla/impl/forward.h"
 #include "bla/impl/iterator.h"
 #include "bla/impl/iterator_wrapper.h"
 #include "bla/impl/traits.h"
 #include "bla/impl/types.h"
-#include "allscale/utils/vector.h"
 
 #include <Vc/Vc>
 #include <complex>
-#include <type_traits>
 #include <numeric>
+#include <type_traits>
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 namespace detail {
@@ -33,7 +30,7 @@ std::enable_if_t<vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<T
 
     PacketScalar z(static_cast<T2>(value));
 
-    algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
+    allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>(0), allscale::utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
         int i = coord[0] * packet_size;
         point_type p{i / dst.columns(), i % dst.columns()};
 
@@ -48,7 +45,7 @@ std::enable_if_t<vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<T
 
 template <typename T1, typename T2>
 std::enable_if_t<!vectorizable_v<Matrix<T2>>> set_value(const T1& value, Matrix<T2>& dst) {
-    algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<T2>(value); });
+    allscale::api::user::algorithm::pfor(dst.size(), [&](const auto& pos) { dst[pos] = static_cast<T2>(value); });
 }
 
 template <typename T1, typename T2>
@@ -60,7 +57,7 @@ void set_value(const T1& value, SubMatrix<Matrix<T2>>& dst) {
 
     PacketScalar z(static_cast<T2>(value));
 
-    algorithm::pfor(point_type{dst.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+    allscale::api::user::algorithm::pfor(point_type{dst.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
         z.store(&dst[p]);
@@ -344,24 +341,25 @@ public:
 
     template <typename Reducer>
     T reduce(T init, Reducer f) const {
-        return algorithm::preduce(begin(), end(), [&](const T& a, T& b) { b = f(a, b); }, [&](const T& a, const T& b) { return f(a, b); },
-                                  [&]() { return init; })
+        return allscale::api::user::algorithm::preduce(
+                   begin(), end(), [&](const T& a, T& b) { b = f(a, b); }, [&](const T& a, const T& b) { return f(a, b); }, [&]() { return init; })
             .get();
     }
 
     template <typename Reducer>
     T reduce(Reducer f) const {
         assert_gt(rows() * columns(), 0);
-        return algorithm::preduce(begin() + 1, end(), [&](const T& a, T& b) { b = f(a, b); }, [&](const T& a, const T& b) { return f(a, b); },
-                                  [&]() { return *begin(); })
+        return allscale::api::user::algorithm::preduce(
+                   begin() + 1, end(), [&](const T& a, T& b) { b = f(a, b); }, [&](const T& a, const T& b) { return f(a, b); }, [&]() { return *begin(); })
             .get();
     }
 
     template <typename Reducer>
     Iterator<E> iterator_reduce(Reducer f) const {
         assert_gt(rows() * columns(), 0);
-        return algorithm::preduce(IteratorWrapper<Iterator<E>>(begin() + 1), IteratorWrapper<Iterator<E>>(end()),
-                                  [&](const Iterator<E>& a, Iterator<E>& b) { b = f(a, b); }, f, [&]() { return begin(); })
+        return allscale::api::user::algorithm::preduce(
+                   IteratorWrapper<Iterator<E>>(begin() + 1), IteratorWrapper<Iterator<E>>(end()), [&](const Iterator<E>& a, Iterator<E>& b) { b = f(a, b); },
+                   f, [&]() { return begin(); })
             .get();
     }
 
@@ -420,7 +418,4 @@ public:
 };
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

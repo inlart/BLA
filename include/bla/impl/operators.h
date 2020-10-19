@@ -8,10 +8,7 @@
 #include "bla/impl/simplify.h"
 #include "bla/impl/types.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 // -- in-place Matrix addition
@@ -67,7 +64,7 @@ std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u,
     const PacketScalar simd_value(v);
 
     // multiply value v with each value of the matrix using vectorization
-    algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
+    allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>(0), allscale::utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
         int i = coord[0] * packet_size;
         point_type p{i / u.columns(), i % u.columns()};
         (u.template packet<PacketScalar>(p) * simd_value).store(&u[p]);
@@ -84,7 +81,7 @@ std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u,
 // -- multiply Matrix by value v
 template <typename T>
 std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u, const T& v) {
-    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
+    allscale::api::user::algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
 
     return u;
 }
@@ -100,7 +97,7 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> ope
     const PacketScalar simd_value(v);
 
     // multiply value v with each value of the matrix using vectorization
-    algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+    allscale::api::user::algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
         (u.template packet<PacketScalar>(p) * simd_value).store(&u[p]);
@@ -120,7 +117,7 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> ope
 // -- multiply SubMatrix by value v
 template <typename T, bool V>
 std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator*=(SubMatrix<Matrix<T>> u, const T& v) {
-    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
+    allscale::api::user::algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] *= v; });
 
     return u;
 }
@@ -138,7 +135,7 @@ std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u,
     const PacketScalar simd_value(v);
 
     // divide each value of the matrix by v using vectorization
-    algorithm::pfor(utils::Vector<coordinate_type, 1>(0), utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
+    allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>(0), allscale::utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
         int i = coord[0] * packet_size;
         point_type p{i / u.columns(), i % u.columns()};
         (u.template packet<PacketScalar>(p) / simd_value).store(&u[p]);
@@ -155,7 +152,7 @@ std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u,
 // -- multiply Matrix by value v
 template <typename T>
 std::enable_if_t<!vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u, const T& v) {
-    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
+    allscale::api::user::algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
 
     return u;
 }
@@ -171,7 +168,7 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> ope
     const PacketScalar simd_value(v);
 
     // divide each value of the matrix by v using vectorization
-    algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+    allscale::api::user::algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
         (u.template packet<PacketScalar>(p) / simd_value).store(&u[p]);
@@ -191,7 +188,7 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> ope
 // -- divide SubMatrix by value v
 template <typename T>
 std::enable_if_t<!vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> operator/=(SubMatrix<Matrix<T>> u, const T& v) {
-    algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
+    allscale::api::user::algorithm::pfor(u.size(), [&](const auto& pos) { u[pos] /= v; });
 
     return u;
 }
@@ -319,7 +316,4 @@ MatrixInitializer<T1> operator<<(Matrix<T1>& m, T2&& val) {
 
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

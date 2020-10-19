@@ -4,10 +4,7 @@
 #include "bla/impl/forward.h"
 #include "bla/impl/types.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename T>
@@ -38,7 +35,4 @@ private:
 };
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

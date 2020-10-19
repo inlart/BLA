@@ -6,10 +6,7 @@
 
 #include "bla/matrix.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename T>
@@ -94,7 +91,4 @@ EigenSolver<scalar_type_t<E>> MatrixExpression<E>::solveEigen() const {
 }
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

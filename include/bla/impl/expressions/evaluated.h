@@ -6,10 +6,7 @@
 
 #include <Vc/Vc>
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 // -- A wrapper around a temporary Matrix
@@ -53,7 +50,4 @@ private:
 };
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

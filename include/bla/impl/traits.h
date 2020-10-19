@@ -7,10 +7,7 @@
 
 #include "bla/impl/forward.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 namespace detail {
@@ -411,7 +408,4 @@ template <typename F, typename E1, typename E2>
 constexpr bool is_valid_v = is_valid<F, E1, E2>::value;
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

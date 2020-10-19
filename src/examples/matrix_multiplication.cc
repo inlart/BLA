@@ -1,9 +1,8 @@
 #include <bla/matrix.h>
 #include <cstdlib>
 
-using namespace allscale::api::user::data;
+using namespace bla;
 
-using point_type = GridPoint<2>;
 using data_type = double;
 
 int main() {

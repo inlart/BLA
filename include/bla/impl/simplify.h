@@ -7,10 +7,7 @@
 #include "bla/impl/traits.h"
 #include "bla/impl/types.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 
@@ -115,7 +112,7 @@ template <typename E>
 std::enable_if_t<!vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTranspose<E>>>> simplify(MatrixTranspose<E> e) {
     Matrix<scalar_type_t<MatrixTranspose<E>>> tmp(e.size());
 
-    algorithm::pfor(e.size(), [&](const auto& pos) { tmp[pos] = e[pos]; });
+    allscale::api::user::algorithm::pfor(e.size(), [&](const auto& pos) { tmp[pos] = e[pos]; });
 
     return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
 }
@@ -271,7 +268,4 @@ void SubMatrix<Matrix<T>>::swap(SubMatrix<Matrix<T2>> other) {
 }
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

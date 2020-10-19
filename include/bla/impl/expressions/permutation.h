@@ -1,28 +1,25 @@
 #pragma once
 
+#include <allscale/utils/vector.h>
 #include "bla/impl/expressions/expression.h"
 #include "bla/impl/forward.h"
 #include "bla/impl/transpositions.h"
 #include "bla/impl/types.h"
-#include "allscale/utils/vector.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename T>
 class PermutationMatrix : public MatrixExpression<PermutationMatrix<T>> {
 public:
-    PermutationMatrix(coordinate_type c) : values(utils::Vector<coordinate_type, 1>{c}), swaps(0) {
-        algorithm::pfor(utils::Vector<coordinate_type, 1>{c}, [&](const auto& p) { values[p] = p[0]; });
+    PermutationMatrix(coordinate_type c) : values(allscale::utils::Vector<coordinate_type, 1>{c}), swaps(0) {
+        allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>{c}, [&](const auto& p) { values[p] = p[0]; });
     }
 
     // TODO: remove this
     PermutationMatrix(const PermutationMatrix<T>& mat)
-        : MatrixExpression<PermutationMatrix<T>>(), values(utils::Vector<coordinate_type, 1>{mat.rows()}), swaps(0) {
-        algorithm::pfor(utils::Vector<coordinate_type, 1>{rows()}, [&](const auto& p) { values[p] = mat.values[p]; });
+        : MatrixExpression<PermutationMatrix<T>>(), values(allscale::utils::Vector<coordinate_type, 1>{mat.rows()}), swaps(0) {
+        allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>{rows()}, [&](const auto& p) { values[p] = mat.values[p]; });
     }
 
     PermutationMatrix(const Transpositions& t) : swaps(0) {
@@ -76,12 +73,9 @@ public:
     }
 
 private:
-    Grid<coordinate_type, 1> values;
+    allscale::api::user::data::Grid<coordinate_type, 1> values;
     int swaps;
 };
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

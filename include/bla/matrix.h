@@ -11,10 +11,7 @@
 #include "bla/impl/transpose.h"
 #include "bla/impl/types.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 
 template <typename T>
 using Matrix = impl::Matrix<T>;
@@ -28,9 +25,6 @@ using point_type = impl::point_type;
 
 using range_type = impl::range_type;
 
-// using coordinate_type as defined in allscale/api/user/data/grid.h
+using coordinate_type = impl::coordinate_type;
 
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

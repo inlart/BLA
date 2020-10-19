@@ -5,10 +5,7 @@
 #include "bla/impl/traits.h"
 #include "bla/impl/types.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename E>
@@ -46,7 +43,4 @@ private:
 };
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

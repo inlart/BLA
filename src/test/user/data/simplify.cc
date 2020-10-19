@@ -5,10 +5,7 @@
 #include <iostream>
 #include <type_traits>
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename E1, typename E2, typename T = double>
@@ -264,7 +261,4 @@ TEST(Simplify, SubMatrixMultiplication) {
 }
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

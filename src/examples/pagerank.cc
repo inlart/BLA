@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace allscale::api::user::data;
+using namespace bla;
 
 template <typename T>
 Matrix<T> pagerank(const Matrix<T>& adj, T d, T eps) {

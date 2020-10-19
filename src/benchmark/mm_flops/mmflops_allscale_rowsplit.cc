@@ -16,7 +16,7 @@
 #endif
 
 
-using Matrix = allscale::api::user::data::Matrix<double>;
+using Matrix = bla::Matrix<double>;
 
 static void CustomArguments(benchmark::internal::Benchmark* b) {
     for(int i = BENCHMARK_MIN_SIZE; i <= BENCHMARK_MAX_SIZE; i += BENCHMARK_STEP)

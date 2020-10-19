@@ -1,17 +1,14 @@
-#include <bla/matrix.h>
 #include <allscale/utils/assert.h>
+#include <bla/matrix.h>
 #include <cstdlib>
 #include <functional>
 #include <gmpxx.h>
 
-using namespace allscale::api::user::data;
+using namespace bla;
 
 using data_type = mpf_class;
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename T>
@@ -42,10 +39,7 @@ template <>
 struct operation_result<std::multiplies<>, data_type, data_type> : public detail::set_type<data_type> {};
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla
 
 int main() {
     Matrix<data_type> m1({10, 15});

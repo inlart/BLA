@@ -1,6 +1,6 @@
+#include <Eigen/Eigen>
 #include <Vc/Vc>
 #include <bla/matrix.h>
-#include <Eigen/Eigen>
 #include <complex>
 #include <gtest/gtest.h>
 #include <iostream>
@@ -8,10 +8,7 @@
 
 #include "utils.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename E1, typename E2, typename T = double>
@@ -224,7 +221,7 @@ TEST(Operation, DISABLED_SVDecomposition) {
 
         ASSERT_GE(sv.getS().min(), 0);
 
-        algorithm::pfor(sv.getS().size(), [&](const auto& pos) {
+        allscale::api::user::algorithm::pfor(sv.getS().size(), [&](const auto& pos) {
             if(pos.x == pos.y) {
                 ASSERT_GE(sv.getS()[pos], 0);
             } else {
@@ -335,7 +332,4 @@ TEST(Operation, InverseFPLUD) {
 }
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

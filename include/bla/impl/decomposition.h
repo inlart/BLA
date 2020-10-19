@@ -11,13 +11,10 @@
 #include "bla/impl/traits.h"
 #include "bla/impl/transpositions.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
-using point_type = GridPoint<2>;
+using point_type = allscale::api::user::data::GridPoint<2>;
 
 // -- partial pivoting LU decomposition with PA = LU
 template <typename T>
@@ -434,7 +431,4 @@ Matrix<scalar_type_t<E>> MatrixExpression<E>::inverse() const {
 
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // end namespace allscale
+} // namespace bla

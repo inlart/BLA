@@ -11,7 +11,7 @@
 #define BENCHMARK_MAX_SIZE 2048
 #endif
 
-using Matrix = allscale::api::user::data::Matrix<double>;
+using Matrix = bla::Matrix<double>;
 
 static void benchmark_lud_allscale(benchmark::State& state) {
     const int n = state.range(0);

@@ -7,10 +7,7 @@
 
 #include <Vc/Vc>
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename E>
@@ -54,11 +51,11 @@ public:
     }
 
     void fill(std::function<T(point_type)> f) {
-        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(p); });
+        allscale::api::user::algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(p); });
     }
 
     void fill(std::function<T()> f) {
-        algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(); });
+        allscale::api::user::algorithm::pfor(size(), [&](const point_type& p) { (*this)[p] = f(); });
     }
 
     void fill_seq(const T& value) {
@@ -112,7 +109,4 @@ protected:
 };
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

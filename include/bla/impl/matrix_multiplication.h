@@ -20,10 +20,7 @@
 #include <cblas.h>
 
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 namespace detail {
@@ -96,19 +93,19 @@ void strassen_rec(SubMatrix<const Matrix<T>> A, SubMatrix<const Matrix<T>> B, Su
     t4 = t2 - b21;
 
     // do the recursive computations
-    auto p1_async = algorithm::async([&]() { strassen_rec(a11, b11, SubMatrix<Matrix<T>>(p1)); });
+    auto p1_async = allscale::api::user::algorithm::async([&]() { strassen_rec(a11, b11, SubMatrix<Matrix<T>>(p1)); });
 
-    auto p2_async = algorithm::async([&]() { strassen_rec(a12, b21, SubMatrix<Matrix<T>>(p2)); });
+    auto p2_async = allscale::api::user::algorithm::async([&]() { strassen_rec(a12, b21, SubMatrix<Matrix<T>>(p2)); });
 
-    auto p3_async = algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s4), b22, SubMatrix<Matrix<T>>(p3)); });
+    auto p3_async = allscale::api::user::algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s4), b22, SubMatrix<Matrix<T>>(p3)); });
 
-    auto p4_async = algorithm::async([&]() { strassen_rec(a22, SubMatrix<const Matrix<T>>(t4), SubMatrix<Matrix<T>>(p4)); });
+    auto p4_async = allscale::api::user::algorithm::async([&]() { strassen_rec(a22, SubMatrix<const Matrix<T>>(t4), SubMatrix<Matrix<T>>(p4)); });
 
-    auto p5_async = algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s1), SubMatrix<const Matrix<T>>(t1), SubMatrix<Matrix<T>>(p5)); });
+    auto p5_async = allscale::api::user::algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s1), SubMatrix<const Matrix<T>>(t1), SubMatrix<Matrix<T>>(p5)); });
 
-    auto p6_async = algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s2), SubMatrix<const Matrix<T>>(t2), SubMatrix<Matrix<T>>(p6)); });
+    auto p6_async = allscale::api::user::algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s2), SubMatrix<const Matrix<T>>(t2), SubMatrix<Matrix<T>>(p6)); });
 
-    auto p7_async = algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s3), SubMatrix<const Matrix<T>>(t3), SubMatrix<Matrix<T>>(p7)); });
+    auto p7_async = allscale::api::user::algorithm::async([&]() { strassen_rec(SubMatrix<const Matrix<T>>(s3), SubMatrix<const Matrix<T>>(t3), SubMatrix<Matrix<T>>(p7)); });
 
     p1_async.wait();
     p2_async.wait();
@@ -127,7 +124,7 @@ void strassen_rec(SubMatrix<const Matrix<T>> A, SubMatrix<const Matrix<T>> B, Su
     u7 = u3 + p5;
 
     // update the result matrix
-    algorithm::pfor(size_m, [&](const point_type& p) {
+    allscale::api::user::algorithm::pfor(size_m, [&](const point_type& p) {
         c11[p] = u1[p];
         c12[p] = u5[p];
         c21[p] = u6[p];
@@ -206,7 +203,7 @@ void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type ma
 //     T packed_b[end.y * end.x];
 
 //     // copy rhs
-//     algorithm::pfor(GridPoint<1>{end.y / size}, [&](const auto& pos) {
+//     allscale::api::user::algorithm::pfor(GridPoint<1>{end.y / size}, [&](const auto& pos) {
 //         ct j = pos[0] * size;
 //         T* b_pos = packed_b + (j * end.x);
 //         for(int k = 0; k < end.x; ++k) {
@@ -224,7 +221,7 @@ void block(point_type end, T* result, const T* lhs, const T* rhs, triple_type ma
 //      * --------
 //      * --------
 //      */
-//     algorithm::pfor(point_type{matrix_sizes.x / size, end.y / size}, [&](const auto& pos) {
+//     allscale::api::user::algorithm::pfor(point_type{matrix_sizes.x / size, end.y / size}, [&](const auto& pos) {
 //         ct i = pos.x * size;
 //         ct j = pos.y * size;
 
@@ -312,21 +309,21 @@ void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& l
                     rhs.columns(), 0.0, &result[{r.x, 0}], rhs.columns());
     };
 
-    auto multiplication_rec = prec(
+    auto multiplication_rec = allscale::api::core::prec(
         // base case test
         [&](const range_type& r) { return r.y < 64; },
         // base case
         blas_multiplication,
-        core::pick(
+        allscale::api::core::pick(
             // parallel recursive split
             [&](const range_type& r, const auto& rec) {
                 int mid = r.x + r.y / 2;
-                return core::parallel(rec({r.x, r.y / 2}), rec({mid, r.y - r.y / 2}));
+                return allscale::api::core::parallel(rec({r.x, r.y / 2}), rec({mid, r.y - r.y / 2}));
             },
             // BLAS multiplication if no further parallelism can be exploited
             [&](const range_type& r, const auto&) {
                 blas_multiplication(r);
-                return core::done();
+                return allscale::api::core::done();
             }));
 
     multiplication_rec({0, lhs.rows()}).wait();
@@ -352,12 +349,12 @@ void matrix_multiplication_pbblas(Matrix<T>& result, const Matrix<T>& lhs, const
           &result[{r.start.x, r.start.y}], result.columns());
     };
 
-    auto multiplication_rec = prec(
+    auto multiplication_rec = allscale::api::core::prec(
         // base case test
         [&](const BlockRange& r) { return r.area() <= 128 * 128; },
         // base case
         blas_multiplication,
-        core::pick(
+        allscale::api::core::pick(
             // parallel recursive split
             [&](const BlockRange& r, const auto& rec) {
                 auto mid = r.start + r.size / 2;
@@ -367,12 +364,12 @@ void matrix_multiplication_pbblas(Matrix<T>& result, const Matrix<T>& lhs, const
                 BlockRange bottom_left{{mid.x, r.start.y}, {r.start.x + r.size.x - mid.x, mid.y - r.start.y}};
                 BlockRange bottom_right{mid, r.start + r.size - mid};
 
-                return core::parallel(core::parallel(rec(top_left), rec(top_right)), core::parallel(rec(bottom_left), rec(bottom_right)));
+                return allscale::api::core::parallel(allscale::api::core::parallel(rec(top_left), rec(top_right)), allscale::api::core::parallel(rec(bottom_left), rec(bottom_right)));
             },
             // BLAS multiplication if no further parallelism can be exploited
             [&](const BlockRange& r, const auto&) {
                 blas_multiplication(r);
-                return core::done();
+                return allscale::api::core::done();
             }));
 
     multiplication_rec(BlockRange{{0, 0}, result.size()}).wait();
@@ -401,12 +398,12 @@ void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f,
           result + r.start.x * ldc + r.start.y, ldc);
     };
 
-    auto multiplication_rec = prec(
+    auto multiplication_rec = allscale::api::core::prec(
         // base case test
         [&](const BlockRange& r) { return r.area() <= 128 * 128; },
         // base case
         blas_multiplication,
-        core::pick(
+        allscale::api::core::pick(
             // parallel recursive split
             [&](const BlockRange& r, const auto& rec) {
                 auto mid = r.start + r.size / 2;
@@ -416,12 +413,12 @@ void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f,
                 BlockRange bottom_left{{mid.x, r.start.y}, {r.start.x + r.size.x - mid.x, mid.y - r.start.y}};
                 BlockRange bottom_right{mid, r.start + r.size - mid};
 
-                return core::parallel(core::parallel(rec(top_left), rec(top_right)), core::parallel(rec(bottom_left), rec(bottom_right)));
+                return allscale::api::core::parallel(allscale::api::core::parallel(rec(top_left), rec(top_right)), allscale::api::core::parallel(rec(bottom_left), rec(bottom_right)));
             },
             // BLAS multiplication if no further parallelism can be exploited
             [&](const BlockRange& r, const auto&) {
                 blas_multiplication(r);
-                return core::done();
+                return allscale::api::core::done();
             }));
 
     multiplication_rec(BlockRange{{0, 0}, {m, n}}).wait();
@@ -481,7 +478,7 @@ void vv_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const
     const int caligned_end = result.columns() / packet_size;
 
     // calculate using vectorization
-    algorithm::pfor(point_type{result.rows(), caligned_end}, [&](const auto& vec_pos) {
+    allscale::api::user::algorithm::pfor(point_type{result.rows(), caligned_end}, [&](const auto& vec_pos) {
         point_type pos(vec_pos.x, vec_pos.y * packet_size);
 
         vt left(lhs[{pos.x, 0}]);
@@ -492,7 +489,7 @@ void vv_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const
     });
 
     // calculate rest
-    algorithm::pfor(point_type{0, caligned_end * packet_size}, result.size(), [&](const auto& pos) { result[pos] = lhs[{pos.x, 0}] * rhs[{0, pos.y}]; });
+    allscale::api::user::algorithm::pfor(point_type{0, caligned_end * packet_size}, result.size(), [&](const auto& pos) { result[pos] = lhs[{pos.x, 0}] * rhs[{0, pos.y}]; });
 }
 
 // -- default matrix * matrix multiplication
@@ -507,7 +504,7 @@ template <typename T, typename E1, typename E2>
 void matrix_multiplication(Matrix<T>& result, const PermutationMatrix<E1>& lhs, const MatrixExpression<E2>& rhs) {
     assert_eq(lhs.columns(), rhs.rows());
 
-    algorithm::pfor(utils::Vector<coordinate_type, 1>(result.rows()), [&](const auto& pos) {
+    allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>(result.rows()), [&](const auto& pos) {
         const coordinate_type i = pos[0];
         detail::evaluate_simplify(rhs.row(lhs.permutation(i)), result.row(i));
     });
@@ -518,13 +515,13 @@ template <typename T, typename E1, typename E2>
 void matrix_multiplication(Matrix<T>& result, const MatrixExpression<E1>& lhs, const MatrixTranspose<PermutationMatrix<E2>>& rhs) {
     assert_eq(lhs.columns(), rhs.rows());
 
-    algorithm::pfor(result.size(), [&](const auto& pos) { result[pos] = lhs[{pos.x, rhs.getExpression().permutation(pos.y)}]; });
+    allscale::api::user::algorithm::pfor(result.size(), [&](const auto& pos) { result[pos] = lhs[{pos.x, rhs.getExpression().permutation(pos.y)}]; });
 }
 
 template <typename T>
 std::enable_if_t<!std::is_same<double, T>::value && !std::is_same<float, T>::value> matrix_multiplication(Matrix<T>& result, const Matrix<T>& lhs,
                                                                                                           const Matrix<T>& rhs) {
-    algorithm::pfor(result.size(), [&](const point_type& p) {
+    allscale::api::user::algorithm::pfor(result.size(), [&](const point_type& p) {
         result[p] = 0;
         for(int i = 0; i < lhs.columns(); ++i) {
             result[p] += lhs[{p.x, i}] * rhs[{i, p.y}];
@@ -556,7 +553,4 @@ std::enable_if_t<direct_or_transpose_v<E1> && direct_or_transpose_v<E2>> matrix_
 }
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

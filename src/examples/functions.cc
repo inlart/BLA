@@ -1,7 +1,7 @@
 #include <bla/matrix.h>
 #include <cstdlib>
 
-using namespace allscale::api::user::data;
+using namespace bla;
 
 // The function below will not compile because the copy constructor for MatrixExpression is protected.
 // If it would be public the code would slice the expressions e1 and e2 and therefore most likely yield a segmentation fault.

@@ -11,10 +11,7 @@
 #include <iterator>
 #include <memory>
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename E>
@@ -25,7 +22,7 @@ struct Iterator : public std::iterator<std::random_access_iterator_tag, scalar_t
     // TODO: https://en.cppreference.com/w/cpp/named_req/RandomAccessIterator
 
 
-    utils::optional<std::reference_wrapper<const MatrixExpression<E>>> back_ref;
+    allscale::utils::optional<std::reference_wrapper<const MatrixExpression<E>>> back_ref;
     coordinate_type pos;
 
     Iterator(const MatrixExpression<E>& m, coordinate_type pos) : back_ref(m), pos(pos) {
@@ -111,7 +108,4 @@ private:
 };
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

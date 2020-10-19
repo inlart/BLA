@@ -2,17 +2,14 @@
 
 #include <allscale/api/user/data/grid.h>
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 using coordinate_type = allscale::api::user::data::coordinate_type;
 
-using point_type = GridPoint<2>;
-using range_type = GridPoint<2>;
-using triple_type = GridPoint<3>;
+using point_type = allscale::api::user::data::GridPoint<2>;
+using range_type = allscale::api::user::data::GridPoint<2>;
+using triple_type = allscale::api::user::data::GridPoint<3>;
 
 struct BlockRange {
     BlockRange() : start({0, 0}), size({0, 0}) {
@@ -36,7 +33,4 @@ struct BlockRange {
 enum class ViewType { Lower, UnitLower, Upper, UnitUpper };
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

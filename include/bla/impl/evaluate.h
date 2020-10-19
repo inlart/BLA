@@ -7,10 +7,7 @@
 #include "types.h"
 
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 
@@ -26,7 +23,7 @@ void swap(SubMatrix<Matrix<T>> a, SubMatrix<Matrix<T>> b) {
     const int caligned_end = a.columns() / packet_size * packet_size;
 
     // use vectorization to swap until no more vectorization possible
-    algorithm::pfor(point_type{a.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+    allscale::api::user::algorithm::pfor(point_type{a.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
 
@@ -56,7 +53,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Ma
     const int caligned_end = expr.columns() / packet_size * packet_size;
 
     // use vectorization to store values until no more vectorization possible
-    algorithm::pfor(point_type{expr.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+    allscale::api::user::algorithm::pfor(point_type{expr.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
         expr.template packet<PacketScalar>(p).store(&dst[p]);
@@ -73,7 +70,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Ma
 // -- evaluate a matrix expression by simply copying each value
 template <typename E>
 std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Matrix<scalar_type_t<E>>& dst) {
-    algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
+    allscale::api::user::algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 
 // -- evaluate a matrix expression using vectorization
@@ -86,7 +83,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Su
     const int caligned_end = expr.columns() / packet_size * packet_size;
 
     // use vectorization to store values until no more vectorization possible
-    algorithm::pfor(point_type{expr.rows(), caligned_end / packet_size}, [&](const auto& coord) {
+    allscale::api::user::algorithm::pfor(point_type{expr.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
         expr.template packet<PacketScalar>(p).store(&dst[p]);
@@ -103,14 +100,11 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Su
 // -- evaluate a matrix expression by simply copying each value
 template <typename E>
 std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, SubMatrix<Matrix<scalar_type_t<E>>> dst) {
-    algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
+    allscale::api::user::algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 
 } // namespace detail
 
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

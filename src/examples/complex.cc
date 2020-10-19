@@ -3,9 +3,8 @@
 #include <complex>
 #include <cstdlib>
 
-using namespace allscale::api::user::data;
+using namespace bla;
 
-using point_type = GridPoint<2>;
 using data_type = std::complex<double>;
 
 int main() {

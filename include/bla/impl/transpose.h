@@ -13,10 +13,7 @@
 
 #include "bla/impl/expressions.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 namespace detail {
@@ -172,7 +169,4 @@ MatrixTranspose<expression_tree_t<const E>> MatrixExpression<E>::transpose() con
 
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

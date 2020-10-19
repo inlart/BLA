@@ -1,14 +1,11 @@
 #pragma once
 
-#include <allscale/api/user/data/grid.h>
 #include "bla/impl/expressions/access.h"
 #include "bla/impl/forward.h"
 #include "bla/impl/types.h"
+#include <allscale/api/user/data/grid.h>
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename T>
@@ -82,11 +79,8 @@ public:
     }
 
 private:
-    Grid<T, 2> m_data;
+    allscale::api::user::data::Grid<T, 2> m_data;
 };
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

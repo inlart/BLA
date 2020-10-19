@@ -4,10 +4,7 @@
 
 #include <cmath>
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 // TODO: there might be better ways to apply a householder matrix / consider complex values
@@ -58,7 +55,4 @@ private:
 };
 
 } // end namespace impl
-} // end namespace data
-} // end namespace user
-} // end namespace api
-} // end namespace allscale
+} // namespace bla

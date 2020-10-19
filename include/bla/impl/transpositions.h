@@ -3,16 +3,13 @@
 
 #include <type_traits>
 
-#include <allscale/api/user/data/grid.h>
 #include "expressions.h"
 #include "traits.h"
 #include "types.h"
+#include <allscale/api/user/data/grid.h>
 
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 class Transpositions {
@@ -33,11 +30,8 @@ public:
     }
 
 private:
-    Grid<coordinate_type, 1> transpositions;
+    allscale::api::user::data::Grid<coordinate_type, 1> transpositions;
 };
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

@@ -3,10 +3,7 @@
 #include <random>
 
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename E1, typename E2, typename T = double>
@@ -271,7 +268,4 @@ TEST(View, UnitUpperInverse) {
 }
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

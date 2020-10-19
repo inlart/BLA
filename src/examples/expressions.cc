@@ -1,7 +1,7 @@
 #include <bla/matrix.h>
 #include <cstdlib>
 
-using namespace allscale::api::user::data;
+using namespace bla;
 
 using data_type = double;
 

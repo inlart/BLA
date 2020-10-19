@@ -11,7 +11,7 @@
 #define BENCHMARK_MAX_SIZE 2048
 #endif
 
-using Matrix = allscale::api::user::data::Matrix<double>;
+using Matrix = bla::Matrix<double>;
 
 static void benchmark_subtraction_allscale(benchmark::State& state) {
     const int n = state.range(0);
@@ -26,7 +26,7 @@ static void benchmark_subtraction_allscale(benchmark::State& state) {
 
     a.fill_seq(g);
 
-    allscale::api::user::data::coordinate_type k = n / 2;
+    bla::coordinate_type k = n / 2;
 
     for(auto _ : state) {
         benchmark::DoNotOptimize(a.bottomRows(a.rows() - k - 1).bottomColumns(a.columns() - k - 1) -=

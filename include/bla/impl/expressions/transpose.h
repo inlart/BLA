@@ -5,10 +5,7 @@
 #include "bla/impl/traits.h"
 #include "bla/impl/types.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename E>
@@ -30,7 +27,7 @@ public:
 
         using block_type = SimdBlock<decltype(expression.packet({0, 0}))>;
 
-        algorithm::pfor(point_type{rows() / block_type::size()[0], columns() / block_type::size()[1]}, [&](const auto& pos) {
+        allscale::api::user::algorithm::pfor(point_type{rows() / block_type::size()[0], columns() / block_type::size()[1]}, [&](const auto& pos) {
             coordinate_type i = pos.x * block_type::size()[0];
             coordinate_type j = pos.y * block_type::size()[1];
             block_type b(expression, {j, i});
@@ -77,7 +74,4 @@ private:
 };
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla

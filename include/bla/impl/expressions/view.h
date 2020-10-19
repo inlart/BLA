@@ -5,10 +5,7 @@
 #include "bla/impl/traits.h"
 #include "bla/impl/types.h"
 
-namespace allscale {
-namespace api {
-namespace user {
-namespace data {
+namespace bla {
 namespace impl {
 
 template <typename E>
@@ -72,7 +69,7 @@ public:
         assert_eq(x.rows(), columns());
         using ct = coordinate_type;
 
-        algorithm::pfor(utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
+        allscale::api::user::algorithm::pfor(allscale::utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
             const ct ii = p[0];
             for(ct i = 0; i < this->rows(); ++i) {
                 for(ct j = 0; j < i; ++j) {
@@ -226,7 +223,7 @@ public:
         assert_eq(x.rows(), columns());
         using ct = coordinate_type;
 
-        algorithm::pfor(utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
+        allscale::api::user::algorithm::pfor(allscale::utils::Vector<ct, 1>(x.columns()), [&](const auto& p) {
             const ct ii = p[0];
             for(ct i = this->rows() - 1; i >= 0; --i) {
                 for(ct j = this->rows() - 1; j > i; --j) {
@@ -319,7 +316,4 @@ private:
 };
 
 } // namespace impl
-} // namespace data
-} // namespace user
-} // namespace api
-} // namespace allscale
+} // namespace bla
