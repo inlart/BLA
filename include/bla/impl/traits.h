@@ -349,7 +349,7 @@ struct is_associative<long> : public std::true_type {};
 template <>
 struct is_associative<unsigned long> : public std::true_type {};
 
-#ifndef ALLSCALE_NO_FAST_MATH
+#ifndef BLA_NO_FAST_MATH
 
 template <>
 struct is_associative<double> : public std::true_type {};

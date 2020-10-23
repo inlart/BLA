@@ -20,7 +20,7 @@ For benchmarks/testing:
 
 Support for the following preprocessor directives:
 
-* `ALLSCALE_NO_FAST_MATH` - if defined, associativity for `double` and `float` will **not** be assumed.
+* `BLA_NO_FAST_MATH` - if defined, associativity for `double` and `float` will **not** be assumed.
 
 ## Header Files
 
