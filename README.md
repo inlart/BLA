@@ -1,36 +1,20 @@
 # BLA Linear Algebra
 
-A header-only linear algebra library extension for the AllScale API.
+A header-only linear algebra library with optimized expression evaluation and parallelism.
 
 ## Dependencies
 
-* CMake 3.5 or later (<https://cmake.org/>)
-* Allscale API (<https://github.com/allscale/allscale_api>)
-* Vc (<https://github.com/VcDevel/Vc>)
-* A C BLAS implementation (e.g. OpenBLAS 0.3.7 - <https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide>)
+* [meson](https://mesonbuild.com)
+* [ninja](https://ninja-build.org)
+* [Allscale API](https://github.com/allscale/allscale_api)
+* [Vc](https://github.com/VcDevel/Vc)
+* A C BLAS implementation (e.g. [OpenBLAS](https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide))
 
 For benchmarks/testing:
 
-* Eigen 3.3.4 (<http://eigen.tuxfamily.org/index.php?title=Main_Page>)
-* googletest 1.8 (<https://github.com/google/googletest/tree/release-1.8.0>)
-* googlebenchmark (<https://github.com/google/benchmark>)
-
-## CMake Options
-
-| Option                  | Values          |
-| ----------------------- | --------------- |
-| -DCMAKE_BUILD_TYPE      | Release / Debug |
-| -DUSE_ASSERT            | ON / OFF        |
-| -DBUILD_BENCHMARKS      | ON / OFF        |
-| -DBUILD_EXAMPLES        | ON / OFF        |
-| -DBUILD_TESTS           | ON / OFF        |
-| -DOVERRIDE_ALLSCALE_API | \<path\>        |
-
-CMake will print a warning if benchmarks are built with asserts on or build type debug.
-If supported, the flag `-march=native` is set.
-CMake creates executables for all files in `src/benchmark` with a `.cc` file extension.
-Filenames that contain `allscale` may use the AllScale API.
-To parallelize Eigen algorithms the compiler has to support OpenMP.
+* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
+* [googletest](https://github.com/google/googletest/tree/release-1.8.0)
+* [googlebenchmark](https://github.com/google/benchmark)
 
 ## Preprocessor directives
 
@@ -40,7 +24,7 @@ Support for the following preprocessor directives:
 
 ## Header Files
 
-### api/include/data/matrix.h
+### bla/matrix.h
 
 This is the main header file, it provides the Matrix class,
 which is built on top of the AllScale Grid container.
@@ -108,10 +92,3 @@ This file contains tests for:
 * `gmp.cc` - matrix operations using the GNU Multiple Precision library
 * `matrix multiplication.cc` - a simple matrix multiplication
 * `pagerank.cc` -  PageRank algorithm implementation
-
-## Include what you use
-
-The include what you use mapping file is located at `iwyu/matrix.imp`.
-
-To use it with CMAKE add the option:
-`CXX_INCLUDE_WHAT_YOU_USE="path/to/include-what-you-use;-Xiwyu;--mapping_file=/path/to/project/root/iwyu/matrix.imp"`
