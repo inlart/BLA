@@ -13,7 +13,7 @@
 
 using Matrix = bla::Matrix<double>;
 
-static void benchmark_stranspose_allscale(benchmark::State& state) {
+static void benchmark_copy_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
@@ -29,10 +29,10 @@ static void benchmark_stranspose_allscale(benchmark::State& state) {
     b.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a * b.transpose().transpose()).eval());
+        benchmark::DoNotOptimize(a = b);
     }
 }
 
-BENCHMARK(benchmark_stranspose_allscale)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_copy_bla)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();

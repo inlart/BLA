@@ -13,13 +13,11 @@
 
 using Matrix = bla::Matrix<double>;
 
-static void benchmark_mm_allscale_rowsplit(benchmark::State& state) {
+static void benchmark_mmtt_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
     Matrix b({n, n});
-    Matrix c({n, n});
-
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -31,11 +29,10 @@ static void benchmark_mm_allscale_rowsplit(benchmark::State& state) {
     b.fill_seq(g);
 
     for(auto _ : state) {
-        matrix_multiplication_pblas(c, a, b);
-        benchmark::DoNotOptimize(c);
+        benchmark::DoNotOptimize((a.transpose() * b.transpose()).eval());
     }
 }
 
-BENCHMARK(benchmark_mm_allscale_rowsplit)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_mmtt_bla)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();

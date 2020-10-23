@@ -13,30 +13,28 @@
 
 using Matrix = bla::Matrix<double>;
 
-static void benchmark_submm_allscale(benchmark::State& state) {
+static void benchmark_qrd_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
-    Matrix b({n, n});
+    Matrix lower({n, n});
+    Matrix upper({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(-1, 1);
 
-    std::uniform_int_distribution<> udis(0, n - 1);
-
     auto g = [&]() { return dis(gen); };
 
     a.fill_seq(g);
-    b.fill_seq(g);
-
-    int k = n / 2;
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a.column(k).bottomRows(n - k - 1) * b.row(k).bottomColumns(n - k - 1)).eval());
+        benchmark::DoNotOptimize(a.QRDecomposition());
+        //        benchmark::DoNotOptimize(lower = lud.lower());
+        //        benchmark::DoNotOptimize(upper = lud.upper());
     }
 }
 
-BENCHMARK(benchmark_submm_allscale)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_qrd_bla)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();

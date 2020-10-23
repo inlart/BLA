@@ -11,12 +11,24 @@
 #define BENCHMARK_MAX_SIZE 2048
 #endif
 
+#ifndef BENCHMARK_STEP
+#define BENCHMARK_STEP 32
+#endif
+
+
 using Matrix = bla::Matrix<double>;
 
-static void benchmark_lud_allscale(benchmark::State& state) {
+static void CustomArguments(benchmark::internal::Benchmark* b) {
+    for(int i = BENCHMARK_MIN_SIZE; i <= BENCHMARK_MAX_SIZE; i += BENCHMARK_STEP)
+        b->Arg(i);
+}
+
+
+static void benchmark_mm_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
+    Matrix b({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -25,12 +37,13 @@ static void benchmark_lud_allscale(benchmark::State& state) {
     auto g = [&]() { return dis(gen); };
 
     a.fill_seq(g);
+    b.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(a.LUDecomposition());
+        benchmark::DoNotOptimize((a * b).eval());
     }
 }
 
-BENCHMARK(benchmark_lud_allscale)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_mm_bla)->Apply(CustomArguments)->UseRealTime();
 
 BENCHMARK_MAIN();

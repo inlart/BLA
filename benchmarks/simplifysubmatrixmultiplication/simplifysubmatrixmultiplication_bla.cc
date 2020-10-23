@@ -13,10 +13,11 @@
 
 using Matrix = bla::Matrix<double>;
 
-static void benchmark_scalarmultiplication_allscale(benchmark::State& state) {
+static void benchmark_submatrixmultiplication_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
+    Matrix b({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -25,12 +26,13 @@ static void benchmark_scalarmultiplication_allscale(benchmark::State& state) {
     auto g = [&]() { return dis(gen); };
 
     a.fill_seq(g);
+    b.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a * 5 * 6 * 8).eval());
+        benchmark::DoNotOptimize(((a * b).sub({{0, 0}, {n / 20, n / 20}})).eval());
     }
 }
 
-BENCHMARK(benchmark_scalarmultiplication_allscale)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_submatrixmultiplication_bla)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();

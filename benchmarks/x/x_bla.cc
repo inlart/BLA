@@ -12,7 +12,7 @@
 
 using Matrix = bla::Matrix<double>;
 
-static void benchmark_x_allscale(benchmark::State& state) {
+static void benchmark_x_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
@@ -26,6 +26,6 @@ static void benchmark_x_allscale(benchmark::State& state) {
     }
 }
 
-BENCHMARK(benchmark_x_allscale)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_x_bla)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();

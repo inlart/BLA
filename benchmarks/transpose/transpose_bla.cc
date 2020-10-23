@@ -13,11 +13,10 @@
 
 using Matrix = bla::Matrix<double>;
 
-static void benchmark_mmtt_allscale(benchmark::State& state) {
+static void benchmark_transpose_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
-    Matrix b({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -26,13 +25,12 @@ static void benchmark_mmtt_allscale(benchmark::State& state) {
     auto g = [&]() { return dis(gen); };
 
     a.fill_seq(g);
-    b.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a.transpose() * b.transpose()).eval());
+        benchmark::DoNotOptimize((a.transpose()).eval());
     }
 }
 
-BENCHMARK(benchmark_mmtt_allscale)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_transpose_bla)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();

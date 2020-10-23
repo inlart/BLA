@@ -33,6 +33,7 @@
 
 # Build directory
 build/
+builddir/
 
 # Tools
 .vscode/

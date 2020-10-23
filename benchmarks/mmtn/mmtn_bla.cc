@@ -11,20 +11,9 @@
 #define BENCHMARK_MAX_SIZE 2048
 #endif
 
-#ifndef BENCHMARK_STEP
-#define BENCHMARK_STEP 32
-#endif
-
-
 using Matrix = bla::Matrix<double>;
 
-static void CustomArguments(benchmark::internal::Benchmark* b) {
-    for(int i = BENCHMARK_MIN_SIZE; i <= BENCHMARK_MAX_SIZE; i += BENCHMARK_STEP)
-        b->Arg(i);
-}
-
-
-static void benchmark_mm_allscale(benchmark::State& state) {
+static void benchmark_mmtn_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
@@ -40,10 +29,10 @@ static void benchmark_mm_allscale(benchmark::State& state) {
     b.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a * b).eval());
+        benchmark::DoNotOptimize((a.transpose() * b).eval());
     }
 }
 
-BENCHMARK(benchmark_mm_allscale)->Apply(CustomArguments)->UseRealTime();
+BENCHMARK(benchmark_mmtn_bla)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();

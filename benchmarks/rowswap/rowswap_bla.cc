@@ -13,13 +13,10 @@
 
 using Matrix = bla::Matrix<double>;
 
-static void benchmark_add_allscale(benchmark::State& state) {
+static void benchmark_rowswap_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
-    Matrix b({n, n});
-    Matrix c({n, n});
-    Matrix d({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -28,15 +25,18 @@ static void benchmark_add_allscale(benchmark::State& state) {
     auto g = [&]() { return dis(gen); };
 
     a.fill_seq(g);
-    b.fill_seq(g);
-    c.fill_seq(g);
-    d.fill_seq(g);
+
+    std::uniform_int_distribution<> udis(0, n - 1);
+
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a + b + c + d).eval());
+        int i1 = udis(gen);
+        int i2 = udis(gen);
+        a.row(i1).swap(a.row(i2));
+        benchmark::DoNotOptimize(a[{i1, 0}]);
     }
 }
 
-BENCHMARK(benchmark_add_allscale)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_rowswap_bla)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();

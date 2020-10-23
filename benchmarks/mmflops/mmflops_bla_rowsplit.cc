@@ -11,12 +11,25 @@
 #define BENCHMARK_MAX_SIZE 2048
 #endif
 
+#ifndef BENCHMARK_STEP
+#define BENCHMARK_STEP 32
+#endif
+
+
 using Matrix = bla::Matrix<double>;
 
-static void benchmark_subtraction_allscale(benchmark::State& state) {
+static void CustomArguments(benchmark::internal::Benchmark* b) {
+    for(int i = BENCHMARK_MIN_SIZE; i <= BENCHMARK_MAX_SIZE; i += BENCHMARK_STEP)
+        b->Arg(i);
+}
+
+static void benchmark_mm_bla_rowsplit(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
+    Matrix b({n, n});
+    Matrix c({n, n});
+
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -25,15 +38,14 @@ static void benchmark_subtraction_allscale(benchmark::State& state) {
     auto g = [&]() { return dis(gen); };
 
     a.fill_seq(g);
-
-    bla::coordinate_type k = n / 2;
+    b.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(a.bottomRows(a.rows() - k - 1).bottomColumns(a.columns() - k - 1) -=
-                a.column(k).bottomRows(a.rows() - k - 1) * a.row(k).bottomColumns(a.columns() - k - 1));
+        matrix_multiplication_pblas(c, a, b);
+        benchmark::DoNotOptimize(c);
     }
 }
 
-BENCHMARK(benchmark_subtraction_allscale)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_mm_bla_rowsplit)->Apply(CustomArguments)->UseRealTime();
 
 BENCHMARK_MAIN();

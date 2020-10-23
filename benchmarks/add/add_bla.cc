@@ -13,12 +13,13 @@
 
 using Matrix = bla::Matrix<double>;
 
-static void benchmark_mm_allscalestrassen(benchmark::State& state) {
+static void benchmark_add_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
     Matrix b({n, n});
-
+    Matrix c({n, n});
+    Matrix d({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -28,12 +29,14 @@ static void benchmark_mm_allscalestrassen(benchmark::State& state) {
 
     a.fill_seq(g);
     b.fill_seq(g);
+    c.fill_seq(g);
+    d.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(strassen(a, b));
+        benchmark::DoNotOptimize((a + b + c + d).eval());
     }
 }
 
-BENCHMARK(benchmark_mm_allscalestrassen)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_add_bla)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();
