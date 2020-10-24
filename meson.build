@@ -15,12 +15,12 @@ d_blas = dependency('openblas', required: true)
 
 subdir('include')
 
-# if get_option('enable-examples').enabled()
-subdir('examples')
-# endif
-# if get_option('enable-tests').enabled()
-subdir('tests')
-# endif
-# if get_option('enable-benchmarks').enabled()
-subdir('benchmarks')
-# endif
+if get_option('enable-examples')
+    subdir('examples')
+endif
+if get_option('enable-tests')
+    subdir('tests')
+endif
+if get_option('enable-benchmarks')
+    subdir('benchmarks')
+endif

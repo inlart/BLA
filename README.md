@@ -16,6 +16,16 @@ For benchmarks/testing:
 * [googletest](https://github.com/google/googletest/tree/release-1.8.0)
 * [googlebenchmark](https://github.com/google/benchmark)
 
+## Build
+
+| Option                  | Values          | Default          |
+| ----------------------- | --------------- |------------------|
+| enable-examples         | true/false      | false            |
+| enable-tests            | true/false      | true             |
+| enable-benchmarks       | true/false      | true             |
+
+Default values can be changed with `meson configure`.
+
 ## Preprocessor directives
 
 Support for the following preprocessor directives:
