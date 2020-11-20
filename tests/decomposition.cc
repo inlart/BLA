@@ -302,7 +302,7 @@ TEST(Operation, DeterminantFPLUDEigen) {
 }
 
 TEST(Operation, Inverse) {
-    const point_type s{124, 124};
+    const point_type s{30, 30};
     Matrix<double> m1(s);
 
     std::random_device rd;

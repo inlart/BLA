@@ -87,7 +87,7 @@ TEST(View, LowerInPlace) {
 }
 
 TEST(View, LowerInverse) {
-    Matrix<double> m1({211, 211});
+    Matrix<double> m1({110, 110});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -143,7 +143,7 @@ TEST(View, UpperInPlace) {
 }
 
 TEST(View, UpperInverse) {
-    Matrix<double> m1({211, 211});
+    Matrix<double> m1({110, 110});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -199,7 +199,7 @@ TEST(View, UnitLowerInPlace) {
 }
 
 TEST(View, UnitLowerInverse) {
-    Matrix<double> m1({211, 211});
+    Matrix<double> m1({110, 110});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -255,7 +255,7 @@ TEST(View, UnitUpperInPlace) {
 }
 
 TEST(View, UnitUpperInverse) {
-    Matrix<double> m1({211, 211});
+    Matrix<double> m1({110, 110});
 
     std::random_device rd;
     std::mt19937 gen(rd());

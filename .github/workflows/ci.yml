@@ -40,7 +40,7 @@ jobs:
       env:
         CC: gcc
         CXX: g++
-    - run: meson test -C build -v
+    - run: meson test -C build -v --num-processes 1
     - uses: actions/upload-artifact@v2
       if: failure()
       with:
