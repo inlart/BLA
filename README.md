@@ -1,5 +1,7 @@
 # BLA Linear Algebra
 
+[![CI](https://github.com/inlart/BLA/workflows/CI/badge.svg)](https://github.com/inlart/BLA/actions?query=workflow%3ACI)
+
 A header-only linear algebra library with optimized expression evaluation and parallelism.
 
 ## Dependencies
@@ -22,7 +24,7 @@ For benchmarks/testing:
 | ----------------------- | --------------- |------------------|
 | enable-examples         | true/false      | false            |
 | enable-tests            | true/false      | true             |
-| enable-benchmarks       | true/false      | true             |
+| enable-benchmarks       | true/false      | false            |
 
 Default values can be changed with `meson configure`.
 
