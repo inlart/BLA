@@ -17,6 +17,8 @@ jobs:
       run: sudo apt install libeigen3-dev
     - name: Install OpenBLAS
       run: sudo apt install libopenblas-dev
+    - name: Install GTest
+      run: sudo apt install libgtest-dev
     - name: Install Allscale API
       run: git clone https://github.com/allscale/allscale_api.git /opt/allscale_api
     - name: Install Vc
