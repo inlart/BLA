@@ -13,25 +13,34 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
     - name: Install Eigen3
       run: sudo apt install libeigen3-dev
     - name: Install OpenBLAS
       run: sudo apt install libopenblas-dev
     - name: Install Allscale API
       run: git clone https://github.com/allscale/allscale_api.git /opt/allscale_api
-    - name: Meson
-      run: pip install meson ninja
-      run: meson setup --pkg-config-path pkgconfig build
+    - name: Install Vc
+      run: |
+        git clone https://github.com/VcDevel/Vc.git
+        cd Vc
+        git submodule update --init
+        git checkout 1.4
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/opt/Vc -DBUILD_TESTING=OFF ..
+        make
+        make install
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - run: pip install meson ninja
+    - run: meson setup --pkg-config-path pkgconfig build
       env:
         CC: gcc
         CXX: g++
-      run: meson test -C build -v
-      uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: Linux_Meson_Testlog
-          path: build/meson-logs/testlog.txt
+    - run: meson test -C build -v
+    - uses: actions/upload-artifact@v2
+      if: failure()
+      with:
+        name: Linux_Meson_Testlog
+        path: build/meson-logs/testlog.txt
