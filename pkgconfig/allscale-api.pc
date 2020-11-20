@@ -1,0 +1,8 @@
+prefix=/opt/allscale_api
+includedir=${prefix}/code
+
+Name: AllScale API
+Description: The parallel API to be utilized by AllScale projects to express parallelism
+Version: dev
+Cflags: -I${includedir}/api/include -I${includedir}/utils/include
+
