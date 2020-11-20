@@ -27,7 +27,7 @@ def runBenchmark(filename, path, cpu_count):
         val = subprocess.check_output([path + "/" + filename, '--benchmark_format=json'])
         benchmark = {}
         benchmark["num_threads"] = num_threads
-        benchmark["reuslts"] = json.loads(val)
+        benchmark["benchmark"] = json.loads(val)
         result["results"].append(benchmark)
     return (benchmark_name, result)
 
