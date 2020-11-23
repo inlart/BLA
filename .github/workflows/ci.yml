@@ -20,7 +20,8 @@ jobs:
     - name: Install GTest
       run: sudo apt install libgtest-dev
     - name: Install Allscale API
-      run: git clone https://github.com/allscale/allscale_api.git /opt/allscale_api
+      run: |
+        git clone https://github.com/allscale/allscale_api.git /opt/allscale_api
     - name: Install Vc
       run: |
         git clone https://github.com/VcDevel/Vc.git
@@ -35,12 +36,16 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - run: pip install meson ninja
-    - run: meson setup --pkg-config-path pkgconfig build
+    - name: Install Meson/Ninja
+      run: |
+        pip install meson ninja
+    - name: Build
+      run: meson setup --pkg-config-path pkgconfig build
       env:
         CC: gcc
         CXX: g++
-    - run: meson test -C build -v --num-processes 1
+    - name: Run tests
+      run: meson test -C build -v --num-processes 1
     - uses: actions/upload-artifact@v2
       if: failure()
       with:
