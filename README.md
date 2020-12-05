@@ -8,14 +8,14 @@ A header-only linear algebra library with optimized expression evaluation and pa
 
 * [meson](https://mesonbuild.com)
 * [ninja](https://ninja-build.org)
-* [Allscale API](https://github.com/allscale/allscale_api)
-* [Vc](https://github.com/VcDevel/Vc)
+* [Allscale API (git)](https://github.com/allscale/allscale_api)
+* [Vc 1.4](https://github.com/VcDevel/Vc)
 * A C BLAS implementation (e.g. [OpenBLAS](https://github.com/xianyi/OpenBLAS/wiki/Installation-Guide))
 
 For benchmarks/testing:
 
-* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
-* [googletest](https://github.com/google/googletest/tree/release-1.8.0)
+* [Eigen3](http://eigen.tuxfamily.org/index.php?title=Main_Page)
+* [googletest](https://github.com/google/googletest)
 * [googlebenchmark](https://github.com/google/benchmark)
 
 ## Build
@@ -34,12 +34,9 @@ Support for the following preprocessor directives:
 
 * `BLA_NO_FAST_MATH` - if defined, associativity for `double` and `float` will **not** be assumed.
 
-## Header Files
+## Development
 
-### bla/matrix.h
-
-This is the main header file, it provides the Matrix class,
-which is built on top of the AllScale Grid container.
+`bla/matrix.h` is the main header file, it provides the Matrix class which is built on top of the AllScale Grid container.
 It includes the following header files which are contained in the subfolder `impl`:
 
 * `decomposition.h` - LU (partial and full pivoting) and QR decomposition

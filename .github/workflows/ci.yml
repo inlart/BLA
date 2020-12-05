@@ -39,7 +39,7 @@ jobs:
     - name: Install Meson/Ninja
       run: |
         pip install meson ninja
-    - name: Build
+    - name: Meson Setup
       run: meson setup --pkg-config-path pkgconfig build
       env:
         CC: gcc
