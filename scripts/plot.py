@@ -44,7 +44,7 @@ class Result:
                         benchmarkSize = gBenchmark["name"].split("/")[1]
                         graph = self.getGraph(benchmarkName, benchmarkSize)
                         graph.insert(libName, numThreads, gBenchmark["real_time"])
-                        # TODO: check time unit
+                        assert(gBenchmark["time_unit"] == "ns")
 
     def getGraph(self, name, size):
         if (name, size) in self.graphs:
