@@ -29,9 +29,13 @@ class Graph:
 class Result:
     def __init__(self, data):
         self.graphs = {}
-        # TODO: calculate
-        self.max = 40
-
+        # Calculate max threads
+        self.max = 1
+        for benchmarkName in data:
+            for resultData in data[benchmarkName]:
+                for result in resultData["results"]:
+                    if result["num_threads"] > self.max:
+                        self.max = result["num_threads"]
         self.values = {}
         for benchmarkName in data:
             benchmarkData = data[benchmarkName]
@@ -49,7 +53,7 @@ class Result:
     def getGraph(self, name, size):
         if (name, size) in self.graphs:
             return self.graphs[(name, size)]
-        self.graphs[(name, size)] = Graph(name, size, list(range(1, self.max)))
+        self.graphs[(name, size)] = Graph(name, size, list(range(1, self.max + 1)))
         return self.graphs[(name, size)]
 
     def summary(self):
