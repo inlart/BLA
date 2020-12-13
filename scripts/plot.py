@@ -3,6 +3,28 @@
 import json
 import argparse
 
+colors = ["black", "blue", "brown", "cyan", "darkgray", "gray", "green", "lightgray", "lime", "magenta", "olive", "orange", "pink", "purple", "red", "teal", "violet", "yellow"]
+
+def graphToTex(graph):
+    global colors
+    print("\\begin{tikzpicture}[scale=0.6]")
+    print("\\begin{axis}[xlabel=Threads, ylabel=Test, xmin=1, ymin=0, legend pos=outer north east]")
+    color = 0
+    legend = []
+    for key in graph.y:
+        compiler = key
+        legend.append(compiler)
+        print("\\addplot[color={},mark=x] coordinates {{".format(colors[color]))
+        color += 1
+        threads = 1
+        for value in graph.y[key]:
+            print("({}, {})".format(threads, value))
+            threads += 1
+        print("};")
+    print("\\legend{{{}}}".format(",".join(legend)))
+    print("\\end{axis}")
+    print("\\end{tikzpicture}")
+
 class Graph:
     def __init__(self, name, size, x):
         self.name = name
@@ -59,11 +81,7 @@ class Result:
     def summary(self):
         for graphKey in self.graphs:
             graph = self.graphs[graphKey]
-            print(graph)
-            print(graph.getX())
-            yValues = graph.getY()
-            for yValue in yValues:
-                print(yValue + " "  + str(yValues[yValue]))
+            graphToTex(graph)
 
 def calculate(json_data):
     result = Result(json_data)
