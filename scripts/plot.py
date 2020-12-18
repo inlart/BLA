@@ -2,6 +2,7 @@
 
 import json
 import argparse
+import copy
 
 colors = ["black", "blue", "brown", "cyan", "darkgray", "gray", "green", "lightgray", "lime", "magenta", "olive", "orange", "pink", "purple", "red", "teal", "violet", "yellow"]
 
@@ -40,14 +41,11 @@ class Graph:
         assert(x == self.x[len(values)])
         values.append(y)
 
-    def setYLabel(self, name):
-        self.ylabel = name
-
-    def getX(self):
-        return self.x
-
-    def getY(self):
-        return self.y
+    def apply(self, func):
+        for key in self.y:
+            values = self.y[key]
+            for i in range(len(values)):
+                values[i] = func(values[i], self.x[i])
 
     def __str__(self):
         return self.name + "/" + self.size
@@ -85,7 +83,26 @@ class Result:
     def summary(self):
         for graphKey in self.graphs:
             graph = self.graphs[graphKey]
+
+            fastest = None
+            for key in graph.y:
+                v = graph.y[key][0]
+                if not fastest or v < fastest:
+                    fastest = v
+
+            # speed up
+            speedup_graph = copy.deepcopy(graph)
+            speedup_graph.apply(lambda value, _: value / fastest)
+            speedup_graph.ylabel = "Speed up"
+
+            # efficiency
+            efficiency_graph = copy.deepcopy(graph)
+            efficiency_graph.apply(lambda value, threads: value / (fastest * threads))
+            efficiency_graph.ylabel = "Efficiency"
+
             graphToTex(graph)
+            graphToTex(speedup_graph)
+            graphToTex(efficiency_graph)
 
 def calculate(json_data):
     result = Result(json_data)
