@@ -8,7 +8,7 @@ colors = ["black", "blue", "brown", "cyan", "darkgray", "gray", "green", "lightg
 def graphToTex(graph):
     global colors
     print("\\begin{tikzpicture}[scale=0.6]")
-    print("\\begin{axis}[xlabel=Threads, ylabel=Test, xmin=1, ymin=0, legend pos=outer north east]")
+    print("\\begin{{axis}}[xlabel=Threads, ylabel={}, xmin=1, ymin=0, legend pos=outer north east]".format(graph.ylabel))
     color = 0
     legend = []
     for key in graph.y:
@@ -27,6 +27,7 @@ def graphToTex(graph):
 
 class Graph:
     def __init__(self, name, size, x):
+        self.ylabel = "Runtime (ns)"
         self.name = name
         self.size = size
         self.x = x
@@ -38,6 +39,9 @@ class Graph:
         values = self.y[libName]
         assert(x == self.x[len(values)])
         values.append(y)
+
+    def setYLabel(self, name):
+        self.ylabel = name
 
     def getX(self):
         return self.x
