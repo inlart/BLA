@@ -33,6 +33,7 @@ Default values can be changed with `meson configure`.
 Support for the following preprocessor directives:
 
 * `BLA_NO_FAST_MATH` - if defined, associativity for `double` and `float` will **not** be assumed.
+* `BLA_NO_ETO` - if defined, expression tree optimizations will be disabled
 
 ## Development
 

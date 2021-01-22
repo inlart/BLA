@@ -179,10 +179,21 @@ IdentityMatrix<T> simplify_step(MatrixMultiplication<IdentityMatrix<T>, Identity
     return e.getLeftExpression();
 }
 
+#ifdef BLA_NO_ETO
+
 template <typename E>
 auto simplify(E&& e) -> decltype(simplify_step(std::forward<E>(e))) {
     return simplify_step(std::forward<E>(e));
 }
+
+#else
+
+template <typename E>
+auto simplify(E&& e) -> decltype(std::forward<E>(e)) {
+    return std::forward<E>(e);
+}
+
+#endif
 
 // -- optimize no alias
 template <typename E1, typename E2>
