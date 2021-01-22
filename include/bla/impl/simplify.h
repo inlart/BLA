@@ -13,94 +13,94 @@ namespace impl {
 
 // -- base cases
 template <typename T>
-const Matrix<T>& simplify(const Matrix<T>& m) {
+const Matrix<T>& simplify_step(const Matrix<T>& m) {
     return m;
 }
 
 template <typename T>
-Matrix<T>& simplify(Matrix<T>& m) {
+Matrix<T>& simplify_step(Matrix<T>& m) {
     return m;
 }
 
 template <typename T>
-IdentityMatrix<T> simplify(IdentityMatrix<T> m) {
+IdentityMatrix<T> simplify_step(IdentityMatrix<T> m) {
     return m;
 }
 
 template <typename T>
-PermutationMatrix<T> simplify(PermutationMatrix<T> m) {
+PermutationMatrix<T> simplify_step(PermutationMatrix<T> m) {
     return m;
 }
 
 template <typename T>
-EvaluatedExpression<T> simplify(EvaluatedExpression<T> m) {
+EvaluatedExpression<T> simplify_step(EvaluatedExpression<T> m) {
     return m;
 }
 
 // -- simplify subexpression / don't touch current expression
 
 template <typename E1, typename E2>
-auto simplify(MatrixAddition<E1, E2> e) {
-    return simplify(e.getLeftExpression()) + simplify(e.getRightExpression());
+auto simplify_step(MatrixAddition<E1, E2> e) {
+    return simplify_step(e.getLeftExpression()) + simplify_step(e.getRightExpression());
 }
 
 template <typename E1, typename E2>
-auto simplify(MatrixSubtraction<E1, E2> e) {
-    return simplify(e.getLeftExpression()) - simplify(e.getRightExpression());
+auto simplify_step(MatrixSubtraction<E1, E2> e) {
+    return simplify_step(e.getLeftExpression()) - simplify_step(e.getRightExpression());
 }
 
 template <typename E1, typename E2>
-auto simplify(ElementMatrixMultiplication<E1, E2> e) {
-    return simplify(e.getLeftExpression()).product(simplify(e.getRightExpression()));
+auto simplify_step(ElementMatrixMultiplication<E1, E2> e) {
+    return simplify_step(e.getLeftExpression()).product(simplify_step(e.getRightExpression()));
 }
 
 template <typename E>
-auto simplify(MatrixNegation<E> e) {
-    return -simplify(e.getExpression());
+auto simplify_step(MatrixNegation<E> e) {
+    return -simplify_step(e.getExpression());
 }
 
 template <typename E, ViewType View>
-auto simplify(MatrixView<E, View> e) {
-    return simplify(e.getExpression()).template view<View>();
+auto simplify_step(MatrixView<E, View> e) {
+    return simplify_step(e.getExpression()).template view<View>();
 }
 
 template <typename E>
-auto simplify(MatrixConjugate<E> e) {
-    return simplify(e.getExpression()).conjugate();
+auto simplify_step(MatrixConjugate<E> e) {
+    return simplify_step(e.getExpression()).conjugate();
 }
 
 template <typename E>
-auto simplify(MatrixAbs<E> e) {
-    return simplify(e.getExpression()).abs();
+auto simplify_step(MatrixAbs<E> e) {
+    return simplify_step(e.getExpression()).abs();
 }
 
 template <typename E, typename U>
-auto simplify(MatrixScalarMultiplication<E, U> e) {
-    return simplify(e.getExpression()) * e.getScalar();
+auto simplify_step(MatrixScalarMultiplication<E, U> e) {
+    return simplify_step(e.getExpression()) * e.getScalar();
 }
 
 template <typename E, typename U>
-auto simplify(ScalarMatrixMultiplication<E, U> e) {
-    return e.getScalar() * simplify(e.getExpression());
+auto simplify_step(ScalarMatrixMultiplication<E, U> e) {
+    return e.getScalar() * simplify_step(e.getExpression());
 }
 
 template <typename E>
-auto simplify(SubMatrix<E> e) {
-    return simplify(e.getExpression()).sub(e.getBlockRange());
+auto simplify_step(SubMatrix<E> e) {
+    return simplify_step(e.getExpression()).sub(e.getBlockRange());
 }
 
 // -- create temporaries for these expressions
 template <typename E1, typename E2>
-auto simplify(MatrixMultiplication<E1, E2> e) {
+auto simplify_step(MatrixMultiplication<E1, E2> e) {
     Matrix<scalar_type_t<decltype(e)>> tmp(e.size());
 
-    matrix_multiplication(tmp, simplify(e.getLeftExpression()), simplify(e.getRightExpression()));
+    matrix_multiplication(tmp, simplify_step(e.getLeftExpression()), simplify_step(e.getRightExpression()));
 
     return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
 }
 
 template <typename E>
-std::enable_if_t<vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTranspose<E>>>> simplify(MatrixTranspose<E> e) {
+std::enable_if_t<vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTranspose<E>>>> simplify_step(MatrixTranspose<E> e) {
     Matrix<scalar_type_t<MatrixTranspose<E>>> tmp(e.size());
 
     e.evaluation(tmp);
@@ -109,7 +109,7 @@ std::enable_if_t<vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTran
 }
 
 template <typename E>
-std::enable_if_t<!vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTranspose<E>>>> simplify(MatrixTranspose<E> e) {
+std::enable_if_t<!vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTranspose<E>>>> simplify_step(MatrixTranspose<E> e) {
     Matrix<scalar_type_t<MatrixTranspose<E>>> tmp(e.size());
 
     allscale::api::user::algorithm::pfor(e.size(), [&](const auto& pos) { tmp[pos] = e[pos]; });
@@ -119,64 +119,69 @@ std::enable_if_t<!vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTra
 
 // -- optimizations
 template <typename E1, typename E2>
-auto simplify(SubMatrix<MatrixMultiplication<E1, E2>> e) {
+auto simplify_step(SubMatrix<MatrixMultiplication<E1, E2>> e) {
     auto range = e.getBlockRange();
     BlockRange left({range.start.x, 0}, {range.size.x, e.getExpression().getLeftExpression().columns()});
     BlockRange right({0, range.start.y}, {e.getExpression().getRightExpression().rows(), range.size.y});
 
-    return simplify(simplify(e.getExpression().getLeftExpression().sub(left)) * simplify(e.getExpression().getRightExpression().sub(right)));
+    return simplify_step(simplify_step(e.getExpression().getLeftExpression().sub(left)) * simplify_step(e.getExpression().getRightExpression().sub(right)));
 }
 
 template <typename E>
-expression_member_t<E> simplify(MatrixTranspose<MatrixTranspose<E>> e) {
+expression_member_t<E> simplify_step(MatrixTranspose<MatrixTranspose<E>> e) {
     return e.getExpression().getExpression();
 }
 
 template <typename E>
-expression_member_t<E> simplify(MatrixNegation<MatrixNegation<E>> e) {
+expression_member_t<E> simplify_step(MatrixNegation<MatrixNegation<E>> e) {
     return e.getExpression().getExpression();
 }
 
 template <typename E, typename U>
 std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, MatrixScalarMultiplication<E, U>>
-simplify(MatrixScalarMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
-    return simplify(e.getExpression().getExpression() * (e.getExpression().getScalar() * e.getScalar()));
+simplify_step(MatrixScalarMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
+    return simplify_step(e.getExpression().getExpression() * (e.getExpression().getScalar() * e.getScalar()));
 }
 
 template <typename E, typename U>
 std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, ScalarMatrixMultiplication<E, U>>
-simplify(ScalarMatrixMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
-    return simplify((e.getExpression().getScalar() * e.getScalar()) * e.getExpression().getExpression());
+simplify_step(ScalarMatrixMultiplication<MatrixScalarMultiplication<E, U>, U> e) {
+    return simplify_step((e.getExpression().getScalar() * e.getScalar()) * e.getExpression().getExpression());
 }
 
 template <typename E, typename U>
 std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, ScalarMatrixMultiplication<E, U>>
-simplify(ScalarMatrixMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
-    return simplify((e.getScalar() * e.getExpression().getScalar()) * e.getExpression().getExpression());
+simplify_step(ScalarMatrixMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
+    return simplify_step((e.getScalar() * e.getExpression().getScalar()) * e.getExpression().getExpression());
 }
 
 template <typename E, typename U>
 std::enable_if_t<is_associative_v<U> && std::is_same<U, scalar_type_t<E>>::value && type_consistent_v<std::multiplies<>, U>, MatrixScalarMultiplication<E, U>>
-simplify(MatrixScalarMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
-    return simplify(e.getExpression().getExpression() * (e.getExpression().getScalar() * e.getScalar()));
+simplify_step(MatrixScalarMultiplication<ScalarMatrixMultiplication<E, U>, U> e) {
+    return simplify_step(e.getExpression().getExpression() * (e.getExpression().getScalar() * e.getScalar()));
 }
 
 template <typename E, typename T>
-expression_member_t<E> simplify(MatrixMultiplication<E, IdentityMatrix<T>> e) {
+expression_member_t<E> simplify_step(MatrixMultiplication<E, IdentityMatrix<T>> e) {
     assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
     return e.getLeftExpression();
 }
 
 template <typename E, typename T>
-expression_member_t<E> simplify(MatrixMultiplication<IdentityMatrix<T>, E> e) {
+expression_member_t<E> simplify_step(MatrixMultiplication<IdentityMatrix<T>, E> e) {
     assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
     return e.getRightExpression();
 }
 
 template <typename T>
-IdentityMatrix<T> simplify(MatrixMultiplication<IdentityMatrix<T>, IdentityMatrix<T>> e) {
+IdentityMatrix<T> simplify_step(MatrixMultiplication<IdentityMatrix<T>, IdentityMatrix<T>> e) {
     assert_eq(e.getLeftExpression().columns(), e.getRightExpression().rows());
     return e.getLeftExpression();
+}
+
+template <typename E>
+auto simplify(E&& e) -> decltype(simplify_step(std::forward<E>(e))) {
+    return simplify_step(std::forward<E>(e));
 }
 
 // -- optimize no alias
