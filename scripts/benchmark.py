@@ -10,7 +10,7 @@ def parseArgs():
     parser = argparse.ArgumentParser(description="Execute benchmarks with differnt number of threads/workers")
     parser.add_argument("--path", dest="benchmark_path", action="store", help="Path that contains the benchmark executables", default=".")
     parser.add_argument("--out", dest="out_file", action="store", help="File to write the result to", default="result.json")
-
+    parser.add_argument("--list", dest="list", action="store_true", help="List available benchmarks")
     return parser.parse_args()
 
 def runBenchmark(filename, path, cpu_count):
@@ -31,13 +31,22 @@ def runBenchmark(filename, path, cpu_count):
         result["results"].append(benchmark)
     return (benchmark_name, result)
 
-def getBenchmarks(path, prefix):
+def getBenchmarksPrefix(path, prefix):
     executables = filter(lambda s: s.startswith(prefix) and os.access(path + "/" + s, os.X_OK) and os.path.isfile(path + "/" + s), os.listdir(path))
     return list(executables)
 
+def getBenchmarks(path):
+    return getBenchmarksPrefix(path, "benchmark_")
+
 def main():
     args = parseArgs()
-    benchmarks = getBenchmarks(args.benchmark_path, "benchmark_")
+
+    benchmarks = getBenchmarks(args.benchmark_path)
+
+    if args.list:
+        print('\n'.join(benchmarks))
+        return
+    
     cpu_count = psutil.cpu_count()
     result = {}
     for benchmark in benchmarks:
