@@ -1,1 +1,1 @@
-install_headers('bla/matrix.h')
+install_subdir('bla', install_dir: 'include')
