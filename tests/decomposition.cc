@@ -1,5 +1,3 @@
-#include <Eigen/Eigen>
-#include <Vc/Vc>
 #include <bla/matrix.h>
 #include <complex>
 #include <gtest/gtest.h>
@@ -253,8 +251,9 @@ TEST(Operation, Determinant) {
     }
 }
 
-TEST(Operation, DeterminantEigen) {
+TEST(Operation, DeterminantProperties) {
     Matrix<double> m1({41, 41});
+    Matrix<double> m2({41, 41});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -263,10 +262,9 @@ TEST(Operation, DeterminantEigen) {
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
+        m2.fill_seq(g);
 
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = toEigenMatrix(m1);
-
-        ASSERT_TRUE(std::abs(m1.determinant() - m1e.determinant()) < 0.001);
+        ASSERT_LT(std::abs((m1*m2).eval().determinant() - m1.determinant() * m2.determinant()), 0.001);
     }
 }
 
@@ -284,8 +282,9 @@ TEST(Operation, DeterminantFPLUD) {
     }
 }
 
-TEST(Operation, DeterminantFPLUDEigen) {
+TEST(Operation, DeterminantFPLUDProperties) {
     Matrix<double> m1({41, 41});
+    Matrix<double> m2({41, 41});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -294,10 +293,9 @@ TEST(Operation, DeterminantFPLUDEigen) {
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
+        m2.fill_seq(g);
 
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = toEigenMatrix(m1);
-
-        ASSERT_TRUE(std::abs(m1.FPLUDecomposition().determinant() - m1e.determinant()) < 0.001);
+        ASSERT_LT(std::abs((m1*m2).eval().determinant() - m1.determinant() * m2.determinant()), 0.001);
     }
 }
 
