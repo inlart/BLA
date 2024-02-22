@@ -1,55 +1,58 @@
-d_benchmark = dependency('benchmark', required: true)
+benchmark_dep = dependency('benchmark', required: true)
 
-e_add_bla = executable('benchmark_add_bla', 'add/add_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_add_eigen = executable('benchmark_add_eigen', 'add/add_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+benchmark_allscale_dep = [thread_dep, allscale_dep, blas_dep, vc_dep, benchmark_dep]
+benchmark_eigen_dep = [thread_dep, blas_dep, vc_dep, benchmark_dep, eigen_dep]
 
-e_copy_bla = executable('benchmark_copy_bla', 'copy/copy_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_copy_eigen = executable('benchmark_copy_eigen', 'copy/copy_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_add_bla = executable('benchmark_add_bla', 'add/add_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_add_eigen = executable('benchmark_add_eigen', 'add/add_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_lud_bla = executable('benchmark_lud_bla', 'lud/lud_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_lud_eigen = executable('benchmark_lud_eigen', 'lud/lud_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_copy_bla = executable('benchmark_copy_bla', 'copy/copy_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_copy_eigen = executable('benchmark_copy_eigen', 'copy/copy_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_mm_bla = executable('benchmark_mm_bla', 'mm/mm_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_mm_eigen = executable('benchmark_mm_eigen', 'mm/mm_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_lud_bla = executable('benchmark_lud_bla', 'lud/lud_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_lud_eigen = executable('benchmark_lud_eigen', 'lud/lud_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_mmflops_bla = executable('benchmark_mmflops_bla', 'mmflops/mmflops_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_mmflops_eigen = executable('benchmark_mmflops_eigen', 'mmflops/mmflops_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_mm_bla = executable('benchmark_mm_bla', 'mm/mm_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_mm_eigen = executable('benchmark_mm_eigen', 'mm/mm_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_mmnt_bla = executable('benchmark_mmnt_bla', 'mmnt/mmnt_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_mmnt_eigen = executable('benchmark_mmnt_eigen', 'mmnt/mmnt_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_mmflops_bla = executable('benchmark_mmflops_bla', 'mmflops/mmflops_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_mmflops_eigen = executable('benchmark_mmflops_eigen', 'mmflops/mmflops_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_mmtn_bla = executable('benchmark_mmtn_bla', 'mmtn/mmtn_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_mmtn_eigen = executable('benchmark_mmtn_eigen', 'mmtn/mmtn_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_mmnt_bla = executable('benchmark_mmnt_bla', 'mmnt/mmnt_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_mmnt_eigen = executable('benchmark_mmnt_eigen', 'mmnt/mmnt_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_mmtt_bla = executable('benchmark_mmtt_bla', 'mmtt/mmtt_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_mmtt_eigen = executable('benchmark_mmtt_eigen', 'mmtt/mmtt_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_mmtn_bla = executable('benchmark_mmtn_bla', 'mmtn/mmtn_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_mmtn_eigen = executable('benchmark_mmtn_eigen', 'mmtn/mmtn_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_qrd_bla = executable('benchmark_qrd_bla', 'qrd/qrd_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_qrd_eigen = executable('benchmark_qrd_eigen', 'qrd/qrd_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_mmtt_bla = executable('benchmark_mmtt_bla', 'mmtt/mmtt_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_mmtt_eigen = executable('benchmark_mmtt_eigen', 'mmtt/mmtt_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_rowswap_bla = executable('benchmark_rowswap_bla', 'rowswap/rowswap_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_rowswap_eigen = executable('benchmark_rowswap_eigen', 'rowswap/rowswap_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_qrd_bla = executable('benchmark_qrd_bla', 'qrd/qrd_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_qrd_eigen = executable('benchmark_qrd_eigen', 'qrd/qrd_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_simplifyscalarmultiplication_bla = executable('benchmark_simplifyscalarmultiplication_bla', 'simplifyscalarmultiplication/simplifyscalarmultiplication_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_simplifyscalarmultiplication_eigen = executable('benchmark_simplifyscalarmultiplication_eigen', 'simplifyscalarmultiplication/simplifyscalarmultiplication_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_rowswap_bla = executable('benchmark_rowswap_bla', 'rowswap/rowswap_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_rowswap_eigen = executable('benchmark_rowswap_eigen', 'rowswap/rowswap_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_simplifysubmatrixmultiplication_bla = executable('benchmark_simplifysubmatrixmultiplication_bla', 'simplifysubmatrixmultiplication/simplifysubmatrixmultiplication_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_simplifysubmatrixmultiplication_eigen = executable('benchmark_simplifysubmatrixmultiplication_eigen', 'simplifysubmatrixmultiplication/simplifysubmatrixmultiplication_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_simplifyscalarmultiplication_bla = executable('benchmark_simplifyscalarmultiplication_bla', 'simplifyscalarmultiplication/simplifyscalarmultiplication_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_simplifyscalarmultiplication_eigen = executable('benchmark_simplifyscalarmultiplication_eigen', 'simplifyscalarmultiplication/simplifyscalarmultiplication_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_simplifytranspose_bla = executable('benchmark_simplifytranspose_bla', 'simplifytranspose/simplifytranspose_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_simplifytranspose_eigen = executable('benchmark_simplifytranspose_eigen', 'simplifytranspose/simplifytranspose_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_simplifysubmatrixmultiplication_bla = executable('benchmark_simplifysubmatrixmultiplication_bla', 'simplifysubmatrixmultiplication/simplifysubmatrixmultiplication_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_simplifysubmatrixmultiplication_eigen = executable('benchmark_simplifysubmatrixmultiplication_eigen', 'simplifysubmatrixmultiplication/simplifysubmatrixmultiplication_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_submm_bla = executable('benchmark_submm_bla', 'submm/submm_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_submm_eigen = executable('benchmark_submm_eigen', 'submm/submm_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_simplifytranspose_bla = executable('benchmark_simplifytranspose_bla', 'simplifytranspose/simplifytranspose_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_simplifytranspose_eigen = executable('benchmark_simplifytranspose_eigen', 'simplifytranspose/simplifytranspose_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_subtraction_bla = executable('benchmark_subtraction_bla', 'subtraction/subtraction_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_subtraction_eigen = executable('benchmark_subtraction_eigen', 'subtraction/subtraction_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_submm_bla = executable('benchmark_submm_bla', 'submm/submm_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_submm_eigen = executable('benchmark_submm_eigen', 'submm/submm_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_transpose_bla = executable('benchmark_transpose_bla', 'transpose/transpose_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_transpose_eigen = executable('benchmark_transpose_eigen', 'transpose/transpose_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_subtraction_bla = executable('benchmark_subtraction_bla', 'subtraction/subtraction_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_subtraction_eigen = executable('benchmark_subtraction_eigen', 'subtraction/subtraction_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
-e_x_bla = executable('benchmark_x_bla', 'x/x_bla.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark])
-e_x_eigen = executable('benchmark_x_eigen', 'x/x_eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_benchmark, d_eigen])
+e_transpose_bla = executable('benchmark_transpose_bla', 'transpose/transpose_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_transpose_eigen = executable('benchmark_transpose_eigen', 'transpose/transpose_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
+
+e_x_bla = executable('benchmark_x_bla', 'x/x_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+e_x_eigen = executable('benchmark_x_eigen', 'x/x_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
 
 benchmark('Add BLA', e_add_bla)

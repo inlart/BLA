@@ -1,4 +1,3 @@
-#include <Vc/Vc>
 #include <bla/matrix.h>
 #include <complex>
 #include <gtest/gtest.h>

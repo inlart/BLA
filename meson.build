@@ -1,19 +1,16 @@
-project('BLA', 'cpp', default_options : ['cpp_std=c++14'])
+project('BLA', 'cpp', version: '1.0.0-dev', default_options : ['cpp_std=c++14'])
 
-i_bla = include_directories('include')
+thread_dep = dependency('threads')
+vc_dep = dependency('Vc', required: true)
+eigen_dep = dependency('eigen3', required: false)
+blas_dep = dependency('openblas', required: true)
 
-
-d_thread = dependency('threads')
-
-d_allscale = dependency('allscale-api', required: true)
-
-d_vc = dependency('Vc', required: true)
-
-d_eigen = dependency('eigen3', required: false)
-
-d_blas = dependency('openblas', required: true)
+# include dir
+bla_inc = include_directories('include')
 
 subdir('include')
+
+subdir('thirdparty')
 
 if get_option('enable-examples')
     subdir('examples')

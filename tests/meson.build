@@ -1,15 +1,17 @@
-d_gtest = dependency('gtest', required: false)
+gtest_dep = dependency('gtest', required: false)
 
-e_decomposition = executable('test_decomposition', 'decomposition.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_eigen, d_gtest])
-e_eigen = executable('test_eigen', 'eigen.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_eigen, d_gtest])
-e_evaluate = executable('test_evaluate', 'evaluate.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_eigen, d_gtest])
-e_expressions = executable('test_expressions', 'expressions.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_eigen, d_gtest])
-e_matrix_multiplication = executable('test_matrix_multiplication', 'matrix_multiplication.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_eigen, d_gtest])
-e_operators = executable('test_operators', 'operators.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_eigen, d_gtest])
-e_simplify = executable('test_simplify', 'simplify.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_eigen, d_gtest])
-e_solve = executable('test_solve', 'solve.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_eigen, d_gtest])
-e_traits = executable('test_traits', 'traits.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_eigen, d_gtest])
-e_transpose = executable('test_transpose', 'transpose.cc', include_directories: i_bla, dependencies: [d_thread, d_allscale, d_blas, d_vc, d_eigen, d_gtest])
+test_dep = [thread_dep, allscale_dep, blas_dep, vc_dep, eigen_dep, gtest_dep]
+
+e_decomposition = executable('test_decomposition', 'decomposition.cc', include_directories: bla_inc, dependencies: test_dep)
+e_eigen = executable('test_eigen', 'eigen.cc', include_directories: bla_inc, dependencies: test_dep)
+e_evaluate = executable('test_evaluate', 'evaluate.cc', include_directories: bla_inc, dependencies: test_dep)
+e_expressions = executable('test_expressions', 'expressions.cc', include_directories: bla_inc, dependencies: test_dep)
+e_matrix_multiplication = executable('test_matrix_multiplication', 'matrix_multiplication.cc', include_directories: bla_inc, dependencies: test_dep)
+e_operators = executable('test_operators', 'operators.cc', include_directories: bla_inc, dependencies: test_dep)
+e_simplify = executable('test_simplify', 'simplify.cc', include_directories: bla_inc, dependencies: test_dep)
+e_solve = executable('test_solve', 'solve.cc', include_directories: bla_inc, dependencies: test_dep)
+e_traits = executable('test_traits', 'traits.cc', include_directories: bla_inc, dependencies: test_dep)
+e_transpose = executable('test_transpose', 'transpose.cc', include_directories: bla_inc, dependencies: test_dep)
 
 test('Decomposition', e_decomposition)
 test('Eigen', e_eigen)
