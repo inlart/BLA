@@ -96,7 +96,7 @@ auto simplify_step(MatrixMultiplication<E1, E2> e) {
 
     matrix_multiplication(tmp, simplify_step(e.getLeftExpression()), simplify_step(e.getRightExpression()));
 
-    return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
+    return EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp));
 }
 
 template <typename E>
@@ -105,7 +105,7 @@ std::enable_if_t<vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTran
 
     e.evaluation(tmp);
 
-    return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
+    return EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp));
 }
 
 template <typename E>
@@ -114,7 +114,7 @@ std::enable_if_t<!vectorizable_v<E>, EvaluatedExpression<scalar_type_t<MatrixTra
 
     allscale::api::user::algorithm::pfor(e.size(), [&](const auto& pos) { tmp[pos] = e[pos]; });
 
-    return std::move(EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp)));
+    return EvaluatedExpression<scalar_type_t<decltype(e)>>(std::move(tmp));
 }
 
 // -- optimizations
