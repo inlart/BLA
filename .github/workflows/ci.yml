@@ -22,6 +22,8 @@ jobs:
     - name: Install Vc
       run: sudo apt install vc-dev
     - uses: actions/checkout@v2
+      with:
+        submodules: 'true'
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x'
