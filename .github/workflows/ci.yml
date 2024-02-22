@@ -19,19 +19,8 @@ jobs:
       run: sudo apt install libopenblas-dev
     - name: Install GTest
       run: sudo apt install libgtest-dev
-    - name: Install Allscale API
-      run: |
-        git clone https://github.com/allscale/allscale_api.git /opt/allscale_api
     - name: Install Vc
-      run: |
-        git clone https://github.com/VcDevel/Vc.git
-        cd Vc
-        git submodule update --init
-        git checkout 1.4
-        mkdir build && cd build
-        cmake -DCMAKE_INSTALL_PREFIX=/opt/Vc -DBUILD_TESTING=OFF ..
-        make
-        make install
+      run: sudo apt install vc-dev
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
@@ -40,7 +29,7 @@ jobs:
       run: |
         pip install meson ninja
     - name: Meson Setup
-      run: meson setup --pkg-config-path pkgconfig build
+      run: meson setup build
       env:
         CC: gcc
         CXX: g++
