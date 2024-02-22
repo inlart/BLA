@@ -9,7 +9,7 @@ import json
 import re
 
 def parseArgs():
-    parser = argparse.ArgumentParser(description="Execute benchmarks with differnt number of threads/workers")
+    parser = argparse.ArgumentParser(description="Execute benchmarks with different number of threads/workers")
     parser.add_argument("--path", dest="benchmark_path", action="store", help="Path that contains the benchmark executables", default=".")
     parser.add_argument("--out", dest="out_file", action="store", help="File to write the result to", default="result.json")
     parser.add_argument("--list", dest="list", action="store_true", help="List available benchmarks")
