@@ -18,7 +18,20 @@ For benchmarks/testing:
 * [googletest](https://github.com/google/googletest)
 * [googlebenchmark](https://github.com/google/benchmark)
 
-## Build
+## Getting Started
+
+This repository includes the AllScale API as a submodule and should therefore be cloned using
+`git clone --recurse-submodules https://github.com/inlart/BLA.git`.
+
+All other dependencies are usually available via a package manager.
+e.g. on Ubuntu the requires dependencies can be installed using
+`sudo apt install libeigen3-dev libopenblas-dev libgtest-dev vc-dev`.
+
+The build dependencies meson and ninja can be installed using the Python package manager `pip install meson ninja`.
+
+To configure the build run `meson setup build`. Running `ninja` inside the created `build` directory will then build the source.
+
+## Build Options
 
 | Option                  | Values          | Default          |
 | ----------------------- | --------------- |------------------|
