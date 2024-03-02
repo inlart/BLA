@@ -26,6 +26,8 @@ This repository includes the AllScale API as a submodule and should therefore be
 All other dependencies are usually available via a package manager.
 e.g. on Ubuntu the requires dependencies can be installed using
 `sudo apt install libeigen3-dev libopenblas-dev libgtest-dev vc-dev`.
+Note: Instead of `libopenblas-dev` any other package that provides a CBLAS implementation can be used (e.g. `libmkl-dev`).
+The preferred library has to be set using the `cblas-library` meson build option.
 
 The build dependencies meson and ninja can be installed using the Python package manager `pip install meson ninja`.
 
@@ -38,6 +40,7 @@ To configure the build run `meson setup build`. Running `ninja` inside the creat
 | enable-examples         | true/false      | false            |
 | enable-tests            | true/false      | true             |
 | enable-benchmarks       | true/false      | false            |
+| cblas-library           | CBLAS library   | openblas         |
 
 Default values can be changed with `meson configure`.
 
