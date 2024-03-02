@@ -1,3 +1,4 @@
 option('enable-examples', type : 'boolean', value : false, description: 'Enable the build of examples')
 option('enable-tests', type : 'boolean', value : true, description: 'Enable the build of unit tests')
 option('enable-benchmarks', type : 'boolean', value : false, description: 'Enable the build of benchmarks')
+option('cblas-library', type : 'string', value : 'openblas', description : 'The CBLAS library used')
