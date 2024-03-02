@@ -16,9 +16,9 @@ jobs:
         cblas: [openblas, mkl-static-ilp64-seq]
         include:
           - cblasaptname: libopenblas-dev
-          cblas: openblas
+            cblas: openblas
           - cblasaptname: libmkl-dev
-          cblas: mkl-static-ilp64-seq
+            cblas: mkl-static-ilp64-seq
     runs-on: ubuntu-latest
     steps:
     - name: Install Eigen3
