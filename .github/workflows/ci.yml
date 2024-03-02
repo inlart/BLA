@@ -39,12 +39,10 @@ jobs:
       run: |
         pip install meson ninja
     - name: Meson Setup
-      run: meson setup build
+      run: meson setup build -Dcblas-library=${{ matrix.cblas }}
       env:
         CC: gcc
         CXX: g++
-    - name: Meson Configure
-      run: meson configure build -Dcblas-library=${{ matrix.cblas }}
     - name: Run tests
       run: meson test -C build -v --num-processes 1
     - uses: actions/upload-artifact@v2
