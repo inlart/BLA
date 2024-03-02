@@ -44,7 +44,7 @@ jobs:
         CC: gcc
         CXX: g++
     - name: Meson Configure
-      run: meson configure -C build -Dcblas-library=${{ matrix.cblas }}
+      run: meson configure build -Dcblas-library=${{ matrix.cblas }}
     - name: Run tests
       run: meson test -C build -v --num-processes 1
     - uses: actions/upload-artifact@v2
