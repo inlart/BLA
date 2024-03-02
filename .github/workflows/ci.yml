@@ -11,12 +11,20 @@ on:
 jobs:
 
   linux:
+    strategy:
+      matrix:
+        cblas: [openblas, mkl-static-ilp64-seq]
+        include:
+          - cblasaptname: libopenblas-dev
+          cblas: openblas
+          - cblasaptname: libmkl-dev
+          cblas: mkl-static-ilp64-seq
     runs-on: ubuntu-latest
     steps:
     - name: Install Eigen3
       run: sudo apt install libeigen3-dev
-    - name: Install OpenBLAS
-      run: sudo apt install libopenblas-dev
+    - name: Install CBLAS
+      run: sudo apt install ${{ matrix.cblasaptname }}
     - name: Install GTest
       run: sudo apt install libgtest-dev
     - name: Install Vc
@@ -35,6 +43,8 @@ jobs:
       env:
         CC: gcc
         CXX: g++
+    - name: Meson Configure
+      run: meson configure -C build -Dcblas-library=${{ matrix.cblas }}
     - name: Run tests
       run: meson test -C build -v --num-processes 1
     - uses: actions/upload-artifact@v2
