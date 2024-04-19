@@ -67,7 +67,7 @@ class Result:
                 libName = resultData["name"]
                 for result in resultData["results"]:
                     numThreads = result["num_threads"]
-                    resultGBenchmark = result["results"]
+                    resultGBenchmark = result["benchmark"]
                     for gBenchmark in resultGBenchmark["benchmarks"]:
                         benchmarkSize = gBenchmark["name"].split("/")[1]
                         graph = self.getGraph(benchmarkName, benchmarkSize)
