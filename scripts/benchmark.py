@@ -23,11 +23,11 @@ def runBenchmark(filename, path, cpu_count):
     result = {}
     result["name"] = benchmark_lib
     result["results"] = []
-    print("Running benchmark {} for library {}.".format(benchmark_name, benchmark_lib))
+    print("Running benchmark {} ({}/{}) for library {}.".format(benchmark_name, path, filename, benchmark_lib))
     for num_threads in range(1, cpu_count):
         os.environ["NUM_WORKERS"] = str(num_threads)
         os.environ["OMP_NUM_THREADS"] = str(num_threads)
-        val = subprocess.check_output([path + "/" + filename, '--benchmark_format=json'])
+        val = subprocess.check_output(["{}/{}".format(path, filename), '--benchmark_format=json'])
         benchmark = {}
         benchmark["num_threads"] = num_threads
         benchmark["benchmark"] = json.loads(val)
