@@ -1,7 +1,9 @@
 benchmark_dep = dependency('benchmark', required: true)
 
+openmp_dep = dependency('openmp', required: true)
+
 benchmark_allscale_dep = [thread_dep, allscale_dep, blas_dep, vc_dep, benchmark_dep]
-benchmark_eigen_dep = [thread_dep, blas_dep, vc_dep, benchmark_dep, eigen_dep]
+benchmark_eigen_dep = [thread_dep, blas_dep, vc_dep, benchmark_dep, eigen_dep, openmp_dep]
 
 e_add_bla = executable('benchmark_add_bla', 'add/add_bla.cc', include_directories: bla_inc, dependencies: benchmark_allscale_dep)
 e_add_eigen = executable('benchmark_add_eigen', 'add/add_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
