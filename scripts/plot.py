@@ -81,6 +81,10 @@ class Result:
         return self.graphs[(name, size)]
 
     def summary(self):
+        print("\\documentclass{article}")
+        print("\\usepackage{tikz,pgfplots}")
+        print("\\begin{document}")
+        print("\\section{Benchmarks}")
         for graphKey in self.graphs:
             graph = self.graphs[graphKey]
 
@@ -100,9 +104,11 @@ class Result:
             efficiency_graph.apply(lambda value, threads: value / (fastest * threads))
             efficiency_graph.ylabel = "Efficiency"
 
+            print("\\section{{{}}}".format(graphKey))
             graphToTex(graph)
             graphToTex(speedup_graph)
             graphToTex(efficiency_graph)
+        print("\\end{document}")
 
 def calculate(json_data):
     result = Result(json_data)
