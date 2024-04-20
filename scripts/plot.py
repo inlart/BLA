@@ -96,12 +96,12 @@ class Result:
 
             # speed up
             speedup_graph = copy.deepcopy(graph)
-            speedup_graph.apply(lambda value, _: value / fastest)
+            speedup_graph.apply(lambda value, _: fastest / value)
             speedup_graph.ylabel = "Speed up"
 
             # efficiency
             efficiency_graph = copy.deepcopy(graph)
-            efficiency_graph.apply(lambda value, threads: value / (fastest * threads))
+            efficiency_graph.apply(lambda value, threads: (fastest / value) / threads)
             efficiency_graph.ylabel = "Efficiency"
 
             print("\\section{{{}}}".format(graphKey))
