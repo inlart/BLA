@@ -1,4 +1,4 @@
-project('BLA', 'cpp', version: '1.0.0-dev', default_options : ['cpp_std=c++14'])
+project('BLA', 'cpp', version: '1.0.0-dev', default_options : ['cpp_std=c++14', 'b_ndebug=if-release'])
 
 thread_dep = dependency('threads')
 vc_dep = dependency('Vc', required: true)
