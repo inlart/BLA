@@ -40,7 +40,11 @@ public:
         return *this;
     }
 
-    Matrix& operator=(Matrix&&) = default;
+    Matrix& operator=(Matrix&& other) {
+        m_data = std::move(other.m_data);
+
+        return *this;
+    }
 
     Matrix& operator=(const T& value) {
         fill(value);
