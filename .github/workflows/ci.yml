@@ -29,10 +29,10 @@ jobs:
       run: sudo apt install libgtest-dev
     - name: Install Vc
       run: sudo apt install vc-dev
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: 'true'
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
     - name: Install Meson/Ninja
@@ -45,7 +45,7 @@ jobs:
         CXX: g++
     - name: Run tests
       run: meson test -C build -v --num-processes 1
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       if: failure()
       with:
         name: Linux_Meson_Testlog
