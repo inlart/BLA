@@ -39,11 +39,9 @@ public:
         return tmp.template packet<simd_type>(p);
     }
 
-    //    EvaluatedExpression(const EvaluatedExpression&) = delete;
-    //    EvaluatedExpression(EvaluatedExpression&&) = default;
-    //
-    //    EvaluatedExpression& operator=(const EvaluatedExpression&) = delete;
-    //    EvaluatedExpression& operator=(EvaluatedExpression&&) = default;
+    Matrix<T>&& getMatrix() && {
+        return std::move(tmp);
+    }
 
 private:
     Matrix<T> tmp;

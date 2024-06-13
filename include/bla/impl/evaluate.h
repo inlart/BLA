@@ -103,6 +103,12 @@ std::enable_if_t<!vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, S
     allscale::api::user::algorithm::pfor(expr.size(), [&](const auto& pos) { dst[pos] = expr[pos]; });
 }
 
+// -- avoid copy of evaluated expressions
+template <typename T>
+void evaluate(EvaluatedExpression<T>& expr, Matrix<T>& dst) {
+    dst = std::move(expr).getMatrix();
+}
+
 } // namespace detail
 
 
