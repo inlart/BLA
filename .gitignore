@@ -38,3 +38,4 @@ builddir/
 # Tools
 .vscode/
 .ccls-cache/
+.cache/
