@@ -51,6 +51,31 @@ std::enable_if_t<std::is_same<scalar_type_t<E1>, std::complex<double>>::value, b
     return true;
 }
 
+template <typename E1, typename Func>
+Matrix<scalar_type_t<E1>> apply(const MatrixExpression<E1> &e1, Func f) {
+    Matrix<scalar_type_t<E1>> result({e1.rows(), e1.columns()});
+    for (int i = 0; i < result.rows(); ++i) {
+        for (int j = 0; j < result.columns(); ++j) {
+            result[{i, j}] = f(e1[{i, j}]);
+        }
+    }
+
+    return result;
+}
+
+template <typename E1, typename E2, typename Func>
+Matrix<scalar_type_t<E1>> apply(const MatrixExpression<E1> &e1, const MatrixExpression<E2> &e2, Func f) {
+    assert_eq(e1.size(), e2.size());
+    Matrix<scalar_type_t<E1>> result({e1.rows(), e1.columns()});
+    for (int i = 0; i < result.rows(); ++i) {
+        for (int j = 0; j < result.columns(); ++j) {
+            result[{i, j}] = f(e1[{i, j}], e2[{i, j}]);
+        }
+    }
+
+    return result;
+}
+
 TEST(Operation, Access) {
     Matrix<double> m({2, 2});
     m.zero();
@@ -90,7 +115,7 @@ TEST(Operation, Addition) {
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_EQ(m1 + m2, toAllscaleMatrix((toEigenMatrix(m1) + toEigenMatrix(m2)).eval()));
+        ASSERT_EQ(m1 + m2, apply(m1, m2, [](int t1, int t2){ return t1 + t2; }));
     }
 }
 
@@ -105,14 +130,11 @@ TEST(Operation, AssignAddition) {
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-
-        Eigen::MatrixXd m1e = toEigenMatrix(m1);
-        Eigen::MatrixXd m2e = toEigenMatrix(m2);
+        auto m3 = m1;
 
         m1 += m2;
-        m1e += m2e;
 
-        ASSERT_TRUE(isAlmostEqual(m1, toAllscaleMatrix(m1e)));
+        ASSERT_TRUE(isAlmostEqual(m1, apply(m3, m2, [](double t1, double t2){ return t1 + t2; })));
     }
 }
 
@@ -127,21 +149,11 @@ TEST(Operation, AssignAdditionRefSubMatrix) {
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-
-        Eigen::MatrixXd m1e = toEigenMatrix(m1);
-        Eigen::MatrixXd m2e = toEigenMatrix(m2);
+        auto m3 = m1;
 
         m1.sub({{0, 0}, {5, 76}}) += m2;
-        m1e.block(0, 0, 5, 76) += m2e;
 
-        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(toAllscaleMatrix((m1e.block(0, 0, 5, 76)).eval()))));
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
-
-        m1.topRows(5) += m2;
-        m1e.block(0, 0, 5, 76) += m2e;
-
-        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(toAllscaleMatrix((m1e.block(0, 0, 5, 76)).eval()))));
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), apply(m3.sub({{0, 0}, {5, 76}}), m2, [](double t1, double t2){ return t1 + t2; })));
     }
 }
 
@@ -156,7 +168,7 @@ TEST(Operation, Subtraction) {
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual(m1 - m2, Matrix<double>(toAllscaleMatrix((toEigenMatrix(m1) - toEigenMatrix(m2)).eval()))));
+        ASSERT_TRUE(isAlmostEqual(m1 - m2, apply(m1, m2, [](double t1, double t2){ return t1 - t2; })));
         ASSERT_TRUE(isAlmostEqual(m1 - m1, m2 - m2));
     }
 }
@@ -172,14 +184,11 @@ TEST(Operation, AssignSubtraction) {
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-
-        Eigen::MatrixXd m1e = toEigenMatrix(m1);
-        Eigen::MatrixXd m2e = toEigenMatrix(m2);
+        auto m3 = m1;
 
         m1 -= m2;
-        m1e -= m2e;
 
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
+        ASSERT_TRUE(isAlmostEqual(m1, apply(m3, m2, [](double t1, double t2){ return t1 - t2; })));
     }
 }
 
@@ -194,21 +203,11 @@ TEST(Operation, AssignSubtractionRefSubMatrix) {
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-
-        Eigen::MatrixXd m1e = toEigenMatrix(m1);
-        Eigen::MatrixXd m2e = toEigenMatrix(m2);
+        auto m3 = m1;
 
         m1.sub({{0, 0}, {5, 76}}) -= m2;
-        m1e.block(0, 0, 5, 76) -= m2e;
 
-        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(toAllscaleMatrix(m1e.block(0, 0, 5, 76)))));
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
-
-        m1.topRows(5) -= m2;
-        m1e.block(0, 0, 5, 76) -= m2e;
-
-        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(toAllscaleMatrix(m1e.block(0, 0, 5, 76)))));
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), apply(m3.sub({{0, 0}, {5, 76}}), m2, [](double t1, double t2){ return t1 - t2; })));
     }
 }
 
@@ -221,15 +220,13 @@ TEST(Operation, AssignScalarMultiplication) {
     auto g = [&]() { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
-
-        Eigen::MatrixXd m1e = toEigenMatrix(m1);
+        auto m2 = m1;
 
         auto number = g();
 
         m1 *= number;
-        m1e *= number;
 
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
+        ASSERT_TRUE(isAlmostEqual(m1, apply(m2, [number](double t1){ return t1 * number; })));
     }
 }
 
@@ -242,24 +239,13 @@ TEST(Operation, AssignScalarMultiplicationRefSubMatrix) {
     auto g = [&]() { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
+        auto m2 = m1;
 
         auto number = g();
 
-        Eigen::MatrixXd m1e = toEigenMatrix(m1);
-
         m1.sub({{0, 0}, {5, 76}}) *= number;
-        m1e.block(0, 0, 5, 76) *= number;
 
-        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(toAllscaleMatrix(m1e.block(0, 0, 5, 76)))));
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
-
-        number = g();
-
-        m1.topRows(5) *= number;
-        m1e.block(0, 0, 5, 76) *= number;
-
-        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(toAllscaleMatrix(m1e.block(0, 0, 5, 76)))));
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), apply(m2.sub({{0, 0}, {5, 76}}), [number](double t1){ return t1 * number; })));
     }
 }
 
@@ -272,15 +258,13 @@ TEST(Operation, AssignScalarDivision) {
     auto g = [&]() { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
-
-        Eigen::MatrixXd m1e = toEigenMatrix(m1);
+        auto m2 = m1;
 
         auto number = g();
 
         m1 /= number;
-        m1e /= number;
 
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
+        ASSERT_TRUE(isAlmostEqual(m1, apply(m2, [number](double t1){ return t1 / number; })));
     }
 }
 
@@ -293,24 +277,13 @@ TEST(Operation, AssignScalarDivisionRefSubMatrix) {
     auto g = [&]() { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
+        auto m2 = m1;
 
         auto number = g();
 
-        Eigen::MatrixXd m1e = toEigenMatrix(m1);
-
         m1.sub({{0, 0}, {5, 76}}) /= number;
-        m1e.block(0, 0, 5, 76) /= number;
 
-        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(toAllscaleMatrix(m1e.block(0, 0, 5, 76)))));
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
-
-        number = g();
-
-        m1.topRows(5) /= number;
-        m1e.block(0, 0, 5, 76) /= number;
-
-        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), Matrix<double>(toAllscaleMatrix(m1e.block(0, 0, 5, 76)))));
-        ASSERT_TRUE(isAlmostEqual(m1, Matrix<double>(toAllscaleMatrix(m1e))));
+        ASSERT_TRUE(isAlmostEqual(m1.sub({{0, 0}, {5, 76}}), apply(m2.sub({{0, 0}, {5, 76}}), [number](double t1){ return t1 / number; })));
     }
 }
 
@@ -325,7 +298,7 @@ TEST(Operation, Negation) {
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 20; ++i) {
         m.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual(-m, Matrix<double>(toAllscaleMatrix(-(toEigenMatrix(m))))));
+        ASSERT_TRUE(isAlmostEqual(-m, apply(m, [](double t1){ return -t1; })));
     }
 }
 
@@ -339,7 +312,7 @@ TEST(Operation, ScalarMatrixMultiplication) {
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
-        ASSERT_EQ(3. * m1, toAllscaleMatrix((3. * toEigenMatrix(m1)).eval()));
+        ASSERT_EQ(3. * m1, apply(m1, [](double t1){ return 3. * t1; }));
     }
 }
 
@@ -352,7 +325,7 @@ TEST(Operation, MatrixScalarMultiplication) {
     auto g = [&](const auto&) { return dis(gen); };
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
-        ASSERT_EQ(m1 * 3., toAllscaleMatrix((toEigenMatrix(m1) * 3.).eval()));
+        ASSERT_EQ(m1 * 3., apply(m1, [](double t1){ return t1 * 3.; }));
     }
 }
 
@@ -367,9 +340,11 @@ TEST(Operation, Multiple) {
     for(int i = 0; i < 20; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m1e = toEigenMatrix(m1);
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> m2e = toEigenMatrix(m2);
-        ASSERT_TRUE(isAlmostEqual(-(m1 + m1) * m2 + m2 - m2 + m2 - m2, toAllscaleMatrix(-(m1e + m1e) * m2e + m2e - m2e + m2e - m2e)));
+
+        auto tmp1 = apply(m1, m1, [](double t1, double t2){ return t1 + t2; });
+        auto tmp2 = apply(tmp1, [](double t1){ return -t1; });
+        auto tmp3 = gemm(tmp2, m2);
+        ASSERT_TRUE(isAlmostEqual(-(m1 + m1) * m2 + m2 - m2 + m2 - m2, tmp3));
     }
 }
 

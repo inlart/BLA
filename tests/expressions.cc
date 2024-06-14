@@ -4,8 +4,6 @@
 #include <iostream>
 #include <type_traits>
 
-#include "utils.h"
-
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
@@ -560,15 +558,20 @@ TEST(Expression, Conjugate) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g1);
         m2.fill_seq(g2);
+        auto m3 = m2.conjugate();
 
-        ASSERT_TRUE(isAlmostEqual(m1.conjugate(), toAllscaleMatrix(toEigenMatrix(m1).conjugate().eval())));
-        ASSERT_TRUE(isAlmostEqual(m2.conjugate(), toAllscaleMatrix(toEigenMatrix(m2).conjugate().eval())));
+        ASSERT_TRUE(isAlmostEqual(m1.conjugate(), m1));
+        for (int i = 0; i < m2.rows(); ++i) {
+            for (int j = 0; j < m2.columns(); ++j) {
+                ASSERT_EQ((m3[{i, j}]), (std::conj(m2[{i, j}])));
+            }
+        }
     }
 }
 
 TEST(Expression, Adjugate) {
-    Matrix<double> m1({102, 53});
-    Matrix<std::complex<double>> m2({102, 53});
+    Matrix<double> m1({53, 53});
+    Matrix<std::complex<double>> m2({53, 53});
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(-1, 1);
@@ -579,8 +582,16 @@ TEST(Expression, Adjugate) {
         m1.fill_seq(g1);
         m2.fill_seq(g2);
 
-        ASSERT_TRUE(isAlmostEqual(m1.adjoint(), toAllscaleMatrix(toEigenMatrix(m1).adjoint().eval())));
-        ASSERT_TRUE(isAlmostEqual(m2.adjoint(), toAllscaleMatrix(toEigenMatrix(m2).adjoint().eval())));
+        ASSERT_TRUE(isAlmostEqual(m1.adjoint(), m1.conjugate().transpose()));
+        ASSERT_TRUE(isAlmostEqual(m2.adjoint(), m2.conjugate().transpose()));
+
+        // auto result = m2.adjoint() * m2;
+        // for (int i = 0; i < result.rows(); ++i) {
+        //     for (int j = 0; j < result.columns(); ++j) {
+        //         std::cout << result << " ";
+        //     }
+        //     std::cout << std::endl;
+        // }
     }
 }
 

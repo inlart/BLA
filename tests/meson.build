@@ -1,6 +1,6 @@
 gtest_dep = dependency('gtest', required: false)
 
-test_dep = [thread_dep, allscale_dep, blas_dep, vc_dep, eigen_dep, gtest_dep]
+test_dep = [thread_dep, allscale_dep, blas_dep, vc_dep, gtest_dep]
 
 e_decomposition = executable('test_decomposition', 'decomposition.cc', include_directories: bla_inc, dependencies: test_dep)
 e_eigen = executable('test_eigen', 'eigen.cc', include_directories: bla_inc, dependencies: test_dep)

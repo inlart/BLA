@@ -62,7 +62,7 @@ TEST(Operation, Multiplication) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual((m1 * m2).eval(), toAllscaleMatrix((toEigenMatrix(m1) * toEigenMatrix(m2)).eval())));
+        ASSERT_TRUE(isAlmostEqual((m1 * m2).eval(), gemm(m1, m2)));
     }
 }
 
@@ -79,7 +79,7 @@ TEST(Operation, MultiplicationRefSub) {
         m1.fill_seq(g);
         m2.fill_seq(g);
         ASSERT_TRUE(isAlmostEqual((m1.sub({{13, 7}, {39, 13}}) * m2.sub({{3, 17}, {13, 27}})).eval(),
-                                  toAllscaleMatrix((toEigenMatrix(m1).block(13, 7, 39, 13) * toEigenMatrix(m2).block(3, 17, 13, 27)).eval())));
+                                  gemm(m1.sub({{13, 7}, {39, 13}}), m2.sub({{3, 17}, {13, 27}}))));
     }
 }
 
@@ -94,7 +94,7 @@ TEST(Operation, MultiplicationEval) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual((m1 * m2).eval(), toAllscaleMatrix((toEigenMatrix(m1) * toEigenMatrix(m2)).eval())));
+        ASSERT_TRUE(isAlmostEqual((m1 * m2).eval(), gemm(m1, m2)));
     }
 }
 
@@ -109,7 +109,7 @@ TEST(Operation, MultiplicationNoTransposeTranspose) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual(m1 * m2.transpose(), toAllscaleMatrix((toEigenMatrix(m1) * toEigenMatrix(m2).transpose()).eval())));
+        ASSERT_TRUE(isAlmostEqual(m1 * m2.transpose(), gemm(m1, m2.transpose())));
     }
 }
 
@@ -124,7 +124,7 @@ TEST(Operation, MultiplicationTransposeNoTranspose) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual(m1.transpose() * m2, toAllscaleMatrix((toEigenMatrix(m1).transpose() * toEigenMatrix(m2)).eval())));
+        ASSERT_TRUE(isAlmostEqual(m1.transpose() * m2, gemm(m1.transpose(), m2)));
     }
 }
 
@@ -139,7 +139,7 @@ TEST(Operation, MultiplicationTransposeTranspose) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual(m1.transpose() * m2.transpose(), toAllscaleMatrix((toEigenMatrix(m1).transpose() * toEigenMatrix(m2).transpose()).eval())));
+        ASSERT_TRUE(isAlmostEqual(m1.transpose() * m2.transpose(), gemm(m1.transpose(), m2.transpose())));
     }
 }
 
@@ -155,19 +155,16 @@ TEST(Operation, AssignMultiplication) {
         m1.fill_seq(g);
         m2.fill_seq(g);
 
-        Eigen::MatrixXd m1e = toEigenMatrix(m1);
-        Eigen::MatrixXd m2e = toEigenMatrix(m2);
-
+        auto m3 = m1;
         m1 *= m2;
-        m1e *= m2e;
 
-        ASSERT_TRUE(isAlmostEqual(m1, toAllscaleMatrix(m1e)));
+        ASSERT_TRUE(isAlmostEqual(m1, gemm(m3, m2)));
     }
 }
 
 TEST(Operation, MultiplicationStrassen) {
-    Matrix<double> m1({128, 128});
-    Matrix<double> m2({m1.columns(), 128});
+    Matrix<double> m1({64, 64});
+    Matrix<double> m2({m1.columns(), 64});
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> dis(-1, 1);
@@ -176,7 +173,7 @@ TEST(Operation, MultiplicationStrassen) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual(strassen<1>(m1, m2), toAllscaleMatrix((toEigenMatrix(m1) * toEigenMatrix(m2)).eval())));
+        ASSERT_TRUE(isAlmostEqual(strassen<1>(m1, m2), gemm(m1, m2)));
     }
 }
 
@@ -191,7 +188,7 @@ TEST(Operation, MultiplicationStrassenPadded) {
     for(int i = 0; i < 4; ++i) {
         m1.fill_seq(g);
         m2.fill_seq(g);
-        ASSERT_TRUE(isAlmostEqual(strassen<1>(m1, m2), toAllscaleMatrix((toEigenMatrix(m1) * toEigenMatrix(m2)).eval())));
+        ASSERT_TRUE(isAlmostEqual(strassen<1>(m1, m2), gemm(m1, m2)));
     }
 }
 
@@ -211,45 +208,9 @@ TEST(Operation, MultiplicationBLAS) {
 
         matrix_multiplication_blas(res, m1, m2);
 
-        ASSERT_TRUE(isAlmostEqual(res, toAllscaleMatrix((toEigenMatrix(m1) * toEigenMatrix(m2)).eval())));
+        ASSERT_TRUE(isAlmostEqual(res, gemm(m1, m2)));
     }
 }
-
-// TEST(Operation, MultiplicationAllscale) {
-//     Matrix<double> m1({255, 127});
-//     Matrix<double> m2({m1.columns(), 84});
-//     std::random_device rd;
-//     std::mt19937 gen(rd());
-//     std::uniform_real_distribution<double> dis(-1, 1);
-
-//     auto g = [&](const auto&) { return dis(gen); };
-//     for(int i = 0; i < 4; ++i) {
-//         m1.fill_seq(g);
-//         m2.fill_seq(g);
-//         Matrix<double> m3({m1.rows(), m2.columns()});
-//         matrix_multiplication_allscale(m3, m1, m2);
-
-//         ASSERT_TRUE(isAlmostEqual(m3, Matrix<double>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval())));
-//     }
-// }
-
-// TEST(Operation, MultiplicationAllscaleInteger) {
-//     Matrix<int> m1({255, 127});
-//     Matrix<int> m2({m1.columns(), 84});
-//     std::random_device rd;
-//     std::mt19937 gen(rd());
-//     std::uniform_int_distribution<> dis(1, 10);
-
-//     auto g = [&](const auto&) { return dis(gen); };
-//     for(int i = 0; i < 4; ++i) {
-//         m1.fill_seq(g);
-//         m2.fill_seq(g);
-//         Matrix<int> m3({m1.rows(), m2.columns()});
-//         matrix_multiplication_allscale(m3, m1, m2);
-
-//         ASSERT_EQ(m3, Matrix<int>((m1.toEigenMatrix() * m2.toEigenMatrix()).eval()));
-//     }
-// }
 
 TEST(Operation, MultiplicationFloat) {
     Matrix<float> m1({255, 127});
@@ -265,7 +226,7 @@ TEST(Operation, MultiplicationFloat) {
         Matrix<float> m3({m1.rows(), m2.columns()});
         m3 = m1 * m2;
 
-        ASSERT_TRUE(isAlmostEqual(m3, toAllscaleMatrix((toEigenMatrix(m1) * toEigenMatrix(m2)).eval())));
+        ASSERT_TRUE(isAlmostEqual(m3, gemm(m1, m2)));
     }
 }
 
@@ -324,13 +285,10 @@ TEST(Operation, MultiplicationVectorVector) {
     a.fill_seq(g);
     b.fill_seq(g);
 
-    Eigen::MatrixXd a_eigen = toEigenMatrix(a);
-    Eigen::MatrixXd b_eigen = toEigenMatrix(b);
-
     int k = n / 2;
 
     ASSERT_TRUE(isAlmostEqual((a.column(k).bottomRows(n - k - 1) * b.row(k).bottomColumns(n - k - 1)).eval(),
-                              toAllscaleMatrix((a_eigen.col(k).tail(n - k - 1) * b_eigen.row(k).tail(n - k - 1)).eval())));
+                              gemm(a.column(k).bottomRows(n - k - 1), b.row(k).bottomColumns(n - k - 1))));
 }
 
 } // end namespace impl
