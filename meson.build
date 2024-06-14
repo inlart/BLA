@@ -4,7 +4,6 @@ add_project_arguments('-march=native', language: 'cpp')
 
 thread_dep = dependency('threads')
 vc_dep = dependency('Vc', required: true)
-eigen_dep = dependency('eigen3', required: false)
 blas_dep = dependency(get_option('cblas-library'), required: true)
 
 # include dir
