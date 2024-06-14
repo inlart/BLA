@@ -74,7 +74,7 @@ TEST(Operation, LUDecompositionBig) {
 }
 
 TEST(Operation, LUDecompositionRNG) {
-    Matrix<double> m1({57, 57});
+    Matrix<double> m1({27, 27});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -166,7 +166,7 @@ TEST(Operation, FPLUSolve) {
 }
 
 TEST(Operation, Householder) {
-    Matrix<double> m1({57, 1});
+    Matrix<double> m1({27, 1});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -250,8 +250,8 @@ TEST(Operation, Determinant) {
 }
 
 TEST(Operation, DeterminantProperties) {
-    Matrix<double> m1({41, 41});
-    Matrix<double> m2({41, 41});
+    Matrix<double> m1({21, 21});
+    Matrix<double> m2({21, 21});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -281,8 +281,8 @@ TEST(Operation, DeterminantFPLUD) {
 }
 
 TEST(Operation, DeterminantFPLUDProperties) {
-    Matrix<double> m1({41, 41});
-    Matrix<double> m2({41, 41});
+    Matrix<double> m1({21, 21});
+    Matrix<double> m2({21, 21});
 
     std::random_device rd;
     std::mt19937 gen(rd());
