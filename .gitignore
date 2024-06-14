@@ -39,3 +39,4 @@ builddir/
 .vscode/
 .ccls-cache/
 .cache/
+compile_commands.json
