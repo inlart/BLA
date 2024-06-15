@@ -1,4 +1,4 @@
-gtest_dep = dependency('gtest', required: true)
+gtest_dep = dependency('gtest', required: true, main: true)
 
 test_dep = [thread_dep, allscale_dep, blas_dep, vc_dep, gtest_dep]
 
