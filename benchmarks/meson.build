@@ -38,7 +38,8 @@ eigen_dep = dependency('eigen3', required: false)
 
 # Eigen Benchmarks
 if eigen_dep.found()
-    benchmark_eigen_dep = [thread_dep, blas_dep, vc_dep, benchmark_dep, eigen_dep, openmp_dep]
+    benchmark_eigen_dep = [thread_dep, vc_dep, benchmark_dep, eigen_dep, openmp_dep]
+    benchmark_eigen_blas_dep = [thread_dep, blas_dep, vc_dep, benchmark_dep, eigen_dep, openmp_dep]
 
     e_add_eigen = executable('benchmark_add_eigen', 'add/add_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
     e_copy_eigen = executable('benchmark_copy_eigen', 'copy/copy_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
@@ -58,10 +59,13 @@ if eigen_dep.found()
     e_transpose_eigen = executable('benchmark_transpose_eigen', 'transpose/transpose_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
     e_x_eigen = executable('benchmark_x_eigen', 'x/x_eigen.cc', include_directories: bla_inc, dependencies: benchmark_eigen_dep)
 
+    e_mm_eigen_blas = executable('benchmark_mm_eigen_blas', 'mm/mm_eigen_blas.cc', include_directories: bla_inc, dependencies: benchmark_eigen_blas_dep)
+
     benchmark('Add Eigen', e_add_eigen)
     benchmark('Copy Eigen', e_copy_eigen)
     benchmark('Lower-Upper Decomposition Eigen', e_lud_eigen)
     benchmark('Matrix Multiplication Eigen', e_mm_eigen)
+    benchmark('Matrix Multiplication Eigen BLAS', e_mm_eigen_blas)
     benchmark('Matrix Multiplication FLOPS Eigen', e_mmflops_eigen)
     benchmark('Matrix Multiplication NT Eigen', e_mmnt_eigen)
     benchmark('Matrix Multiplication TN Eigen', e_mmtn_eigen)
