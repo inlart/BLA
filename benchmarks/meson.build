@@ -38,8 +38,8 @@ eigen_dep = dependency('eigen3', required: false)
 
 # Eigen Benchmarks
 if eigen_dep.found()
-    benchmark_eigen_dep = [thread_dep, vc_dep, benchmark_dep, eigen_dep, openmp_dep]
-    benchmark_eigen_blas_dep = [thread_dep, blas_dep, vc_dep, benchmark_dep, eigen_dep, openmp_dep]
+    benchmark_eigen_dep = [thread_dep, benchmark_dep, eigen_dep, openmp_dep]
+    benchmark_eigen_blas_dep = [thread_dep, blas_dep, benchmark_dep, eigen_dep, openmp_dep]
 
     e_add_eigen = executable('benchmark_add_eigen', 'add/add_eigen.cc', dependencies: benchmark_eigen_dep)
     e_copy_eigen = executable('benchmark_copy_eigen', 'copy/copy_eigen.cc', dependencies: benchmark_eigen_dep)
