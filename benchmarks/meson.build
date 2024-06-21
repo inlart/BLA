@@ -72,3 +72,14 @@ if eigen_dep.found()
     benchmark('Matrix Multiplication TT Eigen', e_mmtt_eigen)
     benchmark('QR Decomposition Eigen', e_qrd_eigen)
 endif
+
+blaze_dep = dependency('blaze', required: false)
+
+# Blaze Benchmarks
+if blaze_dep.found()
+    benchmark_blaze_dep = [thread_dep, benchmark_dep, blaze_dep, openmp_dep]
+
+    e_mm_blaze = executable('benchmark_mm_blaze', 'mm/mm_blaze.cc', dependencies: benchmark_blaze_dep)
+
+    benchmark('Matrix Multiplication Blaze', e_mm_blaze)
+endif
