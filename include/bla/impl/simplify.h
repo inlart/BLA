@@ -127,6 +127,18 @@ auto simplify_step(SubMatrix<MatrixMultiplication<E1, E2>> e) {
     return simplify_step(simplify_step(e.getExpression().getLeftExpression().sub(left)) * simplify_step(e.getExpression().getRightExpression().sub(right)));
 }
 
+template <typename E1, typename E2>
+auto simplify_step(SubMatrix<MatrixAddition<E1, E2>> e) {
+    return simplify_step(simplify_step(e.getExpression().getLeftExpression().sub(e.getBlockRange()))
+                         + simplify_step(e.getExpression().getRightExpression().sub(e.getBlockRange())));
+}
+
+template <typename E1, typename E2>
+auto simplify_step(SubMatrix<MatrixSubtraction<E1, E2>> e) {
+    return simplify_step(simplify_step(e.getExpression().getLeftExpression().sub(e.getBlockRange()))
+                         - simplify_step(e.getExpression().getRightExpression().sub(e.getBlockRange())));
+}
+
 template <typename E>
 expression_member_t<E> simplify_step(MatrixTranspose<MatrixTranspose<E>> e) {
     return e.getExpression().getExpression();

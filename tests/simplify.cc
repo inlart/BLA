@@ -260,5 +260,45 @@ TEST(Simplify, SubMatrixMultiplication) {
     ASSERT_TRUE(isAlmostEqual(result.sub(range), (m1 * m2).sub(range)));
 }
 
+TEST(Simplify, SubMatrixAddition) {
+    Matrix<double> m1({55, 58});
+    Matrix<double> m2({58, 55});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+
+    m1.fill_seq(g);
+    m2.fill_seq(g);
+
+    BlockRange range({4, 7}, {13, 27});
+
+    Matrix<double> result = m1 + m2;
+
+    ASSERT_TRUE(isAlmostEqual(result.sub(range), (m1 + m2).sub(range)));
+}
+
+TEST(Simplify, SubMatrixSubtraction) {
+    Matrix<double> m1({55, 58});
+    Matrix<double> m2({58, 55});
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dis(-1, 1);
+
+    auto g = [&](const auto&) { return dis(gen); };
+
+    m1.fill_seq(g);
+    m2.fill_seq(g);
+
+    BlockRange range({4, 7}, {13, 27});
+
+    Matrix<double> result = m1 - m2;
+
+    ASSERT_TRUE(isAlmostEqual(result.sub(range), (m1 - m2).sub(range)));
+}
+
 } // end namespace impl
 } // namespace bla
