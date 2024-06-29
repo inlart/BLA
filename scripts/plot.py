@@ -38,7 +38,7 @@ class Graph:
         if not libName in self.y:
             self.y[libName] = []
         values = self.y[libName]
-        assert(x == self.x[len(values)])
+        assert(x == 0 or x == self.x[len(values)])
         values.append(y)
 
     def apply(self, func):

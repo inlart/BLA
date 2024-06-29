@@ -14,9 +14,10 @@ def parseArgs():
     parser.add_argument("--out", dest="out_file", action="store", help="File to write the result to", default="result.json")
     parser.add_argument("--list", dest="list", action="store_true", help="List available benchmarks")
     parser.add_argument("--filter", dest="filter", nargs="+", help="Filter benchmarks by name", default=[])
+    parser.add_argument("--no-threads", dest="no_threads", action="store_true", help="Disable threads for benchmarks")
     return parser.parse_args()
 
-def runBenchmark(filename, path, cpu_count):
+def runBenchmark(filename, path, threads):
     benchmark_split = filename.split("_")
     benchmark_name = benchmark_split[1]
     benchmark_lib = benchmark_split[-1]
@@ -24,12 +25,14 @@ def runBenchmark(filename, path, cpu_count):
     result["name"] = benchmark_lib
     result["results"] = []
     print("Running benchmark {} ({}/{}) for library {}.".format(benchmark_name, path, filename, benchmark_lib))
-    for num_threads in range(1, cpu_count):
-        os.environ["NUM_WORKERS"] = str(num_threads)
-        os.environ["OMP_NUM_THREADS"] = str(num_threads)
+    for num_threads in threads:
+        if num_threads > 0:
+            os.environ["NUM_WORKERS"] = str(num_threads)
+            os.environ["OMP_NUM_THREADS"] = str(num_threads)
         val = subprocess.check_output(["{}/{}".format(path, filename), '--benchmark_format=json'])
         benchmark = {}
-        benchmark["num_threads"] = num_threads
+        if num_threads > 0:
+            benchmark["num_threads"] = num_threads
         benchmark["benchmark"] = json.loads(val)
         result["results"].append(benchmark)
     return (benchmark_name, result)
@@ -70,11 +73,14 @@ def main():
     if args.list:
         print('\n'.join(benchmarks))
         return
-    
-    cpu_count = psutil.cpu_count()
+
+    threads = [0]
+    if not args.no_threads:
+        threads = range(1, psutil.cpu_count())
+
     result = {}
     for benchmark in benchmarks:
-        name, results = runBenchmark(benchmark, args.benchmark_path, cpu_count)
+        name, results = runBenchmark(benchmark, args.benchmark_path, threads)
         if name not in result:
             result[name] = []
         result[name].append(results)
