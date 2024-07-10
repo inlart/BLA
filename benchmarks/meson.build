@@ -1,3 +1,15 @@
+if get_option('b_ndebug') == 'false'
+    warning('Benchmarks are built with b_ndebug == false')
+endif
+
+if get_option('buildtype') != 'release'
+    warning('Benchmarks are built with buildtype != release')
+endif
+
+if get_option('optimization') != '3'
+    warning('Benchmarks are built with optimization != 3')
+endif
+
 benchmark_dep = dependency('benchmark', required: true)
 
 benchmark_allscale_dep = [thread_dep, allscale_dep, blas_dep, vc_dep, benchmark_dep]
