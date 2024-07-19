@@ -262,7 +262,7 @@ TEST(Simplify, SubMatrixMultiplication) {
 
 TEST(Simplify, SubMatrixAddition) {
     Matrix<double> m1({55, 58});
-    Matrix<double> m2({58, 55});
+    Matrix<double> m2({55, 58});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -282,7 +282,7 @@ TEST(Simplify, SubMatrixAddition) {
 
 TEST(Simplify, SubMatrixSubtraction) {
     Matrix<double> m1({55, 58});
-    Matrix<double> m2({58, 55});
+    Matrix<double> m2({55, 58});
 
     std::random_device rd;
     std::mt19937 gen(rd());
