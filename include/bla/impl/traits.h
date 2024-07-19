@@ -49,6 +49,7 @@ struct expression_traits<Matrix<T>> {
 
     // -- values
     static constexpr bool vectorizable = std::is_arithmetic<T>::value;
+    static constexpr bool is_contiguous = true;
 };
 
 template <typename T>
@@ -61,6 +62,7 @@ struct expression_traits<const Matrix<T>> {
 
     // -- values
     static constexpr bool vectorizable = std::is_arithmetic<T>::value;
+    static constexpr bool is_contiguous = true;
 };
 
 template <typename E1, typename E2>
@@ -79,6 +81,7 @@ public:
     // -- values
     static constexpr bool vectorizable =
         expr1_t::vectorizable && expr2_t::vectorizable && std::is_same<typename expr1_t::scalar_type, typename expr2_t::scalar_type>::value;
+    static constexpr bool is_contiguous = expr1_t::is_contiguous && expr2_t::is_contiguous;
 };
 
 template <typename E1, typename E2>
@@ -97,6 +100,7 @@ public:
     // -- values
     static constexpr bool vectorizable =
         expr1_t::vectorizable && expr2_t::vectorizable && std::is_same<typename expr1_t::scalar_type, typename expr2_t::scalar_type>::value;
+    static constexpr bool is_contiguous = expr1_t::is_contiguous && expr2_t::is_contiguous;
 };
 
 template <typename E1, typename E2>
@@ -115,6 +119,7 @@ public:
     // -- values
     static constexpr bool vectorizable =
         expr1_t::vectorizable && expr2_t::vectorizable && std::is_same<typename expr1_t::scalar_type, typename expr2_t::scalar_type>::value;
+    static constexpr bool is_contiguous = expr1_t::is_contiguous && expr2_t::is_contiguous;
 };
 
 template <typename E1, typename E2>
@@ -132,6 +137,7 @@ public:
 
     // -- values
     static constexpr bool vectorizable = false;
+    static constexpr bool is_contiguous = expr1_t::is_contiguous && expr2_t::is_contiguous;
 
     static_assert(std::is_same<operation_result_t<std::plus<>, scalar_type, scalar_type>, scalar_type>::value,
                   "Resulting type of matrix multiplication must yield the same type if added up.");
@@ -147,6 +153,7 @@ struct expression_traits<EvaluatedExpression<T>> {
 
     // -- values
     static constexpr bool vectorizable = std::is_arithmetic<scalar_type>::value;
+    static constexpr bool is_contiguous = true;
 };
 
 template <typename E>
@@ -163,6 +170,7 @@ public:
 
     // -- values
     static constexpr bool vectorizable = expr_t::vectorizable;
+    static constexpr bool is_contiguous = expr_t::is_contiguous;
 };
 
 template <typename E>
@@ -179,6 +187,7 @@ public:
 
     // -- values
     static constexpr bool vectorizable = false;
+    static constexpr bool is_contiguous = expr_t::is_contiguous;
 };
 
 template <typename E>
@@ -195,6 +204,7 @@ public:
 
     // -- values
     static constexpr bool vectorizable = false;
+    static constexpr bool is_contiguous = expr_t::is_contiguous;
 };
 
 template <typename E>
@@ -211,6 +221,7 @@ public:
 
     // -- values
     static constexpr bool vectorizable = expr_t::vectorizable;
+    static constexpr bool is_contiguous = expr_t::is_contiguous;
 };
 
 template <typename E, typename U>
@@ -227,6 +238,7 @@ public:
 
     // -- values
     static constexpr bool vectorizable = expr_t::vectorizable && std::is_same<typename expr_t::scalar_type, U>::value;
+    static constexpr bool is_contiguous = expr_t::is_contiguous;
 };
 
 template <typename E, typename U>
@@ -243,6 +255,7 @@ public:
 
     // -- values
     static constexpr bool vectorizable = expr_t::vectorizable && std::is_same<typename expr_t::scalar_type, U>::value;
+    static constexpr bool is_contiguous = expr_t::is_contiguous;
 };
 
 template <typename T>
@@ -255,6 +268,7 @@ struct expression_traits<IdentityMatrix<T>> {
 
     // -- values
     static constexpr bool vectorizable = false;
+    static constexpr bool is_contiguous = false;
 };
 
 template <typename T>
@@ -267,6 +281,7 @@ struct expression_traits<PermutationMatrix<T>> {
 
     // -- values
     static constexpr bool vectorizable = false;
+    static constexpr bool is_contiguous = false;
 };
 
 template <typename E, ViewType View>
@@ -283,6 +298,7 @@ public:
 
     // -- values
     static constexpr bool vectorizable = false;
+    static constexpr bool is_contiguous = false;
 };
 
 template <typename E>
@@ -299,6 +315,7 @@ public:
 
     // -- values
     static constexpr bool vectorizable = expr_t::vectorizable;
+    static constexpr bool is_contiguous = false;
 };
 
 template <typename E>
@@ -333,6 +350,9 @@ using expression_tree_t = typename expression_traits<E>::expression_tree_type;
 
 template <typename E>
 static constexpr bool vectorizable_v = expression_traits<E>::vectorizable;
+
+template <typename E>
+static constexpr bool is_contiguous_v = expression_traits<E>::is_contiguous;
 
 template <typename T>
 struct is_associative : public std::false_type {};
