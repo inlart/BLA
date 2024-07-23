@@ -1,7 +1,5 @@
 #include <Eigen/Core>
 #include <benchmark/benchmark.h>
-#include <iostream>
-#include <random>
 
 #ifndef BENCHMARK_MIN_SIZE
 #define BENCHMARK_MIN_SIZE 128
@@ -17,10 +15,10 @@ static void benchmark_stranspose_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
     MatrixXd a = MatrixXd::Random(n, n);
-    MatrixXd b = MatrixXd::Random(n, n);
+    MatrixXd b;
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a * b.transpose().transpose()).eval());
+        benchmark::DoNotOptimize(b = a.transpose().transpose());
     }
 }
 

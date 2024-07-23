@@ -1,6 +1,5 @@
 #include <bla/matrix.h>
 #include <benchmark/benchmark.h>
-#include <iostream>
 #include <random>
 
 #ifndef BENCHMARK_MIN_SIZE
@@ -26,10 +25,9 @@ static void benchmark_stranspose_bla(benchmark::State& state) {
     auto g = [&]() { return dis(gen); };
 
     a.fill_seq(g);
-    b.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a * b.transpose().transpose()).eval());
+        benchmark::DoNotOptimize(b = a.transpose().transpose());
     }
 }
 
