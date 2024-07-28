@@ -14,14 +14,17 @@ class Matrix : public AccessBase<Matrix<T>> {
 
 public:
     Matrix(const point_type& size) : m_data(size) {
+        updatePtr();
     }
 
     template <typename E>
     Matrix(const MatrixExpression<E>& mat) : m_data(mat.size()) {
+        updatePtr();
         AccessBase<Matrix<T>>::evaluate(mat);
     }
 
     Matrix(const Matrix& mat) : m_data(mat.size()) {
+        updatePtr();
         AccessBase<Matrix<T>>::evaluate(mat);
     }
 
@@ -42,6 +45,7 @@ public:
 
     Matrix& operator=(Matrix&& other) {
         m_data = std::move(other.m_data);
+        updatePtr();
 
         return *this;
     }
@@ -82,8 +86,20 @@ public:
         return columns();
     }
 
+    T* ptr() {
+        return m_ptr;
+    }
+
+    const T* ptr() const {
+        return m_ptr;
+    }
+
 private:
+    void updatePtr() {
+        m_ptr = &m_data[{0, 0}];
+    }
     allscale::api::user::data::Grid<T, 2> m_data;
+    T* m_ptr;
 };
 
 } // namespace impl

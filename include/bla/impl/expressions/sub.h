@@ -106,9 +106,9 @@ public:
         return expression.stride();
     }
 
-    template <typename simd_type = PacketScalar>
+    template <typename S, typename simd_type = PacketScalar, typename simd_flags = Vc::UnalignedTag>
     simd_type packet(point_type p) const {
-        return simd_type(&operator[](p));
+        return simd_type(&operator[](p), simd_flags{});
     }
 
 private:
@@ -174,9 +174,9 @@ public:
     template <typename T2>
     void swap(SubMatrix<Matrix<T2>> other);
 
-    template <typename simd_type = PacketScalar>
+    template <typename S, typename simd_type = PacketScalar, typename simd_flags = Vc::UnalignedTag>
     simd_type packet(point_type p) const {
-        return simd_type(&operator[](p));
+        return simd_type(&operator[](p), simd_flags{});
     }
 
     coordinate_type stride() const {

@@ -98,9 +98,14 @@ public:
         eye();
     }
 
-    template <typename simd_type = PacketScalar>
-    simd_type packet(point_type p) const {
-        return simd_type(&operator[](p));
+    template <typename T, typename simd_type = PacketScalar, typename simd_flags = Vc::UnalignedTag>
+    std::enable_if_t<std::is_same<T, point_type>::value, simd_type> packet(point_type p) const {
+        return simd_type(&operator[](p), simd_flags{});
+    }
+
+    template <typename T, typename simd_type = PacketScalar, typename simd_flags = Vc::UnalignedTag>
+    std::enable_if_t<std::is_same<T, coordinate_type>::value, simd_type> packet(coordinate_type i) const {
+        return simd_type(impl().ptr() + i * PacketScalar::size(), simd_flags{});
     }
 
 protected:

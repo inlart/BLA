@@ -67,7 +67,7 @@ std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator*=(Matrix<T>& u,
     allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>(0), allscale::utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
         int i = coord[0] * packet_size;
         point_type p{i / u.columns(), i % u.columns()};
-        (u.template packet<PacketScalar>(p) * simd_value).store(&u[p]);
+        (u.template packet<point_type, PacketScalar>(p) * simd_value).store(&u[p]);
     });
 
     // calculate what can't be vectorized
@@ -100,7 +100,7 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> ope
     allscale::api::user::algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
-        (u.template packet<PacketScalar>(p) * simd_value).store(&u[p]);
+        (u.template packet<point_type, PacketScalar>(p) * simd_value).store(&u[p]);
     });
 
     // calculate what can't be vectorized
@@ -138,7 +138,7 @@ std::enable_if_t<vectorizable_v<Matrix<T>>, Matrix<T>&> operator/=(Matrix<T>& u,
     allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>(0), allscale::utils::Vector<coordinate_type, 1>(aligned_end / packet_size), [&](const auto& coord) {
         int i = coord[0] * packet_size;
         point_type p{i / u.columns(), i % u.columns()};
-        (u.template packet<PacketScalar>(p) / simd_value).store(&u[p]);
+        (u.template packet<point_type, PacketScalar>(p) / simd_value).store(&u[p]);
     });
 
     // calculate what can't be vectorized
@@ -171,7 +171,7 @@ std::enable_if_t<vectorizable_v<SubMatrix<Matrix<T>>>, SubMatrix<Matrix<T>>> ope
     allscale::api::user::algorithm::pfor(point_type{u.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
-        (u.template packet<PacketScalar>(p) / simd_value).store(&u[p]);
+        (u.template packet<point_type, PacketScalar>(p) / simd_value).store(&u[p]);
     });
 
     // calculate what can't be vectorized

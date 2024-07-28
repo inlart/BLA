@@ -34,9 +34,9 @@ public:
         return tmp.columns();
     }
 
-    template <typename simd_type = PacketScalar>
-    simd_type packet(point_type p) const {
-        return tmp.template packet<simd_type>(p);
+    template <typename S, typename simd_type = PacketScalar, typename simd_flags = Vc::UnalignedTag>
+    simd_type packet(S p) const {
+        return tmp.template packet<S, simd_type, simd_flags>(p);
     }
 
     Matrix<T>&& getMatrix() && {

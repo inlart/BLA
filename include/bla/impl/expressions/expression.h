@@ -399,9 +399,9 @@ public:
     T determinant() const;
     Matrix<T> inverse() const;
 
-    template <typename simd_type = PacketScalar>
-    std::enable_if_t<vectorizable_v<E>, simd_type> packet(point_type p) const {
-        return impl().template packet<simd_type>(p);
+    template <typename T, typename simd_type = PacketScalar, typename simd_flags = Vc::UnalignedTag>
+    std::enable_if_t<vectorizable_v<E>, simd_type> packet(T p) const {
+        return impl().template packet<T, simd_type, simd_flags>(p);
     }
 
     // -- defined in evaluate.h

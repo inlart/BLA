@@ -25,7 +25,7 @@ public:
     void evaluation(Matrix<T>& tmp) {
         using ct = coordinate_type;
 
-        using block_type = SimdBlock<decltype(expression.packet({0, 0}))>;
+        using block_type = SimdBlock<decltype(expression.template packet<point_type>({0, 0}))>;
 
         allscale::api::user::algorithm::pfor(point_type{rows() / block_type::size()[0], columns() / block_type::size()[1]}, [&](const auto& pos) {
             coordinate_type i = pos.x * block_type::size()[0];

@@ -27,8 +27,8 @@ void swap(SubMatrix<Matrix<T>> a, SubMatrix<Matrix<T>> b) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
 
-        PacketScalar tmp = a.template packet<PacketScalar>(p);
-        b.template packet<PacketScalar>(p).store(&a[p]);
+        PacketScalar tmp = a.template packet<point_type, PacketScalar>(p);
+        b.template packet<point_type, PacketScalar>(p).store(&a[p]);
         tmp.store(&b[p]);
     });
 
@@ -52,10 +52,9 @@ std::enable_if_t<vectorizable_v<E> && is_contiguous_v<E>> evaluate(const MatrixE
     constexpr coordinate_type packet_size = PacketScalar::size();
     const coordinate_type num_vectors = (expr.columns() * expr.rows()) / packet_size;
 
-    allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>(num_vectors), [&](const auto& i) {
-        const auto vector_start = i[0] * packet_size;
-        const point_type p{vector_start / expr.columns(), vector_start % expr.columns()};
-        expr.template packet<PacketScalar>(p).store(&dst[p], Vc::Aligned | Vc::Streaming);
+    allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>(num_vectors), [&](const auto& c) {
+        const auto i = c[0];
+        expr.template packet<coordinate_type, PacketScalar, decltype(Vc::Aligned | Vc::Streaming)>(i).store(dst.ptr() + i * packet_size, Vc::Aligned | Vc::Streaming);
     });
 
     for(auto i = num_vectors * packet_size; i < expr.columns() * expr.rows(); ++i) {
@@ -78,7 +77,7 @@ std::enable_if_t<vectorizable_v<E> && !is_contiguous_v<E>> evaluate(const Matrix
     allscale::api::user::algorithm::pfor(point_type{expr.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
-        expr.template packet<PacketScalar>(p).store(&dst[p]);
+        expr.template packet<point_type, PacketScalar>(p).store(&dst[p]);
     });
 
     // store the rest of each row
@@ -108,7 +107,7 @@ std::enable_if_t<vectorizable_v<E>> evaluate(const MatrixExpression<E>& expr, Su
     allscale::api::user::algorithm::pfor(point_type{expr.rows(), caligned_end / packet_size}, [&](const auto& coord) {
         int j = coord.y * packet_size;
         point_type p{coord.x, j};
-        expr.template packet<PacketScalar>(p).store(&dst[p]);
+        expr.template packet<point_type, PacketScalar>(p).store(&dst[p]);
     });
 
     // store the rest of each row

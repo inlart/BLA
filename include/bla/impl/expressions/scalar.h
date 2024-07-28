@@ -36,9 +36,9 @@ public:
         return expression.columns();
     }
 
-    template <typename simd_type = PacketScalar>
-    simd_type packet(point_type p) const {
-        return expression.template packet<simd_type>(p) * simd_type(scalar);
+    template <typename S, typename simd_type = PacketScalar, typename simd_flags = Vc::UnalignedTag>
+    simd_type packet(S p) const {
+        return expression.template packet<S, simd_type, simd_flags>(p) * simd_type(scalar);
     }
 
     const U& getScalar() const {
@@ -80,9 +80,9 @@ public:
         return expression.columns();
     }
 
-    template <typename simd_type = PacketScalar>
-    simd_type packet(point_type p) const {
-        return simd_type(scalar) * expression.template packet<simd_type>(p);
+    template <typename T, typename simd_type = PacketScalar, typename simd_flags = Vc::UnalignedTag>
+    simd_type packet(T p) const {
+        return simd_type(scalar) * expression.template packet<T, simd_type, simd_flags>(p);
     }
     const U& getScalar() const {
         return scalar;

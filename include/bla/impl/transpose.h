@@ -139,7 +139,7 @@ public:
     template <typename E>
     SimdBlock(const MatrixExpression<E>& exp, point_type pos) {
         for(coordinate_type i = 0; i < (coordinate_type)simd_t::size(); ++i) {
-            rows[i] = exp.template packet<simd_t>({pos.x + i, pos.y});
+            rows[i] = exp.template packet<point_type, simd_t>({pos.x + i, pos.y});
         }
     }
 
