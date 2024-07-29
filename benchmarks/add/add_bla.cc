@@ -16,6 +16,7 @@ using Matrix = bla::Matrix<double>;
 static void benchmark_add_bla(benchmark::State& state) {
     const int n = state.range(0);
 
+    Matrix res({n, n});
     Matrix a({n, n});
     Matrix b({n, n});
     Matrix c({n, n});
@@ -33,7 +34,7 @@ static void benchmark_add_bla(benchmark::State& state) {
     d.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a + b + c + d).eval());
+        benchmark::DoNotOptimize(res = a + b + c + d);
     }
 }
 

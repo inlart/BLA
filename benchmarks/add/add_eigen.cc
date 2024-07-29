@@ -16,13 +16,14 @@ using Eigen::MatrixXd;
 static void benchmark_add_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
+    MatrixXd res = MatrixXd(n, n);
     MatrixXd a = MatrixXd::Random(n, n);
     MatrixXd b = MatrixXd::Random(n, n);
     MatrixXd c = MatrixXd::Random(n, n);
     MatrixXd d = MatrixXd::Random(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a + b + c + d).eval());
+        benchmark::DoNotOptimize(res = a + b + c + d);
     }
 }
 
