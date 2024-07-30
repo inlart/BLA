@@ -91,10 +91,12 @@ blaze_dep = dependency('blaze', required: false)
 if blaze_dep.found()
     benchmark_blaze_dep = [thread_dep, benchmark_dep, blaze_dep, openmp_dep]
 
+    e_add_blaze = executable('benchmark_add_blaze', 'add/add_blaze.cc', dependencies: benchmark_blaze_dep)
     e_mm_blaze = executable('benchmark_mm_blaze', 'mm/mm_blaze.cc', dependencies: benchmark_blaze_dep)
     e_simplifytranspose_blaze = executable('benchmark_simplifytranspose_blaze', 'simplifytranspose/simplifytranspose_blaze.cc', dependencies: benchmark_blaze_dep)
 
 
+    benchmark('Add Blaze', e_add_blaze)
     benchmark('Matrix Multiplication Blaze', e_mm_blaze)
     benchmark('Simplify Transpose Blaze', e_simplifytranspose_blaze)
 endif
