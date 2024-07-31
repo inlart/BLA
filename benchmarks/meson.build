@@ -100,3 +100,11 @@ if blaze_dep.found()
     benchmark('Matrix Multiplication Blaze', e_mm_blaze)
     benchmark('Simplify Transpose Blaze', e_simplifytranspose_blaze)
 endif
+
+boost_dep = dependency('boost', required: false)
+
+# Boost uBLAS Benchmarks
+if boost_dep.found()
+    benchmark_blaze_dep = [thread_dep, benchmark_dep, boost_dep, openmp_dep]
+
+endif
