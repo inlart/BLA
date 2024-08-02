@@ -105,7 +105,7 @@ public:
 
     template <typename T, typename simd_type = PacketScalar, typename simd_flags = Vc::UnalignedTag>
     std::enable_if_t<std::is_same<T, coordinate_type>::value, simd_type> packet(coordinate_type i) const {
-        return simd_type(impl().ptr() + i * PacketScalar::size(), simd_flags{});
+        return simd_type(impl().ptr() + i, simd_flags{});
     }
 
 protected:

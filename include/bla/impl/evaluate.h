@@ -54,7 +54,7 @@ std::enable_if_t<vectorizable_v<E> && is_contiguous_v<E>> evaluate(const MatrixE
 
     allscale::api::user::algorithm::pfor(allscale::utils::Vector<coordinate_type, 1>(num_vectors), [&](const auto& c) {
         const auto i = c[0];
-        expr.template packet<coordinate_type, PacketScalar, decltype(Vc::Aligned | Vc::Streaming)>(i).store(dst.ptr() + i * packet_size, Vc::Aligned | Vc::Streaming);
+        expr.template packet<coordinate_type, PacketScalar, decltype(Vc::Aligned | Vc::Streaming)>(i * packet_size).store(dst.ptr() + i * packet_size, Vc::Aligned | Vc::Streaming);
     });
 
     for(auto i = num_vectors * packet_size; i < expr.columns() * expr.rows(); ++i) {
