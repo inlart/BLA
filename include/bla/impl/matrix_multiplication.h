@@ -19,6 +19,10 @@
 #include <array>
 #include <cblas.h>
 
+#ifndef BLA_MM_PARALLEL_CUTOFF
+    #define BLA_MM_PARALLEL_CUTOFF 166384
+#endif
+
 
 namespace bla {
 namespace impl {
@@ -351,7 +355,7 @@ void matrix_multiplication_pbblas(Matrix<T>& result, const Matrix<T>& lhs, const
 
     auto multiplication_rec = allscale::api::core::prec(
         // base case test
-        [&](const BlockRange& r) { return r.area() <= 128 * 128; },
+        [&](const BlockRange& r) { return r.area() <= BLA_MM_PARALLEL_CUTOFF; },
         // base case
         blas_multiplication,
         allscale::api::core::pick(
@@ -400,7 +404,7 @@ void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f,
 
     auto multiplication_rec = allscale::api::core::prec(
         // base case test
-        [&](const BlockRange& r) { return r.area() <= 128 * 128; },
+        [&](const BlockRange& r) { return r.area() <= BLA_MM_PARALLEL_CUTOFF; },
         // base case
         blas_multiplication,
         allscale::api::core::pick(
