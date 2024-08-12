@@ -76,7 +76,10 @@ def main():
 
     threads = [0]
     if not args.no_threads:
-        threads = range(1, psutil.cpu_count())
+        if "SLURM_CPUS_PER_TASK" in os.environ:
+            threads = range(1, int(os.getenv("SLURM_CPUS_PER_TASK")))
+        else:
+            threads = range(1, psutil.cpu_count())
 
     result = {}
     for benchmark in benchmarks:
