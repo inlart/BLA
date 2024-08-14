@@ -135,6 +135,8 @@ boost_dep = dependency('boost', required: false)
 
 # Boost uBLAS Benchmarks
 if boost_dep.found()
-    benchmark_blaze_dep = [thread_dep, benchmark_dep, boost_dep, openmp_dep]
+    benchmark_ublas_dep = [thread_dep, benchmark_dep, boost_dep, openmp_dep]
 
+
+    e_add_ublas = executable('benchmark_add_ublas', 'add/add_ublas.cc', dependencies: benchmark_ublas_dep)
 endif
