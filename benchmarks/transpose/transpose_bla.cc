@@ -16,7 +16,7 @@ using Matrix = bla::Matrix<double>;
 static void benchmark_transpose_bla(benchmark::State& state) {
     const int n = state.range(0);
 
-    Matrix a({n, n});
+    Matrix a({n, n}), res({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -27,7 +27,7 @@ static void benchmark_transpose_bla(benchmark::State& state) {
     a.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a.transpose()).eval());
+        benchmark::DoNotOptimize(res = a.transpose());
     }
 }
 
