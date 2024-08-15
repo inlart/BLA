@@ -2,3 +2,5 @@ option('enable-examples', type : 'boolean', value : false, description: 'Enable 
 option('enable-tests', type : 'boolean', value : true, description: 'Enable the build of unit tests')
 option('enable-benchmarks', type : 'boolean', value : false, description: 'Enable the build of benchmarks')
 option('cblas-library', type : 'string', value : 'openblas', description : 'The CBLAS library used')
+option('benchmarks-min-size', type : 'integer', min : 0, value : 0, description : 'The minimum matrix size used for benchmarks')
+option('benchmarks-max-size', type : 'integer', min : 0, value : 0, description : 'The maximum matrix size used for benchmarks')
