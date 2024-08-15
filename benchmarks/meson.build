@@ -153,5 +153,6 @@ if boost_dep.found()
     e_add_ublas = executable('benchmark_add_ublas', 'add/add_ublas.cc', cpp_args: additional_args, dependencies: benchmark_ublas_dep)
     e_mm_ublas = executable('benchmark_mm_ublas', 'mm/mm_ublas.cc', cpp_args: additional_args, dependencies: benchmark_ublas_dep)
     e_simplifytranspose_ublas = executable('benchmark_simplifytranspose_ublas', 'simplifytranspose/simplifytranspose_ublas.cc', cpp_args: additional_args, dependencies: benchmark_ublas_dep)
+    e_simplifysubmatrixmultiplication_ublas = executable('benchmark_simplifysubmatrixmultiplication_ublas', 'simplifysubmatrixmultiplication/simplifysubmatrixmultiplication_ublas.cc', cpp_args: additional_args, dependencies: benchmark_ublas_dep)
     e_transpose_ublas = executable('benchmark_transpose_ublas', 'transpose/transpose_ublas.cc', cpp_args: additional_args, dependencies: benchmark_ublas_dep)
 endif
