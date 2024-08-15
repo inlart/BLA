@@ -1,5 +1,4 @@
 #include <bla/matrix.h>
-#include <allscale/utils/assert.h>
 #include <cstdlib>
 #include <iostream>
 

@@ -1,4 +1,3 @@
-#include <allscale/utils/assert.h>
 #include <bla/matrix.h>
 #include <cstdlib>
 #include <functional>
