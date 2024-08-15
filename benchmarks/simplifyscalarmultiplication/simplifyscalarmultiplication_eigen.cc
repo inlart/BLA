@@ -16,10 +16,10 @@ using Eigen::MatrixXd;
 static void benchmark_scalarmultiplication_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
-    MatrixXd a = MatrixXd::Random(n, n);
+    MatrixXd a = MatrixXd::Random(n, n), b(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a * 5 * 6 * 8).eval());
+        benchmark::DoNotOptimize(b = a * 5 * 6 * 8);
     }
 }
 

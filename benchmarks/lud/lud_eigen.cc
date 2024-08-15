@@ -19,7 +19,8 @@ static void benchmark_lud_eigen(benchmark::State& state) {
     const MatrixXd a = MatrixXd::Random(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(a.lu());
+        auto b = a.lu();
+        benchmark::DoNotOptimize(b);
     }
 }
 

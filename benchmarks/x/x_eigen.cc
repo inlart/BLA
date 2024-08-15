@@ -16,8 +16,7 @@ using Eigen::MatrixXd;
 static void benchmark_x_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
-    MatrixXd a = MatrixXd::Ones(n, n);
-    MatrixXd b = MatrixXd(n, n);
+    MatrixXd a = MatrixXd::Ones(n, n), b(n, n), c(n, n);
 
     for(int i = 0; i < n; ++i) {
         for(int j = 0; j < n; ++j) {
@@ -26,7 +25,7 @@ static void benchmark_x_eigen(benchmark::State& state) {
     }
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a + 0.0001 * (b + b * b)).eval());
+        benchmark::DoNotOptimize(c = a + 0.0001 * (b + b * b));
     }
 }
 

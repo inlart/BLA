@@ -15,9 +15,9 @@ using Matrix = bla::Matrix<double>;
 
 static void benchmark_submm_bla(benchmark::State& state) {
     const int n = state.range(0);
+    const int k = n / 2;
 
-    Matrix a({n, n});
-    Matrix b({n, n});
+    Matrix a({n, n}), b({n, n}), c({n - k - 1, n - k - 1});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -30,10 +30,9 @@ static void benchmark_submm_bla(benchmark::State& state) {
     a.fill_seq(g);
     b.fill_seq(g);
 
-    int k = n / 2;
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a.column(k).bottomRows(n - k - 1) * b.row(k).bottomColumns(n - k - 1)).eval());
+        benchmark::DoNotOptimize(c = a.column(k).bottomRows(n - k - 1) * b.row(k).bottomColumns(n - k - 1));
     }
 }
 

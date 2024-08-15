@@ -17,8 +17,6 @@ static void benchmark_qrd_bla(benchmark::State& state) {
     const int n = state.range(0);
 
     Matrix a({n, n});
-    Matrix lower({n, n});
-    Matrix upper({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -29,9 +27,8 @@ static void benchmark_qrd_bla(benchmark::State& state) {
     a.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(a.QRDecomposition());
-        //        benchmark::DoNotOptimize(lower = lud.lower());
-        //        benchmark::DoNotOptimize(upper = lud.upper());
+        auto result = a.QRDecomposition();
+        benchmark::DoNotOptimize(result);
     }
 }
 

@@ -15,14 +15,13 @@ using Matrix = bla::Matrix<double>;
 static void benchmark_x_bla(benchmark::State& state) {
     const int n = state.range(0);
 
-    Matrix a({n, n});
-    Matrix b({n, n});
+    Matrix a({n, n}), b({n, n}), c({n, n});
 
     a.fill(1.);
     allscale::api::user::algorithm::pfor(b.size(), [&](auto p) { b[p] = (p[0] + p[1] + 1) / (double)(n * n); });
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a + 0.0001 * (b + b * b)).eval());
+        benchmark::DoNotOptimize(c = a + 0.0001 * (b + b * b));
     }
 }
 

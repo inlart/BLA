@@ -15,14 +15,12 @@ using Eigen::MatrixXd;
 
 static void benchmark_submm_eigen(benchmark::State& state) {
     const int n = state.range(0);
+    const int k = n / 2;
 
-    MatrixXd a = MatrixXd::Random(n, n);
-    MatrixXd b = MatrixXd::Random(n, n);
-
-    int k = n / 2;
+    MatrixXd a = MatrixXd::Random(n, n), b = MatrixXd::Random(n, n), c(n - k - 1, n - k - 1);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a.col(k).tail(n - k - 1) * b.row(k).tail(n - k - 1)).eval());
+        benchmark::DoNotOptimize(c = a.col(k).tail(n - k - 1) * b.row(k).tail(n - k - 1));
     }
 }
 

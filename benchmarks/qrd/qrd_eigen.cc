@@ -17,11 +17,10 @@ static void benchmark_qrd_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
     MatrixXd a = MatrixXd::Random(n, n);
-    //    MatrixXd lower(n, n);
-    //    MatrixXd upper(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(a.householderQr());
+        auto result = a.householderQr();
+        benchmark::DoNotOptimize(result);
     }
 }
 

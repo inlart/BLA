@@ -26,11 +26,10 @@ static void CustomArguments(benchmark::internal::Benchmark* b) {
 static void benchmark_mm_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
-    MatrixXd a = MatrixXd::Random(n, n);
-    MatrixXd b = MatrixXd::Random(n, n);
+    MatrixXd a = MatrixXd::Random(n, n), b = MatrixXd::Random(n, n), c(n ,n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a * b).eval());
+        benchmark::DoNotOptimize(c = a * b);
     }
 }
 

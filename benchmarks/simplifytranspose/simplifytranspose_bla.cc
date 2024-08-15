@@ -15,8 +15,7 @@ using Matrix = bla::Matrix<double>;
 static void benchmark_stranspose_bla(benchmark::State& state) {
     const int n = state.range(0);
 
-    Matrix a({n, n});
-    Matrix b({n, n});
+    Matrix a({n, n}), b({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());

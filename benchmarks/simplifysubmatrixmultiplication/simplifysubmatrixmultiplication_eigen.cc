@@ -16,11 +16,10 @@ using Eigen::MatrixXd;
 static void benchmark_submatrixmultiplication_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
-    MatrixXd a = MatrixXd::Random(n, n);
-    MatrixXd b = MatrixXd::Random(n, n);
+    MatrixXd a = MatrixXd::Random(n, n), b = MatrixXd::Random(n, n), c(n, n);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(((a * b).block(0, 0, n / 20, n / 20)).eval());
+        benchmark::DoNotOptimize(c = (a * b).block(0, 0, n / 2, n / 2));
     }
 }
 

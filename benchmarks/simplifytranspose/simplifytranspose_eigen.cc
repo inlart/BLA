@@ -14,8 +14,7 @@ using Eigen::MatrixXd;
 static void benchmark_stranspose_eigen(benchmark::State& state) {
     const int n = state.range(0);
 
-    MatrixXd a = MatrixXd::Random(n, n);
-    MatrixXd b;
+    MatrixXd a = MatrixXd::Random(n, n), b(n ,n);
 
     for(auto _ : state) {
         benchmark::DoNotOptimize(b = a.transpose().transpose());

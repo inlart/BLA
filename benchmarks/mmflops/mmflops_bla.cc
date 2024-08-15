@@ -27,8 +27,7 @@ static void CustomArguments(benchmark::internal::Benchmark* b) {
 static void benchmark_mm_bla(benchmark::State& state) {
     const int n = state.range(0);
 
-    Matrix a({n, n});
-    Matrix b({n, n});
+    Matrix a({n, n}), b({n, n}), c({n, n});
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -40,7 +39,7 @@ static void benchmark_mm_bla(benchmark::State& state) {
     b.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize((a * b).eval());
+        benchmark::DoNotOptimize(c = a * b);
     }
 }
 

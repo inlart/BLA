@@ -27,7 +27,8 @@ static void benchmark_lud_bla(benchmark::State& state) {
     a.fill_seq(g);
 
     for(auto _ : state) {
-        benchmark::DoNotOptimize(a.LUDecomposition());
+        auto b = a.LUDecomposition();
+        benchmark::DoNotOptimize(b);
     }
 }
 
