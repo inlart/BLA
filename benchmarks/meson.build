@@ -45,35 +45,10 @@ e_subtraction_bla = executable('benchmark_subtraction_bla', 'subtraction/subtrac
 e_transpose_bla = executable('benchmark_transpose_bla', 'transpose/transpose_bla.cc', cpp_args: additional_args, include_directories: bla_inc, dependencies: benchmark_allscale_dep)
 e_x_bla = executable('benchmark_x_bla', 'x/x_bla.cc', cpp_args: additional_args, include_directories: bla_inc, dependencies: benchmark_allscale_dep)
 
-e_cutoff_block_64 = executable('benchmark_mmcutoff_bla_block_64', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=64'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_128 = executable('benchmark_mmcutoff_bla_block_128', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=128'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_256 = executable('benchmark_mmcutoff_bla_block_256', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=256'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_512 = executable('benchmark_mmcutoff_bla_block_512', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=512'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_1024 = executable('benchmark_mmcutoff_bla_block_1024', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=1024'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_2048 = executable('benchmark_mmcutoff_bla_block_2048', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=2048'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_4096 = executable('benchmark_mmcutoff_bla_block_4096', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=4096'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_8192 = executable('benchmark_mmcutoff_bla_block_8192', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=8192'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_16384 = executable('benchmark_mmcutoff_bla_block_16384', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=16384'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_32768 = executable('benchmark_mmcutoff_bla_block_32768', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=32768'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_65536 = executable('benchmark_mmcutoff_bla_block_65536', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=65536'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_131072 = executable('benchmark_mmcutoff_bla_block_131072', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=131072'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_block_262144 = executable('benchmark_mmcutoff_bla_block_262144', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=262144'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-
-e_cutoff_row_64 = executable('benchmark_mmcutoff_bla_row_64', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=64'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_128 = executable('benchmark_mmcutoff_bla_row_128', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=128'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_256 = executable('benchmark_mmcutoff_bla_row_256', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=256'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_512 = executable('benchmark_mmcutoff_bla_row_512', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=512'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_1024 = executable('benchmark_mmcutoff_bla_row_1024', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=1024'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_2048 = executable('benchmark_mmcutoff_bla_row_2048', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=2048'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_4096 = executable('benchmark_mmcutoff_bla_row_4096', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=4096'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_8192 = executable('benchmark_mmcutoff_bla_row_8192', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=8192'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_16384 = executable('benchmark_mmcutoff_bla_row_16384', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=16384'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_32768 = executable('benchmark_mmcutoff_bla_row_32768', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=32768'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_65536 = executable('benchmark_mmcutoff_bla_row_65536', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=65536'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_131072 = executable('benchmark_mmcutoff_bla_row_131072', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=131072'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-e_cutoff_row_262144 = executable('benchmark_mmcutoff_bla_row_262144', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=262144'], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
-
-
+foreach i : [4, 8, 16, 32, 64, 128, 256, 512]
+    e_cutoff_block = executable('benchmark_mmcutoff_block_' + i.to_string() + '_bla', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=' + i.to_string()], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+    e_cutoff_row = executable('benchmark_mmcutoff_row_' + i.to_string() + '_bla', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=' + i.to_string()], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
+endforeach
 
 benchmark('Add BLA', e_add_bla)
 benchmark('Copy BLA', e_copy_bla)
@@ -111,13 +86,10 @@ if eigen_dep.found()
     e_transpose_eigen = executable('benchmark_transpose_eigen', 'transpose/transpose_eigen.cc', cpp_args: additional_args, dependencies: benchmark_eigen_dep)
     e_x_eigen = executable('benchmark_x_eigen', 'x/x_eigen.cc', cpp_args: additional_args, dependencies: benchmark_eigen_dep)
 
-    e_mm_eigen_blas = executable('benchmark_mm_eigen_blas', 'mm/mm_eigen_blas.cc', cpp_args: additional_args, dependencies: benchmark_eigen_blas_dep)
-
     benchmark('Add Eigen', e_add_eigen)
     benchmark('Copy Eigen', e_copy_eigen)
     benchmark('Lower-Upper Decomposition Eigen', e_lud_eigen)
     benchmark('Matrix Multiplication Eigen', e_mm_eigen)
-    benchmark('Matrix Multiplication Eigen BLAS', e_mm_eigen_blas)
     benchmark('Matrix Multiplication FLOPS Eigen', e_mmflops_eigen)
     benchmark('Matrix Multiplication NT Eigen', e_mmnt_eigen)
     benchmark('Matrix Multiplication TN Eigen', e_mmtn_eigen)

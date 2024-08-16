@@ -20,7 +20,7 @@
 #include <cblas.h>
 
 #ifndef BLA_MM_PARALLEL_CUTOFF
-    #define BLA_MM_PARALLEL_CUTOFF 166384
+    #define BLA_MM_PARALLEL_CUTOFF 128
 #endif
 
 
@@ -315,7 +315,7 @@ void matrix_multiplication_pblas(Matrix<double>& result, const Matrix<double>& l
 
     auto multiplication_rec = allscale::api::core::prec(
         // base case test
-        [&](const range_type& r) { return r.y < 64; },
+        [&](const range_type& r) { return r.y < BLA_MM_PARALLEL_CUTOFF; },
         // base case
         blas_multiplication,
         allscale::api::core::pick(
@@ -355,7 +355,7 @@ void matrix_multiplication_pbblas(Matrix<T>& result, const Matrix<T>& lhs, const
 
     auto multiplication_rec = allscale::api::core::prec(
         // base case test
-        [&](const BlockRange& r) { return r.area() <= BLA_MM_PARALLEL_CUTOFF; },
+        [&](const BlockRange& r) { return r.area() <= BLA_MM_PARALLEL_CUTOFF * BLA_MM_PARALLEL_CUTOFF; },
         // base case
         blas_multiplication,
         allscale::api::core::pick(
@@ -404,7 +404,7 @@ void matrix_multiplication_pbblas(T* result, const T* lhs, const T* rhs, Func f,
 
     auto multiplication_rec = allscale::api::core::prec(
         // base case test
-        [&](const BlockRange& r) { return r.area() <= BLA_MM_PARALLEL_CUTOFF; },
+        [&](const BlockRange& r) { return r.area() <= BLA_MM_PARALLEL_CUTOFF * BLA_MM_PARALLEL_CUTOFF; },
         // base case
         blas_multiplication,
         allscale::api::core::pick(
