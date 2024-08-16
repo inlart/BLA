@@ -20,7 +20,7 @@ def parseArgs():
 def runBenchmark(filename, path, threads):
     benchmark_split = filename.split("_")
     benchmark_name = benchmark_split[1]
-    benchmark_lib = benchmark_split[-1]
+    benchmark_lib = " ".join(benchmark_split[2:])
     result = {}
     result["name"] = benchmark_lib
     result["results"] = []
