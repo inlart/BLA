@@ -45,7 +45,7 @@ e_subtraction_bla = executable('benchmark_subtraction_bla', 'subtraction/subtrac
 e_transpose_bla = executable('benchmark_transpose_bla', 'transpose/transpose_bla.cc', cpp_args: additional_args, include_directories: bla_inc, dependencies: benchmark_allscale_dep)
 e_x_bla = executable('benchmark_x_bla', 'x/x_bla.cc', cpp_args: additional_args, include_directories: bla_inc, dependencies: benchmark_allscale_dep)
 
-foreach i : [4, 8, 16, 32, 64, 128, 256, 512]
+foreach i : [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     e_cutoff_block = executable('benchmark_mmcutoff_block_' + i.to_string() + '_bla', 'mmcutoff/mm_bla.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=' + i.to_string()], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
     e_cutoff_row = executable('benchmark_mmcutoff_row_' + i.to_string() + '_bla', 'mmcutoff/mm_bla_rowsplit.cc', cpp_args: additional_args + ['-DBLA_MM_PARALLEL_CUTOFF=' + i.to_string()], include_directories: bla_inc, dependencies: benchmark_allscale_dep)
 endforeach
