@@ -13,7 +13,9 @@ def graphToTex(graph):
     print("\\begin{{axis}}[xlabel={}, ylabel={}, xmode={}, xmin={}, ymin=0, legend pos=outer north east]".format(graph.xlabel, graph.ylabel, graph.xmode, graph.xmin))
     color = 0
     legend = []
-    for key in graph.y:
+    keys = list(graph.y.keys())
+    keys.sort()
+    for key in keys:
         compiler = key
         legend.append(compiler)
         print("\\addplot[color={},mark=x] coordinates {{".format(colors[color]))
@@ -118,8 +120,15 @@ class Result:
                 graphToTex(speedup_graph)
                 graphToTex(efficiency_graph)
             else:
-                graph.apply(lambda value: (value[0], (2 * value[0] * value[0] * value[0] - value[0] * value[0]) / value[1]))
-                graph.ylabel = "GFLOPS"
+                if "add" in graph.name:
+                    graph.apply(lambda value: (value[0], (3 * value[0] * value[0] * value[0]) / value[1]))
+                    graph.ylabel = "GFLOPS"
+                elif "transpose" in graph.name:
+                    graph.apply(lambda value: (value[0], 1000 * (value[0] * 8) / value[1]))
+                    graph.ylabel = "MB/s"
+                elif "mm" in graph.name:
+                    graph.apply(lambda value: (value[0], (2 * value[0] * value[0] * value[0] - value[0] * value[0]) / value[1]))
+                    graph.ylabel = "GFLOPS"
                 graph.xmode = "log"
                 graphToTex(graph)
         print("\\end{document}")
