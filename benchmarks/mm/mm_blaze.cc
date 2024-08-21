@@ -1,5 +1,3 @@
-#define BLAZE_BLAS_MODE 0
-
 #include <blaze/Blaze.h>
 #include <benchmark/benchmark.h>
 
