@@ -11,7 +11,7 @@
 
 using namespace blaze;
 
-static void benchmark_mm_eigen(benchmark::State& state) {
+static void benchmark_mm_blaze(benchmark::State& state) {
     const int n = state.range(0);
 
     DynamicMatrix<double, rowMajor> a(n, n), b(n, n), c(n, n);
@@ -28,6 +28,6 @@ static void benchmark_mm_eigen(benchmark::State& state) {
     }
 }
 
-BENCHMARK(benchmark_mm_eigen)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
+BENCHMARK(benchmark_mm_blaze)->RangeMultiplier(2)->Range(BENCHMARK_MIN_SIZE, BENCHMARK_MAX_SIZE)->UseRealTime();
 
 BENCHMARK_MAIN();
