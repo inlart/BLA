@@ -90,7 +90,7 @@ class Result:
         self.graphs[(graphType, name)] = Graph(graphType, name)
         return self.graphs[(graphType, name)]
 
-    def summary(self):
+    def summary(self, forceRuntime):
         print("\\documentclass{article}")
         print("\\usepackage{tikz,pgfplots}")
         print("\\begin{document}")
@@ -120,26 +120,28 @@ class Result:
                 graphToTex(speedup_graph)
                 graphToTex(efficiency_graph)
             else:
-                if "add" in graph.name:
-                    graph.apply(lambda value: (value[0], (3 * value[0] * value[0] * value[0]) / value[1]))
-                    graph.ylabel = "GFLOPS"
-                elif "transpose" in graph.name:
-                    graph.apply(lambda value: (value[0], 1000 * (value[0] * value[0] * 8) / value[1]))
-                    graph.ylabel = "MB/s"
-                elif "mm" in graph.name:
-                    graph.apply(lambda value: (value[0], (2 * value[0] * value[0] * value[0] - value[0] * value[0]) / value[1]))
-                    graph.ylabel = "GFLOPS"
+                if not forceRuntime:
+                    if "add" in graph.name:
+                        graph.apply(lambda value: (value[0], (3 * value[0] * value[0] * value[0]) / value[1]))
+                        graph.ylabel = "GFLOPS"
+                    elif "transpose" in graph.name:
+                        graph.apply(lambda value: (value[0], 1000 * (value[0] * value[0] * 8) / value[1]))
+                        graph.ylabel = "MB/s"
+                    elif "mm" in graph.name:
+                        graph.apply(lambda value: (value[0], (2 * value[0] * value[0] * value[0] - value[0] * value[0]) / value[1]))
+                        graph.ylabel = "GFLOPS"
                 graph.xmode = "log"
                 graphToTex(graph)
         print("\\end{document}")
 
-def calculate(json_data):
+def calculate(json_data, forceRuntime):
     result = Result(json_data)
-    result.summary()
+    result.summary(forceRuntime)
 
 def parseArgs():
     parser = argparse.ArgumentParser(description="Plot test results")
     parser.add_argument("--in", dest="in_file", action="store", help="File to read the result from", default="result.json")
+    parser.add_argument("--runtime", dest="runtime", action="store_true", help="Force graph to show runtime")
 
     return parser.parse_args()
 
@@ -147,7 +149,7 @@ def main():
     args = parseArgs()
     with open(args.in_file, 'r') as in_file:
         json_data = json.load(in_file)
-        calculate(json_data)
+        calculate(json_data, args.runtime)
 
 if __name__ == "__main__":
     main()
