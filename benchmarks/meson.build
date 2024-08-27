@@ -109,6 +109,7 @@ if blaze_dep.found()
     e_mm_blaze_blas = executable('benchmark_mm_blaze_blas', 'mm/mm_blaze.cc', cpp_args: ['-DBLAZE_BLAS_MODE=1', '-DBLAZE_BLAS_IS_PARALLEL=0', '-DBLAZE_USE_BLAS_MATRIX_MATRIX_MULTIPLICATION=1'] + additional_args, dependencies: benchmark_blaze_blas_dep)
     e_simplifytranspose_blaze = executable('benchmark_simplifytranspose_blaze', 'simplifytranspose/simplifytranspose_blaze.cc', cpp_args: additional_args, dependencies: benchmark_blaze_dep)
     e_simplifysubmatrixmultiplication_blaze = executable('benchmark_simplifysubmatrixmultiplication_blaze', 'simplifysubmatrixmultiplication/simplifysubmatrixmultiplication_blaze.cc', cpp_args: additional_args, dependencies: benchmark_blaze_dep)
+    e_simplifysubmatrixmultiplication_blaze_blas = executable('benchmark_simplifysubmatrixmultiplication_blaze_blas', 'simplifysubmatrixmultiplication/simplifysubmatrixmultiplication_blaze.cc', cpp_args: ['-DBLAZE_BLAS_MODE=1', '-DBLAZE_BLAS_IS_PARALLEL=0', '-DBLAZE_USE_BLAS_MATRIX_MATRIX_MULTIPLICATION=1'] + additional_args, dependencies: benchmark_blaze_blas_dep)
     e_transpose_blaze = executable('benchmark_transpose_blaze', 'transpose/transpose_blaze.cc', cpp_args: additional_args, dependencies: benchmark_blaze_dep)
 
 
