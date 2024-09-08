@@ -122,7 +122,7 @@ class Result:
             else:
                 if not forceRuntime:
                     if "add" in graph.name:
-                        graph.apply(lambda value: (value[0], (3 * value[0] * value[0] * value[0]) / value[1]))
+                        graph.apply(lambda value: (value[0], (3 * value[0] * value[0]) / value[1]))
                         graph.ylabel = "GFLOPS"
                     elif "transpose" in graph.name:
                         graph.apply(lambda value: (value[0], 1000 * (value[0] * value[0] * 8) / value[1]))
