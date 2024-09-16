@@ -5,7 +5,8 @@ import argparse
 import copy
 from enum import Enum
 
-colors = ["black", "blue", "brown", "cyan", "darkgray", "gray", "green", "lightgray", "lime", "magenta", "olive", "orange", "pink", "purple", "red", "teal", "violet", "yellow"]
+colors = ["red", "blue", "purple", "orange", "cyan", "lime", "yellow", "black", "magenta", "pink"]
+markers= ["*", "square*", "triangle*", "star", "x", "diamond*", "+", "square*", "pentagon*", "*"]
 
 def graphToTex(graph):
     global colors
@@ -18,7 +19,7 @@ def graphToTex(graph):
     for key in keys:
         compiler = key
         legend.append(compiler)
-        print("\\addplot[color={},mark=x] coordinates {{".format(colors[color]))
+        print("\\addplot[color={},mark={}] coordinates {{".format(colors[color], markers[color]))
         color += 1
         for value in graph.y[key]:
             print("({}, {})".format(value[0], value[1]))
@@ -67,7 +68,14 @@ class Result:
         for benchmarkName in data:
             benchmarkData = data[benchmarkName]
             for resultData in benchmarkData:
-                libName = resultData["name"]
+                splitName = resultData["name"].split()
+                for i, element in enumerate(splitName):
+                    if element.isnumeric():
+                        print(element)
+                        splitName[i] = "{:05d}".format(int(element))
+                        print(splitName[i])
+                fixedSplitName = ' '.join(splitName)
+                libName = fixedSplitName
                 for result in resultData["results"]:
                     numThreads = result["num_threads"] if "num_threads" in result else None
                     resultGBenchmark = result["benchmark"]
@@ -90,7 +98,7 @@ class Result:
         self.graphs[(graphType, name)] = Graph(graphType, name)
         return self.graphs[(graphType, name)]
 
-    def summary(self, forceRuntime):
+    def summary(self, forceRuntime, runtimeMs):
         print("\\documentclass{article}")
         print("\\usepackage{tikz,pgfplots}")
         print("\\begin{document}")
@@ -125,23 +133,27 @@ class Result:
                         graph.apply(lambda value: (value[0], (3 * value[0] * value[0]) / value[1]))
                         graph.ylabel = "GFLOPS"
                     elif "transpose" in graph.name:
-                        graph.apply(lambda value: (value[0], 1000 * (value[0] * value[0] * 8) / value[1]))
-                        graph.ylabel = "MB/s"
+                        graph.apply(lambda value: (value[0], (value[0] * value[0] * 8) / value[1]))
+                        graph.ylabel = "GB/s"
                     elif "mm" in graph.name:
                         graph.apply(lambda value: (value[0], (2 * value[0] * value[0] * value[0] - value[0] * value[0]) / value[1]))
                         graph.ylabel = "GFLOPS"
+                elif runtimeMs:
+                    graph.apply(lambda value: (value[0], value[1] / 1000000))
+                    graph.ylabel = "Runtime (ms)"
                 graph.xmode = "log"
                 graphToTex(graph)
         print("\\end{document}")
 
-def calculate(json_data, forceRuntime):
+def calculate(json_data, forceRuntime, runtimeMs):
     result = Result(json_data)
-    result.summary(forceRuntime)
+    result.summary(forceRuntime, runtimeMs)
 
 def parseArgs():
     parser = argparse.ArgumentParser(description="Plot test results")
     parser.add_argument("--in", dest="in_file", action="store", help="File to read the result from", default="result.json")
     parser.add_argument("--runtime", dest="runtime", action="store_true", help="Force graph to show runtime")
+    parser.add_argument("--ms", dest="ms", action="store_true", help="Show runtimes in ms")
 
     return parser.parse_args()
 
@@ -149,7 +161,7 @@ def main():
     args = parseArgs()
     with open(args.in_file, 'r') as in_file:
         json_data = json.load(in_file)
-        calculate(json_data, args.runtime)
+        calculate(json_data, args.runtime, args.ms)
 
 if __name__ == "__main__":
     main()
