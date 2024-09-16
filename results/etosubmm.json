@@ -1,0 +1,664 @@
+{
+    "simplifysubmatrixmultiplication": [
+        {
+            "name": "blaze blas",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-27T11:17:33+02:00",
+                            "host_name": "n3505-059",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_simplifysubmatrixmultiplication_blaze_blas",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 1799,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                16.96,
+                                80.45,
+                                85.82
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 9346,
+                                "real_time": 76271.4362244279,
+                                "cpu_time": 75957.25411940938,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 8406,
+                                "real_time": 107894.72344077728,
+                                "cpu_time": 107364.56388294074,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 4432,
+                                "real_time": 156156.80204983463,
+                                "cpu_time": 154842.6886281589,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1178,
+                                "real_time": 501629.42684769427,
+                                "cpu_time": 498308.0865874362,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 130,
+                                "real_time": 5611811.657077991,
+                                "cpu_time": 5555877.492307692,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 6,
+                                "real_time": 96938737.12482552,
+                                "cpu_time": 50411897.16666657,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2,
+                                "real_time": 431559492.13542044,
+                                "cpu_time": 116601519.00000004,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 1996067949.1050541,
+                                "cpu_time": 840100804.0000005,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "blaze",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-27T11:17:46+02:00",
+                            "host_name": "n3505-059",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_simplifysubmatrixmultiplication_blaze",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2627,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                55.08,
+                                85.87,
+                                87.51
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 7840,
+                                "real_time": 87739.9595658656,
+                                "cpu_time": 87362.49158163265,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 6866,
+                                "real_time": 95850.79843351472,
+                                "cpu_time": 95364.52505097582,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 3805,
+                                "real_time": 170466.37223658987,
+                                "cpu_time": 169409.52562417867,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 588,
+                                "real_time": 914020.5493538964,
+                                "cpu_time": 908744.3860544219,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 126,
+                                "real_time": 5441983.489112722,
+                                "cpu_time": 5382259.928571426,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 7,
+                                "real_time": 74571707.68507889,
+                                "cpu_time": 61210588.142857194,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2,
+                                "real_time": 408068199.40917194,
+                                "cpu_time": 339522296.49999976,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_blaze/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_submatrixmultiplication_blaze/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 2285251781.3444138,
+                                "cpu_time": 1676375745.9999998,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "eigen",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-19T22:50:02+02:00",
+                            "host_name": "n3511-047",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_simplifysubmatrixmultiplication_eigen",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 1800,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                0.08,
+                                0.03,
+                                0.01
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_submatrixmultiplication_eigen/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_submatrixmultiplication_eigen/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1808,
+                                "real_time": 418202.8910399098,
+                                "cpu_time": 416114.71238938055,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_eigen/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_submatrixmultiplication_eigen/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 425,
+                                "real_time": 1824701.6141172294,
+                                "cpu_time": 1813544.9411764704,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_eigen/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_submatrixmultiplication_eigen/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 132,
+                                "real_time": 5709694.636362711,
+                                "cpu_time": 5668090.984848483,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_eigen/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_submatrixmultiplication_eigen/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 5,
+                                "real_time": 131816331.20002516,
+                                "cpu_time": 97717670.00000003,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_eigen/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_submatrixmultiplication_eigen/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 11,
+                                "real_time": 74787453.72728471,
+                                "cpu_time": 74255397.27272724,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_eigen/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_submatrixmultiplication_eigen/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2,
+                                "real_time": 416699934.5000022,
+                                "cpu_time": 410609865.00000006,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_eigen/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_submatrixmultiplication_eigen/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 2217796481.0002775,
+                                "cpu_time": 2146571770.0000014,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_eigen/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_submatrixmultiplication_eigen/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 11758297077.99994,
+                                "cpu_time": 11612567339.999998,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-19T22:50:01+02:00",
+                            "host_name": "n3511-035",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_simplifysubmatrixmultiplication_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2281,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                0.22,
+                                31.71,
+                                86.58
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_submatrixmultiplication_bla/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_submatrixmultiplication_bla/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 3841,
+                                "real_time": 184714.56054026837,
+                                "cpu_time": 175269.0234313981,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_bla/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_submatrixmultiplication_bla/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 816,
+                                "real_time": 876481.7709258447,
+                                "cpu_time": 867684.4583333334,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_bla/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_submatrixmultiplication_bla/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 131,
+                                "real_time": 4896387.27478228,
+                                "cpu_time": 4801191.969465648,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_bla/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_submatrixmultiplication_bla/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 62,
+                                "real_time": 11580188.56339397,
+                                "cpu_time": 11453266.258064514,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_bla/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_submatrixmultiplication_bla/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 28,
+                                "real_time": 22927487.177574743,
+                                "cpu_time": 22710225.392857146,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_bla/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_submatrixmultiplication_bla/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 7,
+                                "real_time": 112938814.16453847,
+                                "cpu_time": 111008543.14285704,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_bla/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_submatrixmultiplication_bla/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 519788071.0475147,
+                                "cpu_time": 513039888.9999999,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_submatrixmultiplication_bla/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_submatrixmultiplication_bla/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 2658498716.074973,
+                                "cpu_time": 2635134958.0,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

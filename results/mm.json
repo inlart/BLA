@@ -1,0 +1,499 @@
+{
+    "mm": [
+        {
+            "name": "bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T17:35:04+02:00",
+                            "host_name": "n3511-044",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mm_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2381,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                6.06,
+                                48.18,
+                                92.77
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1915,
+                                "real_time": 389781.12837197573,
+                                "cpu_time": 385079.4997389035,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 531,
+                                "real_time": 961928.0951985082,
+                                "cpu_time": 949440.252354049,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 565,
+                                "real_time": 1225866.6691131296,
+                                "cpu_time": 1213560.2353982297,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 232,
+                                "real_time": 2533339.0402575503,
+                                "cpu_time": 2499713.9827586226,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 13,
+                                "real_time": 50853279.705804124,
+                                "cpu_time": 50518877.000000015,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 5,
+                                "real_time": 265398155.3390622,
+                                "cpu_time": 263295031.0,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 1111255010.5899572,
+                                "cpu_time": 1101538384.9999995,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 6610024520.19602,
+                                "cpu_time": 6562829258.000001,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "blaze",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T17:35:23+02:00",
+                            "host_name": "n3511-044",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mm_blaze",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2677,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                33.56,
+                                51.86,
+                                93.04
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_eigen/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_eigen/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 7663,
+                                "real_time": 90657.40061801112,
+                                "cpu_time": 90191.316325199,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_eigen/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 6092,
+                                "real_time": 159192.15950285693,
+                                "cpu_time": 158238.44812869336,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_eigen/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1269,
+                                "real_time": 639842.284463164,
+                                "cpu_time": 635279.4286840033,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_eigen/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 218,
+                                "real_time": 2359463.752102141,
+                                "cpu_time": 2345875.35321101,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_eigen/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 27,
+                                "real_time": 28352962.97928801,
+                                "cpu_time": 26031902.74074072,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_eigen/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 4,
+                                "real_time": 179256792.4130708,
+                                "cpu_time": 139022574.99999982,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_eigen/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 1278863796.0329652,
+                                "cpu_time": 911550038.9999998,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_eigen/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 5995704502.798616,
+                                "cpu_time": 5351938951.999999,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "eigen",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-18T23:34:46+02:00",
+                            "host_name": "n3508-045",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mm_eigen",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 1797,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                8.11,
+                                31.62,
+                                50.57
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_eigen/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_eigen/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2287,
+                                "real_time": 227592.147374261,
+                                "cpu_time": 226531.43900306078,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_eigen/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 558,
+                                "real_time": 1372997.801104981,
+                                "cpu_time": 1364536.8154121866,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_eigen/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 223,
+                                "real_time": 2948063.8250817163,
+                                "cpu_time": 2929564.7488789237,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_eigen/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 42,
+                                "real_time": 39320025.02343883,
+                                "cpu_time": 39019605.61904762,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_eigen/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 11,
+                                "real_time": 121000570.36150247,
+                                "cpu_time": 107859365.18181816,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_eigen/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2,
+                                "real_time": 350599629.5134537,
+                                "cpu_time": 347069865.00000083,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_eigen/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 2220197981.9801636,
+                                "cpu_time": 2185037195.9999995,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_eigen/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_eigen/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 11637508387.96841,
+                                "cpu_time": 11475477414.000002,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

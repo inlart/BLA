@@ -1,0 +1,1654 @@
+{
+    "mmcutoff": [
+        {
+            "name": "row 4 bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T12:22:27+02:00",
+                            "host_name": "n3508-019",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mmcutoff_row_4_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2503,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                88.69,
+                                21.68,
+                                7.84
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2049,
+                                "real_time": 463430.99711787386,
+                                "cpu_time": 458849.065885798,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 276,
+                                "real_time": 2628561.5690605906,
+                                "cpu_time": 2606787.4891304336,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 44,
+                                "real_time": 12694389.453496445,
+                                "cpu_time": 12560520.159090906,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 24,
+                                "real_time": 22737606.74870573,
+                                "cpu_time": 22509559.87499999,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 3,
+                                "real_time": 230531659.287711,
+                                "cpu_time": 228187818.00000003,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 4428689678.898081,
+                                "cpu_time": 4384907498.0,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 23342383104.143665,
+                                "cpu_time": 23102132330.000004,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 193442845592.04242,
+                                "cpu_time": 191144502553.0,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "row 512 bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T12:26:17+02:00",
+                            "host_name": "n3508-019",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mmcutoff_row_512_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2697,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                238.47,
+                                143.64,
+                                60.82
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1827,
+                                "real_time": 349254.9539925495,
+                                "cpu_time": 345748.98960043787,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 300,
+                                "real_time": 2385037.023729334,
+                                "cpu_time": 2361421.876666666,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 74,
+                                "real_time": 9523194.242344314,
+                                "cpu_time": 9422824.270270271,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 19,
+                                "real_time": 38034932.84718379,
+                                "cpu_time": 37577077.736842066,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 5,
+                                "real_time": 157737116.6087687,
+                                "cpu_time": 156326476.19999993,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 523568522.1850872,
+                                "cpu_time": 519357379.99999976,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 1835546665.1264577,
+                                "cpu_time": 1827131923.0000005,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 7986619050.847366,
+                                "cpu_time": 7936901205.999998,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "row 8 bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T12:26:37+02:00",
+                            "host_name": "n3508-019",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mmcutoff_row_8_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2873,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                197.68,
+                                140.78,
+                                61.66
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1493,
+                                "real_time": 545580.2518210692,
+                                "cpu_time": 538167.5619557938,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 567,
+                                "real_time": 1473249.1267710347,
+                                "cpu_time": 1462669.5643738976,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 101,
+                                "real_time": 6683970.870689886,
+                                "cpu_time": 6628727.643564358,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 37,
+                                "real_time": 14818181.862702241,
+                                "cpu_time": 14683032.486486493,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 5,
+                                "real_time": 141868548.4211892,
+                                "cpu_time": 139899788.99999994,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 1999725050.0600786,
+                                "cpu_time": 1981720625.9999995,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 15452425912.02259,
+                                "cpu_time": 15274835267.0,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 144867756159.97614,
+                                "cpu_time": 143115600344.0,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "row 1024 bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T12:29:28+02:00",
+                            "host_name": "n3508-019",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mmcutoff_row_1024_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2810,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                238.67,
+                                186.04,
+                                92.36
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1824,
+                                "real_time": 352640.11239632964,
+                                "cpu_time": 348885.74067982455,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 299,
+                                "real_time": 2633192.213594814,
+                                "cpu_time": 2287915.8996655517,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 43,
+                                "real_time": 16179117.677343447,
+                                "cpu_time": 15604616.744186044,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 11,
+                                "real_time": 62642991.71214754,
+                                "cpu_time": 62099736.36363635,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 4,
+                                "real_time": 266115130.04172593,
+                                "cpu_time": 263723009.25000003,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 820489866.8918759,
+                                "cpu_time": 815580445.9999994,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 3433203384.0473742,
+                                "cpu_time": 3416329357.0000005,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 13496751697.035507,
+                                "cpu_time": 13452905048.0,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "row 64 bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T12:29:55+02:00",
+                            "host_name": "n3508-019",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mmcutoff_row_64_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2530,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                177.42,
+                                176.24,
+                                91.63
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2457,
+                                "real_time": 400519.85354271537,
+                                "cpu_time": 397594.0407000407,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 588,
+                                "real_time": 1303529.0900674858,
+                                "cpu_time": 1294711.3741496592,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 238,
+                                "real_time": 2686375.9868786116,
+                                "cpu_time": 2671830.5966386558,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 58,
+                                "real_time": 9438234.36130609,
+                                "cpu_time": 9367176.224137938,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 18,
+                                "real_time": 38966043.839334615,
+                                "cpu_time": 38613986.05555551,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2,
+                                "real_time": 250434653.9499238,
+                                "cpu_time": 247840809.49999997,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 3126800828.1476793,
+                                "cpu_time": 3103791659.9999995,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 22665624674.87529,
+                                "cpu_time": 22453796474.0,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "row 32 bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T12:31:43+02:00",
+                            "host_name": "n3508-019",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mmcutoff_row_32_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2673,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                165.57,
+                                177.63,
+                                101.88
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2530,
+                                "real_time": 403220.26990633825,
+                                "cpu_time": 399754.7221343874,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 869,
+                                "real_time": 1080765.0724813873,
+                                "cpu_time": 1075116.7686996546,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 254,
+                                "real_time": 2755792.4806001033,
+                                "cpu_time": 2738549.6535433065,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 78,
+                                "real_time": 7587647.152085526,
+                                "cpu_time": 7535638.205128205,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 14,
+                                "real_time": 41452403.28008575,
+                                "cpu_time": 41036657.21428573,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 879867326.002568,
+                                "cpu_time": 873523412.0,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 4759326433.995739,
+                                "cpu_time": 4713074645.000001,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 39667445808.8819,
+                                "cpu_time": 39213520260.0,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "row 16 bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T12:37:29+02:00",
+                            "host_name": "n3508-019",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mmcutoff_row_16_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2484,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                231.06,
+                                209.92,
+                                139.71
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1807,
+                                "real_time": 470993.1134282883,
+                                "cpu_time": 466525.3691200885,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 757,
+                                "real_time": 1392419.7846214082,
+                                "cpu_time": 1382595.4346103037,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 210,
+                                "real_time": 3368442.2760935766,
+                                "cpu_time": 3343985.2000000007,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 52,
+                                "real_time": 10317916.211743768,
+                                "cpu_time": 10253222.365384618,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 9,
+                                "real_time": 72402941.78740846,
+                                "cpu_time": 71819163.77777773,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 1108565754.9556346,
+                                "cpu_time": 1098257018.0,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 7821012265.048922,
+                                "cpu_time": 7736718031.999999,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 73507696500.04803,
+                                "cpu_time": 72708200224.0,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "row 256 bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T12:39:02+02:00",
+                            "host_name": "n3508-019",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mmcutoff_row_256_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2516,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                227.78,
+                                215.74,
+                                148.66
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1847,
+                                "real_time": 340828.95228019037,
+                                "cpu_time": 337472.2051976177,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 401,
+                                "real_time": 1677234.6634956591,
+                                "cpu_time": 1660749.3216957608,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 102,
+                                "real_time": 5880682.843317296,
+                                "cpu_time": 5816634.147058825,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 32,
+                                "real_time": 20046117.970196065,
+                                "cpu_time": 19817892.09375001,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 9,
+                                "real_time": 81857316.99793702,
+                                "cpu_time": 81170646.88888891,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2,
+                                "real_time": 315834121.8950227,
+                                "cpu_time": 313584662.00000024,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 1133101857.0344896,
+                                "cpu_time": 1125374780.0000005,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 8517099834.97858,
+                                "cpu_time": 8458509409.999998,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "row 128 bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T12:39:21+02:00",
+                            "host_name": "n3508-019",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mmcutoff_row_128_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2794,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                189.05,
+                                208.02,
+                                147.56
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2386,
+                                "real_time": 310536.30888074863,
+                                "cpu_time": 307291.64794635377,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 452,
+                                "real_time": 1508419.0176700992,
+                                "cpu_time": 1495029.469026549,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 164,
+                                "real_time": 4296825.396567129,
+                                "cpu_time": 4255921.134146341,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 56,
+                                "real_time": 12171520.568829563,
+                                "cpu_time": 12068744.66071429,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 13,
+                                "real_time": 46870027.75832438,
+                                "cpu_time": 46444594.00000004,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 3,
+                                "real_time": 269274309.3551447,
+                                "cpu_time": 266736627.00000024,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 1432836822.0012636,
+                                "cpu_time": 1421852218.0000007,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 16216596933.081745,
+                                "cpu_time": 16111891184.999998,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "row 2048 bla",
+            "results": [
+                {
+                    "benchmark": {
+                        "context": {
+                            "date": "2024-08-20T12:40:09+02:00",
+                            "host_name": "n3508-019",
+                            "executable": "./build/BLA-main/build/benchmarks//benchmark_mmcutoff_row_2048_bla",
+                            "num_cpus": 256,
+                            "mhz_per_cpu": 2808,
+                            "cpu_scaling_enabled": false,
+                            "caches": [
+                                {
+                                    "type": "Data",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Instruction",
+                                    "level": 1,
+                                    "size": 32768,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 2,
+                                    "size": 524288,
+                                    "num_sharing": 2
+                                },
+                                {
+                                    "type": "Unified",
+                                    "level": 3,
+                                    "size": 33554432,
+                                    "num_sharing": 16
+                                }
+                            ],
+                            "load_avg": [
+                                184.08,
+                                204,
+                                149.06
+                            ],
+                            "library_version": "v1.8.5",
+                            "library_build_type": "release",
+                            "json_schema_version": 1
+                        },
+                        "benchmarks": [
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 0,
+                                "run_name": "benchmark_mm_bla_rowsplit/128/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1953,
+                                "real_time": 344622.9108591615,
+                                "cpu_time": 341391.3087557604,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 1,
+                                "run_name": "benchmark_mm_bla_rowsplit/256/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 302,
+                                "real_time": 2227030.3945803386,
+                                "cpu_time": 2203529.5033112583,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 2,
+                                "run_name": "benchmark_mm_bla_rowsplit/512/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 46,
+                                "real_time": 15567992.606362248,
+                                "cpu_time": 15372364.173913043,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 3,
+                                "run_name": "benchmark_mm_bla_rowsplit/1024/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 6,
+                                "real_time": 88446168.3453992,
+                                "cpu_time": 87531434.33333333,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 4,
+                                "run_name": "benchmark_mm_bla_rowsplit/2048/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 2,
+                                "real_time": 310768376.57019496,
+                                "cpu_time": 308395530.4999999,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 5,
+                                "run_name": "benchmark_mm_bla_rowsplit/4096/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 886091200.1691759,
+                                "cpu_time": 880589142.9999999,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 6,
+                                "run_name": "benchmark_mm_bla_rowsplit/8192/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 6299002493.964508,
+                                "cpu_time": 6277761057.0,
+                                "time_unit": "ns"
+                            },
+                            {
+                                "name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "family_index": 0,
+                                "per_family_instance_index": 7,
+                                "run_name": "benchmark_mm_bla_rowsplit/16384/real_time",
+                                "run_type": "iteration",
+                                "repetitions": 1,
+                                "repetition_index": 0,
+                                "threads": 1,
+                                "iterations": 1,
+                                "real_time": 23952353715.896606,
+                                "cpu_time": 23851393759.999996,
+                                "time_unit": "ns"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}
